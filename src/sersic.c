@@ -196,6 +196,11 @@ profit_profile *profit_create_sersic() {
 	p->profile.make_profile = &profit_make_sersic;
 
 	/* Sane defaults */
+	p->xcen = 0;
+	p->ycen = 0;
+	p->mag = 15;
+	p->re = 1;
+	p->nser = 5;
 	p->box = 0;
 	p->ang   = 0.0;
 	p->axrat = 1.;
