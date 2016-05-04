@@ -69,19 +69,19 @@ void profit_make_model(profit_model *model) {
 	unsigned int i, j, p;
 
 	if( !model->width ) {
-		model->error = "Model's width is 0";
+		model->error = strdup("Model's width is 0");
 		return;
 	}
 	else if( !model->height ) {
-		model->error = "Model's height is 0";
+		model->error = strdup("Model's height is 0");
 		return;
 	}
 	else if( !model->res_x ) {
-		model->error = "Model's res_x is 0";
+		model->error = strdup("Model's res_x is 0");
 		return;
 	}
 	else if( !model->res_y ) {
-		model->error = "Model's res_y is 0";
+		model->error = strdup("Model's res_y is 0");
 		return;
 	}
 

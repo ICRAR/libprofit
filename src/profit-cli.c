@@ -283,6 +283,7 @@ int main(int argc, char *argv[]) {
 	/* Check for any errors */
 	if( m->error ) {
 		fprintf(stderr, "Error while calculating model: %s\n", m->error);
+		profit_cleanup(m);
 		return 1;
 	}
 	for(i=0; i!=n_profiles; i++) {

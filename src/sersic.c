@@ -26,6 +26,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "sersic.h"
 
@@ -174,15 +175,15 @@ void profit_init_sersic(profit_profile *profile, profit_model *model) {
 	double bn;
 
 	if( !sersic_p->_qgamma ) {
-		profile->error = "Missing qgamma function on sersic profile";
+		profile->error = strdup("Missing qgamma function on sersic profile");
 		return;
 	}
 	if( !sersic_p->_gammafn ) {
-		profile->error = "Missing gamma function on sersic profile";
+		profile->error = strdup("Missing gamma function on sersic profile");
 		return;
 	}
 	if( !sersic_p->_beta ) {
-		profile->error = "Missing beta function on sersic profile";
+		profile->error = strdup("Missing beta function on sersic profile");
 		return;
 	}
 
