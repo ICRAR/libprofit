@@ -268,6 +268,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	profit_model *m = (profit_model *)malloc(sizeof(profit_model));
+	m->error      = NULL;
 	m->width      = width;
 	m->height     = height;
 	m->res_x      = width;

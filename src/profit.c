@@ -54,6 +54,7 @@ profit_profile* profit_get_profile(const char const * name) {
 		}
 		if( !strcmp(name, p->name) ) {
 			profit_profile *profile = p->create();
+			profile->error = NULL;
 			profile->name = strdup(name);
 			return profile;
 		}
