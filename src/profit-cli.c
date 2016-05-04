@@ -126,6 +126,8 @@ profit_profile *desc_to_profile(
 		if( !assigned ) {
 			fprintf(stderr, "Ignoring unknown %s profile parameter: %s\n", name, key_and_val[0]);
 		}
+		free(key_and_val[0]);
+		free(key_and_val[1]);
 		free(key_and_val);
 
 		/* Otherwise we'll always start strtok from the beginning */
@@ -269,6 +271,7 @@ int main(int argc, char *argv[]) {
 
 	profit_model *m = (profit_model *)malloc(sizeof(profit_model));
 	m->error      = NULL;
+	m->image      = NULL;
 	m->width      = width;
 	m->height     = height;
 	m->res_x      = width;
@@ -295,9 +298,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	switch(output) {
+
 		case binary:
 			fwrite(m->image, sizeof(double), m->width * m->height, stdout);
 			break;
+
 		case text:
 			for(j=0; j!=m->height; j++) {
 				for(i=0; i!=m->width; i++) {
@@ -305,6 +310,10 @@ int main(int argc, char *argv[]) {
 				}
 				printf("\n");
 			}
+			break;
+
+		default:
+			fprintf(stderr, "Output not currently supported: %d\n", output);
 	}
 
 	profit_cleanup(m);
