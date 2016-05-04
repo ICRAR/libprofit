@@ -148,9 +148,10 @@ void profit_make_model(profit_model *model);
 profit_profile *profit_get_profile(const char *name);
 
 /**
- * Returns a new model with all n profiles given as arguments bound to it.
+ * Frees all the resources used by given model, after which it cannot be used
+ * anymore.
  */
-profit_model *profit_get_model(unsigned int n, ...);
+void profit_cleanup(profit_model *model);
 
 #ifdef __cplusplus
 }

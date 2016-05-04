@@ -258,17 +258,14 @@ int main(int argc, char *argv[]) {
 	for(i=0; i!=n_profiles; i++) {
 		if( m->profiles[i]->error ) {
 			fprintf(stderr, "Error while calculating model: %s\n", m->profiles[i]->error);
+			profit_cleanup(m);
 			return 1;
 		}
 	}
 
 	fwrite(m->image, sizeof(double), m->width * m->height, stdout);
-
-	for(i=0; i!=n_profiles; i++) {
-		free(m->profiles[i]);
 	}
-	free(m->profiles);
-	free(m->image);
-	free(m);
+
+	profit_cleanup(m);
 
 }

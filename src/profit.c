@@ -63,26 +63,6 @@ profit_profile* profit_get_profile(const char const * name) {
 	return NULL;
 }
 
-profit_model *profit_get_model(unsigned int n, ...) {
-
-	unsigned int i;
-	va_list profiles;
-	profit_profile *p;
-	profit_model *model = (profit_model *)malloc(sizeof(profit_model));
-
-	/* Bind the profiles to the model */
-	model->n_profiles = n;
-	model->profiles = (profit_profile **)malloc(sizeof(profit_profile *) * n);
-	va_start(profiles, n);
-	for(i=0; i!=n; i++) {
-		p = va_arg(profiles, profit_profile *);
-		model->profiles[i] = p;
-	}
-	va_end(profiles);
-
-	return model;
-}
-
 void profit_make_model(profit_model *model) {
 
 	unsigned int i, j, p;
@@ -155,4 +135,19 @@ void profit_make_model(profit_model *model) {
 	}
 	free(profile_images);
 
+}
+
+void profit_cleanup(profit_model *m) {
+
+	unsigned int i;
+
+	if( m->error ) {
+		free(m->error);
+	}
+	for(i=0; i!=m->n_profiles; i++) {
+		free(m->profiles[i]);
+	}
+	free(m->profiles);
+	free(m->image);
+	free(m);
 }
