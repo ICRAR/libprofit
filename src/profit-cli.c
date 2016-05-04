@@ -171,13 +171,21 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"-p name:param1=val1:param2=val2:...\n\n");
 }
 
+typedef enum _output_type {
+	none = 0,
+	binary = 1,
+	text = 2,
+	csv = 3
+} output_t;
+
 int main(int argc, char *argv[]) {
 
 	int opt;
 	unsigned int width = 100, height = 100;
 	double magzero = 0;
-	unsigned int n_profiles = 0, i;
+	unsigned int n_profiles = 0, i, j;
 	char *endptr;
+	output_t output = none;
 	profit_profile *profile;
 	profit_profile **profiles;
 
@@ -195,7 +203,7 @@ int main(int argc, char *argv[]) {
 	profiles = (profit_profile **)malloc(sizeof(profit_profile *) * n_profiles);
 	n_profiles = 0;
 
-	while( (opt = getopt(argc, argv, "h?vp:w:H:m:")) != -1 ) {
+	while( (opt = getopt(argc, argv, "h?vp:w:H:m:tb")) != -1 ) {
 		switch(opt) {
 
 			case 'h':
@@ -231,11 +239,32 @@ int main(int argc, char *argv[]) {
 				}
 				break;
 
+			case 't':
+				if( output != none ) {
+					fprintf(stderr, "-t and -b cannot be used together\n");
+					return 1;
+				}
+				output = text;
+				break;
+
+			case 'b':
+				if( output != none ) {
+					fprintf(stderr, "-b and -t cannot be used together\n");
+					return 1;
+				}
+				output = binary;
+				break;
+
 			default:
 				usage(stderr, argv);
 				return 1;
 
 		}
+	}
+
+	/* We default to text output */
+	if( output == none ) {
+		output = text;
 	}
 
 	profit_model *m = (profit_model *)malloc(sizeof(profit_model));
@@ -263,7 +292,17 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	fwrite(m->image, sizeof(double), m->width * m->height, stdout);
+	switch(output) {
+		case binary:
+			fwrite(m->image, sizeof(double), m->width * m->height, stdout);
+			break;
+		case text:
+			for(j=0; j!=m->height; j++) {
+				for(i=0; i!=m->width; i++) {
+					printf("%g ", m->image[j*m->width + i]);
+				}
+				printf("\n");
+			}
 	}
 
 	profit_cleanup(m);
