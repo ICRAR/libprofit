@@ -174,9 +174,10 @@ void usage(FILE *file, char *argv[]) {
 int main(int argc, char *argv[]) {
 
 	int opt;
-	int width = 100, height = 100;
+	unsigned int width = 100, height = 100;
 	double magzero = 0;
 	unsigned int n_profiles = 0, i;
+	char *endptr;
 	profit_profile *profile;
 	profit_profile **profiles;
 
@@ -223,7 +224,11 @@ int main(int argc, char *argv[]) {
 				break;
 
 			case 'm':
-				magzero = atof(optarg);
+				magzero = strtod(optarg, &endptr);
+				if( magzero == 0 && endptr == optarg ) {
+					fprintf(stderr, "Invalid magzero value: %s\n", optarg);
+					return 1;
+				}
 				break;
 
 			default:
@@ -242,9 +247,19 @@ int main(int argc, char *argv[]) {
 	m->n_profiles = n_profiles;
 	m->profiles   = profiles;
 
-	if( profit_make_model(m) ) {
-		fputs("Error while calculating the image\n", stderr);
+	/* Go, go, go */
+	profit_make_model(m);
+
+	/* Check for any errors */
+	if( m->error ) {
+		fprintf(stderr, "Error while calculating model: %s\n", m->error);
 		return 1;
+	}
+	for(i=0; i!=n_profiles; i++) {
+		if( m->profiles[i]->error ) {
+			fprintf(stderr, "Error while calculating model: %s\n", m->profiles[i]->error);
+			return 1;
+		}
 	}
 
 	fwrite(m->image, sizeof(double), m->width * m->height, stdout);

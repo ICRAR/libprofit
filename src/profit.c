@@ -25,6 +25,7 @@
  */
 
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -52,7 +53,9 @@ profit_profile* profit_get_profile(const char const * name) {
 			break;
 		}
 		if( !strcmp(name, p->name) ) {
-			return p->create();
+			profit_profile *profile = p->create();
+			profile->name = strdup(name);
+			return profile;
 		}
 		p++;
 	}
@@ -80,20 +83,45 @@ profit_model *profit_get_model(unsigned int n, ...) {
 	return model;
 }
 
-int profit_make_model(profit_model *model) {
+void profit_make_model(profit_model *model) {
 
 	unsigned int i, j, p;
+
+	if( !model->width ) {
+		model->error = "Model's width is 0";
+		return;
+	}
+	else if( !model->height ) {
+		model->error = "Model's height is 0";
+		return;
+	}
+	else if( !model->res_x ) {
+		model->error = "Model's res_x is 0";
+		return;
+	}
+	else if( !model->res_y ) {
+		model->error = "Model's res_y is 0";
+		return;
+	}
 
 	model->xbin = model->width/(double)model->res_x;
 	model->ybin = model->height/(double)model->res_y;
 	model->image = (double *)malloc(sizeof(double) * model->width * model->height);
+	if( !model->image ) {
+		char *msg = "Cannot allocate memory for image with w=%u, h=%u";
+		model->error = (char *)malloc( strlen(msg) - 4 + 20 ); /* 32bits unsigned max is 4294967295 (10 digits) */
+		sprintf(model->error, msg, model->width, model->height);
+		return;
+	}
 
-	/* Initialize all profiles. Each profile can optionally return an error
-	 * code, in which case we don't proceed any further */
-	for(unsigned int p=0; p < model->n_profiles; p++) {
+	/* Initialize all profiles. Each profile can fail during initialization
+	 * in which case we don't proceed any further */
+	for(p=0; p < model->n_profiles; p++) {
 		profit_profile *profile = model->profiles[p];
-		if( profile->init_profile(profile, model) ) {
-			return 1;
+		profile->init_profile(profile, model);
+		if( profile->error ) {
+			/* TODO: proper clean up */
+			return;
 		}
 	}
 
@@ -126,5 +154,5 @@ int profit_make_model(profit_model *model) {
 		free(profile_images[p]);
 	}
 	free(profile_images);
-	return 0;
+
 }
