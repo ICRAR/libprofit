@@ -3,10 +3,13 @@ LDFLAGS += -lm
 OBJS = sersic.o profit.o sky.o
 
 .PHONY: all clean
-all: libprofit.so
+all: libprofit.so profit-cli
 
 clean:
 	rm -f *.o libprofit.so
 
 libprofit.so: $(OBJS)
 	$(LD) -shared $(LDFLAGS) -o $@ $^
+
+profit-cli: profit-cli.o libprofit.so
+	$(CC) $(CFLAGS) profit-cli.o -o $@ -lprofit $(LDFLAGS)
