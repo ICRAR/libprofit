@@ -53,6 +53,8 @@ char **_parse_profile_value(char *token) {
 
 #define _READ_DOUBLE_OR_FAIL(key, val, name, len, dst) \
 	do { \
+		char *endptr; \
+		double tmp; \
 		if ( !strncmp(key, name, len) ) { \
 			tmp = strtod(val, &endptr); \
 			if( tmp == 0 && endptr == val ) { \
@@ -64,11 +66,22 @@ char **_parse_profile_value(char *token) {
 		} \
 	} while(0);
 
+#define _READ_SHORT_OR_FAIL(key, val, name, len, dst) \
+	do { \
+		char *endptr; \
+		long int tmp; \
+		if ( !strncmp(key, name, len) ) { \
+			tmp = strtol(val, &endptr, 10); \
+			if( tmp == 0 && endptr == val ) { \
+				fprintf(stderr, "Invalid integer value for %s: %s\n", key, val); \
+				return -1;\
+			} \
+			dst = (short)tmp;\
+			return 1; \
+		} \
+	} while(0);
+
 short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
-
-	char *endptr;
-	double tmp;
-
 	profit_sersic_profile *s = (profit_sersic_profile *)p;
 	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  4, s->xcen);
 	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  4, s->ycen);
@@ -78,12 +91,11 @@ short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
 	_READ_DOUBLE_OR_FAIL(key, val, "box",   3, s->box);
 	_READ_DOUBLE_OR_FAIL(key, val, "ang",   3, s->ang);
 	_READ_DOUBLE_OR_FAIL(key, val, "axrat", 5, s->axrat);
+	_READ_SHORT_OR_FAIL(key, val, "rough", 5, s->rough);
 	return 0;
 }
 
 short _keyval_to_sky(profit_profile *p, char *key, char *val) {
-	char *endptr;
-	double tmp;
 	profit_sky_profile *s = (profit_sky_profile *)p;
 	_READ_DOUBLE_OR_FAIL(key, val, "bg",  2, s->bg);
 	return 0;
