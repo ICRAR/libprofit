@@ -1,6 +1,6 @@
 CFLAGS += -I../include -fPIC
 LDFLAGS += -lm
-OBJS = sersic.o profit.o sky.o
+OBJS = sersic.o profit.o sky.o psf.o convolve.o
 
 .PHONY: all clean
 all: libprofit.so profit-cli

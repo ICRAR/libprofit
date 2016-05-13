@@ -29,6 +29,7 @@
 #include <getopt.h>
 
 #include "profit.h"
+#include "psf.h"
 #include "sersic.h"
 #include "sky.h"
 #include "version.h"
@@ -66,7 +67,7 @@ char **_parse_profile_value(char *token) {
 		} \
 	} while(0);
 
-#define _READ_SHORT_OR_FAIL(key, val, name, len, dst) \
+#define _READ_BOOL_OR_FAIL(key, val, name, len, dst) \
 	do { \
 		char *endptr; \
 		long int tmp; \
@@ -76,7 +77,7 @@ char **_parse_profile_value(char *token) {
 				fprintf(stderr, "Invalid integer value for %s: %s\n", key, val); \
 				return -1;\
 			} \
-			dst = (short)tmp;\
+			dst = (bool)tmp;\
 			return 1; \
 		} \
 	} while(0);
@@ -91,13 +92,23 @@ short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
 	_READ_DOUBLE_OR_FAIL(key, val, "box",   3, s->box);
 	_READ_DOUBLE_OR_FAIL(key, val, "ang",   3, s->ang);
 	_READ_DOUBLE_OR_FAIL(key, val, "axrat", 5, s->axrat);
-	_READ_SHORT_OR_FAIL(key, val, "rough", 5, s->rough);
+	_READ_BOOL_OR_FAIL(key, val, "rough",    5, s->rough);
+	_READ_BOOL_OR_FAIL(key, val, "convolve", 8, p->convolve);
 	return 0;
 }
 
 short _keyval_to_sky(profit_profile *p, char *key, char *val) {
 	profit_sky_profile *s = (profit_sky_profile *)p;
 	_READ_DOUBLE_OR_FAIL(key, val, "bg",  2, s->bg);
+	_READ_BOOL_OR_FAIL(key, val, "convolve", 8, p->convolve);
+	return 0;
+}
+
+short _keyval_to_psf(profit_profile *p, char *key, char *val) {
+	profit_psf_profile *s = (profit_psf_profile *)p;
+	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  4, s->xcen);
+	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  4, s->ycen);
+	_READ_DOUBLE_OR_FAIL(key, val, "mag",   3, s->mag);
 	return 0;
 }
 
@@ -165,10 +176,70 @@ profit_profile *parse_profile(char *description) {
 	else if( !strncmp(description, "sky", name_end) ) {
 		return desc_to_profile(subdesc, "sky", 0, &_keyval_to_sky);
 	}
+	else if( !strncmp(description, "psf", name_end) ) {
+		return desc_to_profile(subdesc, "psf", 0, &_keyval_to_psf);
+	}
 
 	fprintf(stderr, "Unknown profile name in profile description: %s\n", description);
 	return NULL;
 
+}
+
+double *parse_psf(char *optarg, unsigned int *psf_width, unsigned int *psf_height) {
+
+	char *tok, *values, *endptr;
+	unsigned int size, i = 0;
+	double *psf;
+
+	/* format is w:h:val1,val2... */
+	tok = strtok(optarg, ":");
+	if( !tok ) {
+		fprintf(stderr, "Missing psf's width\n");
+		return NULL;
+	}
+	*psf_width = (unsigned int)strtoul(tok, &endptr, 10);
+	if( tok == endptr ) {
+		fprintf(stderr, "Invalid value for psf's width: %s\n", tok);
+		return NULL;
+	}
+
+	tok = strtok(NULL, ":");
+	if( !tok ) {
+		fprintf(stderr, "Missing psf's height\n");
+		return NULL;
+	}
+	*psf_height = (unsigned int)strtoul(tok, &endptr, 10);
+	if( tok == endptr ) {
+		fprintf(stderr, "Invalid value for psf's height: %s\n", tok);
+		return NULL;
+	}
+
+	values = strtok(NULL, ":");
+	if( !values ) {
+		fprintf(stderr, "Missing psf's values\n");
+		return NULL;
+	}
+
+	size = *psf_width * *psf_height;
+	psf = (double *)malloc(sizeof(double) * size);
+	while( (tok = strtok(values, ",")) ) {
+		values = NULL;
+		psf[i] = strtod(tok, &endptr);
+		if( psf[i] == 0 && tok == endptr ) {
+			fprintf(stderr, "Invalid floating-point value for psf: %s\n", tok);
+			free(psf);
+			return NULL;
+		}
+		i++;
+	}
+
+	if( i != size ) {
+		fprintf(stderr, "Not enough values provided for PSF. Provided: %u, expected: %u\n", i, size);
+		free(psf);
+		return NULL;
+	}
+
+	return psf;
 }
 
 void usage(FILE *file, char *argv[]) {
@@ -177,12 +248,17 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"Usage: %s [options] -p <spec> [-p <spec> ...]\n\n",argv[0]);
 	fprintf(file,"Options:\n");
 	fprintf(file,"  -w        Image width. Defaults to 100\n");
-	fprintf(file,"  -H        Image height. Defaults to 100\n\n");
-	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n\n");
+	fprintf(file,"  -H        Image height. Defaults to 100\n");
+	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
+	fprintf(file,"  -P        PSF function (specified as w:h:val1,val2...)\n");
 	fprintf(file,"  -h,-?     Show this help and exit\n");
 	fprintf(file,"  -v        Show the program version and exit\n\n");
 	fprintf(file,"Profiles should be specified as follows:\n\n");
 	fprintf(file,"-p name:param1=val1:param2=val2:...\n\n");
+	fprintf(file,"The following profiles (and parameters) are currently accepted:\n\n");
+	fprintf(file," * psf: xcen, ycen, mag\n");
+	fprintf(file," * sky: bg\n");
+	fprintf(file," * sersic: xcen, ycen, mag, re, nser, box, ang, axrat, rough\n\n");
 }
 
 typedef enum _output_type {
@@ -196,8 +272,8 @@ int main(int argc, char *argv[]) {
 
 	int opt;
 	unsigned int width = 100, height = 100;
-	double magzero = 0;
-	unsigned int n_profiles = 0, i, j;
+	double magzero = 0, *psf = NULL;
+	unsigned int n_profiles = 0, i, j, psf_width = 0, psf_height = 0;
 	char *endptr, *error;
 	output_t output = none;
 	profit_profile *profile;
@@ -217,7 +293,7 @@ int main(int argc, char *argv[]) {
 	profiles = (profit_profile **)malloc(sizeof(profit_profile *) * n_profiles);
 	n_profiles = 0;
 
-	while( (opt = getopt(argc, argv, "h?vp:w:H:m:tb")) != -1 ) {
+	while( (opt = getopt(argc, argv, "h?vP:p:w:H:m:tb")) != -1 ) {
 		switch(opt) {
 
 			case 'h':
@@ -235,6 +311,14 @@ int main(int argc, char *argv[]) {
 					return 1;
 				}
 				profiles[n_profiles++] = profile;
+				break;
+
+			case 'P':
+				psf = parse_psf(optarg, &psf_width, &psf_height);
+				if( !psf ) {
+					usage(stderr, argv);
+					return 1;
+				}
 				break;
 
 			case 'w':
@@ -291,6 +375,9 @@ int main(int argc, char *argv[]) {
 	m->magzero    = magzero;
 	m->n_profiles = n_profiles;
 	m->profiles   = profiles;
+	m->psf        = psf;
+	m->psf_width  = psf_width;
+	m->psf_height = psf_height;
 
 	/* Go, go, go */
 	profit_make_model(m);
