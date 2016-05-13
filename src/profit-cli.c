@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
 	unsigned int width = 100, height = 100;
 	double magzero = 0;
 	unsigned int n_profiles = 0, i, j;
-	char *endptr;
+	char *endptr, *error;
 	output_t output = none;
 	profit_profile *profile;
 	profit_profile **profiles;
@@ -296,17 +296,11 @@ int main(int argc, char *argv[]) {
 	profit_make_model(m);
 
 	/* Check for any errors */
-	if( m->error ) {
-		fprintf(stderr, "Error while calculating model: %s\n", m->error);
+	error = profit_get_error(m);
+	if( error ) {
+		fprintf(stderr, "Error while calculating model: %s\n", error);
 		profit_cleanup(m);
 		return 1;
-	}
-	for(i=0; i!=n_profiles; i++) {
-		if( m->profiles[i]->error ) {
-			fprintf(stderr, "Error while calculating model: %s\n", m->profiles[i]->error);
-			profit_cleanup(m);
-			return 1;
-		}
 	}
 
 	switch(output) {
@@ -329,5 +323,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	profit_cleanup(m);
+	return 0;
 
 }
