@@ -6,7 +6,7 @@ OBJS = sersic.o profit.o sky.o psf.o convolve.o
 all: libprofit.so profit-cli
 
 clean:
-	rm -f *.o libprofit.so
+	rm -f *.o libprofit.so profit-cli
 
 libprofit.so: $(OBJS)
 	$(LD) -shared $(LDFLAGS) -o $@ $^
