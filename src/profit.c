@@ -87,7 +87,7 @@ void profit_make_model(profit_model *model) {
 
 	model->xbin = model->width/(double)model->res_x;
 	model->ybin = model->height/(double)model->res_y;
-	model->image = (double *)malloc(sizeof(double) * model->width * model->height);
+	model->image = (double *)calloc(model->width * model->height, sizeof(double));
 	if( !model->image ) {
 		char *msg = "Cannot allocate memory for image with w=%u, h=%u";
 		model->error = (char *)malloc( strlen(msg) - 4 + 20 ); /* 32bits unsigned max is 4294967295 (10 digits) */
@@ -120,12 +120,11 @@ void profit_make_model(profit_model *model) {
 #endif
 	for(p=0; p < model->n_profiles; p++) {
 		profit_profile *profile = model->profiles[p];
-		profile_images[p] = (double *)malloc(sizeof(double) * model->width * model->height);
+		profile_images[p] = (double *)calloc(model->width * model->height, sizeof(double));
 		profile->make_profile(profile, model, profile_images[p]);
 	}
 
 	/* Sum up all results and free individual profile images */
-	memset(model->image, 0, sizeof(double) * model->width * model->height);
 	for(p=0; p != model->n_profiles; p++) {
 		for(i=0; i != model->width; i++) {
 			for(j=0; j != model->height; j++) {
