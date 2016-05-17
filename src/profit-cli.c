@@ -46,9 +46,10 @@ char **_parse_profile_value(char *token) {
 		return NULL;
 	}
 
+	size_t equals_idx = (size_t)(equals - token);
 	key_and_val = (char **)malloc(sizeof(char *) * 2);
-	key_and_val[0] = strndup(token, equals - token);
-	key_and_val[1] = strndup(equals + 1, strlen(token) - (token - equals));
+	key_and_val[0] = strndup(token, equals_idx);
+	key_and_val[1] = strndup(equals + 1, strlen(token) - equals_idx);
 	return key_and_val;
 }
 
@@ -166,7 +167,7 @@ profit_profile *parse_profile(char *description) {
 	size_t name_end = strlen(description);
 	char *colon = strchr(description, ':');
 	if( colon ) {
-		name_end = colon - description;
+		name_end = (size_t)(colon - description);
 		subdesc = colon + 1;
 	}
 
@@ -322,11 +323,11 @@ int main(int argc, char *argv[]) {
 				break;
 
 			case 'w':
-				width = atoi(optarg);
+				width = (unsigned int)atoi(optarg);
 				break;
 
 			case 'H':
-				height = atoi(optarg);
+				height = (unsigned int)atoi(optarg);
 				break;
 
 			case 'm':
