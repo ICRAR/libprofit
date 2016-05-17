@@ -71,7 +71,7 @@ double profit_sumpix(double xcen, double ycen, double xlim0, double xlim1, doubl
 static
 int _sersic_at_xy(profit_sersic_profile *sp,
                   profit_model *model,
-                  unsigned int x, unsigned int y,
+                  double x, double y,
                   double *result) {
 
 	double angrad = -sp->ang * M_PI/180;
