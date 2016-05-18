@@ -44,6 +44,14 @@ double _sersic_for_xy_r(profit_sersic_profile *sp,
 	return exp(-sp->_bn*(pow(r/sp->re,1/sp->nser)-1));
 }
 
+static inline
+void _sersic_translate_rotate(profit_sersic_profile *sp, double x, double y, double *x_ser, double *y_ser) {
+	x -= sp->xcen;
+	y -= sp->ycen;
+	*x_ser = x * sp->_cos_ang + y * sp->_sin_ang;
+	*y_ser = (x * sp->_sin_ang - y * sp->_cos_ang) / sp->axrat;
+}
+
 static
 double _sersic_sumpix(profit_sersic_profile *sp,
                       double x0, double x1, double y0, double y1,
@@ -59,15 +67,15 @@ double _sersic_sumpix(profit_sersic_profile *sp,
 
 	bool recurse = sp->resolution > 1 && recur_level < sp->max_recursions;
 
-	x = 0;
+	/* The middle X/Y value is used for each pixel */
+	x = x0;
 	for(i=0; i < sp->resolution; i++) {
 		x += half_xbin;
-		y = 0;
+		y = y0;
 		for(j=0; j < sp->resolution; j++) {
 			y += half_ybin;
 
-			x_ser = x * sp->_cos_ang + y * sp->_sin_ang;
-			y_ser = (x * sp->_sin_ang - y * sp->_cos_ang) / sp->axrat;
+			_sersic_translate_rotate(sp, x, y, &x_ser, &y_ser);
 			subval = _sersic_for_xy_r(sp, x_ser, y_ser, 0, false);
 
 			if( recurse ) {
@@ -92,39 +100,11 @@ double _sersic_sumpix(profit_sersic_profile *sp,
 }
 
 static
-double _sersic_at_xy(profit_sersic_profile *sp,
-                     profit_model *model,
-                     double x, double y) {
-
-	/*
-	 * Apply the rotation and scaling transformation from the
-	 * image coordinates into the sersic coordinates
-	 */
-	double x_ser = x * sp->_cos_ang + y * sp->_sin_ang;
-	double y_ser = (x * sp->_sin_ang - y * sp->_cos_ang) / sp->axrat;
-	double r_ser = sqrt(x_ser*x_ser + y_ser*y_ser);
-
-	/*
-	 * No need for further refinement, return sersic profile
-	 * TODO: the radius calculation above doesn't take into account boxing
-	 */
-	if( sp->rough || sp->nser < 0.5 || r_ser/sp->re > sp->re_switch ){
-		return _sersic_for_xy_r(sp, x_ser, y_ser, r_ser, true);
-	}
-
-	/* Subsample and integrate */
-	return _sersic_sumpix(sp,
-	                      x - model->xbin/2, x + model->xbin/2,
-	                      y - model->ybin/2, y + model->ybin/2,
-	                      0);
-
-}
-
-static
 void profit_make_sersic(profit_profile *profile, profit_model *model, double *image) {
 
 	unsigned int i, j;
-	double x, y;
+	double x, y, pixel_val;
+	double x_ser, y_ser, r_ser;
 	double half_xbin = model->xbin/2.;
 	double half_ybin = model->ybin/2.;
 	double bin_area = model->xbin * model->ybin;
@@ -137,7 +117,26 @@ void profit_make_sersic(profit_profile *profile, profit_model *model, double *im
 		y = 0;
 		for(j=0; j < model->height; j++) {
 			y += half_ybin;
-			image[i + j*model->width] = bin_area * sp->_ie * _sersic_at_xy(sp, model, x, y);
+
+			_sersic_translate_rotate(sp, x, y, &x_ser, &y_ser);
+
+			/*
+			 * No need for further refinement, return sersic profile
+			 * TODO: the radius calculation doesn't take into account boxing
+			 */
+			r_ser = sqrt(x_ser*x_ser + y_ser*y_ser);
+			if( sp->rough || sp->nser < 0.5 || r_ser/sp->re > sp->re_switch ){
+				pixel_val = _sersic_for_xy_r(sp, x_ser, y_ser, r_ser, true);
+			}
+			else {
+				/* Subsample and integrate */
+				pixel_val =  _sersic_sumpix(sp,
+				                            x - model->xbin/2, x + model->xbin/2,
+				                            y - model->ybin/2, y + model->ybin/2,
+				                            0);
+			}
+
+			image[i + j*model->width] = bin_area * sp->_ie * pixel_val;
 			y += half_ybin;
 		}
 		x += half_xbin;
