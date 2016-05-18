@@ -28,6 +28,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef HAVE_GSL
+#include "gsl/gsl_cdf.h"
+#include "gsl/gsl_sf_gamma.h"
+#endif
+
 #include "sersic.h"
 
 static inline
@@ -219,8 +224,14 @@ profit_profile *profit_create_sersic() {
 	p->resolution = 9;
 	p->max_recursions = 2;
 
+#ifdef HAVE_GSL
+	p->_beta = &gsl_sf_beta;
+	p->_gammafn = &gsl_sf_gamma;
+	p->_qgamma = &gsl_cdf_gamma_Qinv;
+#else
 	p->_qgamma = NULL;
 	p->_gammafn = NULL;
 	p->_beta = NULL;
+#endif
 	return (profit_profile *)p;
 }
