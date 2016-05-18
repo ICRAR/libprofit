@@ -23,11 +23,12 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <getopt.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <getopt.h>
+#include <time.h>
 
 #include "profit.h"
 #include "psf.h"
@@ -252,6 +253,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -t        Output image as text values on stdout\n");
 	fprintf(file,"  -b        Output image as binary content on stdout\n");
 	fprintf(file,"  -f <file> Output image as fits file\n");
+	fprintf(file,"  -i <n>    Output performance information after evaluating the model n times\n");
 	fprintf(file,"  -w        Image width. Defaults to 100\n");
 	fprintf(file,"  -H        Image height. Defaults to 100\n");
 	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
@@ -265,13 +267,6 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file," * sky: bg\n");
 	fprintf(file," * sersic: xcen, ycen, mag, re, nser, box, ang, axrat, rough\n\n");
 }
-
-typedef enum _output_type {
-	none = 0,
-	binary = 1,
-	text = 2,
-	fits = 3
-} output_t;
 
 static inline
 bool is_little_endian() {
@@ -367,10 +362,19 @@ int to_fits(profit_model *m, char *fits_output) {
 	return 0;
 }
 
+typedef enum _output_type {
+	none = 0,
+	binary = 1,
+	text = 2,
+	fits = 3,
+	performance = 4
+} output_t;
+
 int main(int argc, char *argv[]) {
 
 	int opt;
-	unsigned int width = 100, height = 100;
+	unsigned int width = 100, height = 100, iterations = 1;
+	long duration;
 	double magzero = 0, *psf = NULL;
 	unsigned int i, j, psf_width = 0, psf_height = 0;
 	char *endptr, *error, *fits_output = NULL;
@@ -378,7 +382,7 @@ int main(int argc, char *argv[]) {
 	profit_profile *profile;
 	profit_model *m = profit_create_model();
 
-	while( (opt = getopt(argc, argv, "h?vP:p:w:H:m:tbf:")) != -1 ) {
+	while( (opt = getopt(argc, argv, "h?vP:p:w:H:m:tbf:i:")) != -1 ) {
 		switch(opt) {
 
 			case 'h':
@@ -449,6 +453,11 @@ int main(int argc, char *argv[]) {
 				output = fits;
 				break;
 
+			case 'i':
+				iterations = (unsigned int)atoi(optarg);
+				output = performance;
+				break;
+
 			default:
 				usage(stderr, argv);
 				profit_cleanup(m);
@@ -480,6 +489,21 @@ int main(int argc, char *argv[]) {
 	/* Go, go, go */
 	profit_eval_model(m);
 
+	if( output == performance ) {
+
+		/* This means that we evaluated the model once, but who cares */
+		struct timespec start, end;
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		for(i=0; i!=iterations; i++) {
+			free(m->image);
+			free(m->error);
+			profit_eval_model(m);
+		}
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_nsec - start.tv_nsec)/1000;
+
+	}
+
 	/* Check for any errors */
 	error = profit_get_error(m);
 	if( error ) {
@@ -508,6 +532,10 @@ int main(int argc, char *argv[]) {
 				perror("Error while saving image to FITS file");
 				return 1;
 			}
+			break;
+
+		case performance:
+			printf("Ran %d iterations in %.3f [s] (%.3f [ms] per iteration)\n", iterations, duration/1000000., duration/1000./iterations);
 			break;
 
 		default:
