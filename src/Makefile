@@ -9,7 +9,7 @@ clean:
 	rm -f *.o libprofit.so profit-cli
 
 libprofit.so: $(OBJS)
-	$(LD) -shared $(LDFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) -shared $(LDFLAGS) -o $@ $^
 
 profit-cli: profit-cli.o libprofit.so
 	$(CC) $(CFLAGS) profit-cli.o -o $@ -lprofit $(LDFLAGS)
