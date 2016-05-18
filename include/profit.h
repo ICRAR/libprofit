@@ -160,7 +160,7 @@ typedef struct _profit_model {
  * Creates a new model to which profiles can be added, and that can
  * be used to calculate an image.
  */
-profit_model *profit_create_model();
+profit_model *profit_create_model(void);
 
 /**
  * Creates a new profile for the given name.
