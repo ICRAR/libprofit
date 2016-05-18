@@ -12,4 +12,4 @@ libprofit.so: $(OBJS)
 	$(CC) -shared $(LDFLAGS) -o $@ $^
 
 profit-cli: profit-cli.o libprofit.so
-	$(CC) $(CFLAGS) profit-cli.o -o $@ -lprofit $(LDFLAGS)
+	$(CC)  profit-cli.o -o $@ -lprofit $(LDFLAGS)
