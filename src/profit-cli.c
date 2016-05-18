@@ -131,7 +131,7 @@ profit_profile *desc_to_profile(
 		return NULL;
 	}
 
-	p = profit_get_profile(name);
+	p = profit_create_profile(name);
 	if( !description ) {
 		return p;
 	}
@@ -372,25 +372,11 @@ int main(int argc, char *argv[]) {
 	int opt;
 	unsigned int width = 100, height = 100;
 	double magzero = 0, *psf = NULL;
-	unsigned int n_profiles = 0, i, j, psf_width = 0, psf_height = 0;
+	unsigned int i, j, psf_width = 0, psf_height = 0;
 	char *endptr, *error, *fits_output = NULL;
 	output_t output = none;
 	profit_profile *profile;
-	profit_profile **profiles;
-
-	/* Prepare for these many profiles */
-	for(i=0; i!= argc; i++) {
-		if( !strncmp("-p", argv[i], 2) ) {
-			n_profiles++;
-		}
-	}
-	if( !n_profiles ) {
-		usage(stderr, argv);
-		return 1;
-	}
-
-	profiles = (profit_profile **)malloc(sizeof(profit_profile *) * n_profiles);
-	n_profiles = 0;
+	profit_model *m = profit_create_model();
 
 	while( (opt = getopt(argc, argv, "h?vP:p:w:H:m:tbf:")) != -1 ) {
 		switch(opt) {
@@ -407,15 +393,17 @@ int main(int argc, char *argv[]) {
 			case 'p':
 				profile = parse_profile(optarg);
 				if( profile == NULL ) {
+					profit_cleanup(m);
 					return 1;
 				}
-				profiles[n_profiles++] = profile;
+				profit_add_profile(m, profile);
 				break;
 
 			case 'P':
 				psf = parse_psf(optarg, &psf_width, &psf_height);
 				if( !psf ) {
 					usage(stderr, argv);
+					profit_cleanup(m);
 					return 1;
 				}
 				break;
@@ -432,6 +420,7 @@ int main(int argc, char *argv[]) {
 				magzero = strtod(optarg, &endptr);
 				if( magzero == 0 && endptr == optarg ) {
 					fprintf(stderr, "Invalid magzero value: %s\n", optarg);
+					profit_cleanup(m);
 					return 1;
 				}
 				break;
@@ -439,6 +428,7 @@ int main(int argc, char *argv[]) {
 			case 't':
 				if( output != none ) {
 					fprintf(stderr, "-t and -b cannot be used together\n");
+					profit_cleanup(m);
 					return 1;
 				}
 				output = text;
@@ -447,6 +437,7 @@ int main(int argc, char *argv[]) {
 			case 'b':
 				if( output != none ) {
 					fprintf(stderr, "-b and -t cannot be used together\n");
+					profit_cleanup(m);
 					return 1;
 				}
 				output = binary;
@@ -460,9 +451,16 @@ int main(int argc, char *argv[]) {
 
 			default:
 				usage(stderr, argv);
+				profit_cleanup(m);
 				return 1;
 
 		}
+	}
+
+	/* No profiles given */
+	if( !m->n_profiles ) {
+		usage(stderr, argv);
+		return 1;
 	}
 
 	/* We default to text output */
@@ -470,22 +468,17 @@ int main(int argc, char *argv[]) {
 		output = text;
 	}
 
-	profit_model *m = (profit_model *)malloc(sizeof(profit_model));
-	m->error      = NULL;
-	m->image      = NULL;
 	m->width      = width;
 	m->height     = height;
 	m->res_x      = width;
 	m->res_y      = height;
 	m->magzero    = magzero;
-	m->n_profiles = n_profiles;
-	m->profiles   = profiles;
 	m->psf        = psf;
 	m->psf_width  = psf_width;
 	m->psf_height = psf_height;
 
 	/* Go, go, go */
-	profit_make_model(m);
+	profit_eval_model(m);
 
 	/* Check for any errors */
 	error = profit_get_error(m);
