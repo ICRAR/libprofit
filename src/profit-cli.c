@@ -23,6 +23,7 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -248,6 +249,9 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"This program is licensed under the GPLv3 license.\n\n");
 	fprintf(file,"Usage: %s [options] -p <spec> [-p <spec> ...]\n\n",argv[0]);
 	fprintf(file,"Options:\n");
+	fprintf(file,"  -t        Output image as text values on stdout\n");
+	fprintf(file,"  -b        Output image as binary content on stdout\n");
+	fprintf(file,"  -f <file> Output image as fits file\n");
 	fprintf(file,"  -w        Image width. Defaults to 100\n");
 	fprintf(file,"  -H        Image height. Defaults to 100\n");
 	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
@@ -266,8 +270,102 @@ typedef enum _output_type {
 	none = 0,
 	binary = 1,
 	text = 2,
-	csv = 3
+	fits = 3
 } output_t;
+
+static inline
+bool is_little_endian() {
+	volatile uint32_t i=0x01234567;
+	return (*((uint8_t*)(&i))) == 0x67;
+}
+
+static inline
+double to_bigendian(double v) {
+	double r;
+	char *vbytes = (char *)(&v);
+	char *rbytes = (char *)(&r);
+	rbytes[0] = vbytes[7];
+	rbytes[1] = vbytes[6];
+	rbytes[2] = vbytes[5];
+	rbytes[3] = vbytes[4];
+	rbytes[4] = vbytes[3];
+	rbytes[5] = vbytes[2];
+	rbytes[6] = vbytes[1];
+	rbytes[7] = vbytes[0];
+	return r;
+}
+
+int to_fits(profit_model *m, char *fits_output) {
+
+	FILE *f;
+	unsigned int i, j, pos, padding;
+	char hdr[80];
+
+	/* Append .fits if not in the name yet */
+	if( strstr(fits_output, ".fits") != &fits_output[strlen(fits_output) - 5] ) {
+		fits_output = (char *)realloc(fits_output, strlen(fits_output) + 5);
+		strcat(fits_output, ".fits");
+	}
+
+	f = fopen(fits_output, "wb");
+	free(fits_output);
+	if( !f ) {
+		profit_cleanup(m);
+		return 1;
+	}
+
+	/* Standard headers*/
+	fprintf(f, "%-80s", "SIMPLE  = T               / File conforms to FITS standard");
+	fprintf(f, "%-80s", "BITPIX  = -64             / Bits per pixel");
+	fprintf(f, "%-80s", "NAXIS   = 2               / Number of axes");
+	sprintf(hdr, "NAXIS1  = %-10.0u                / Width", m->width);
+	fprintf(f, "%-80s", hdr);
+	sprintf(hdr, "NAXIS2  = %-10.0u                / Height", m->height);
+	fprintf(f, "%-80s", hdr);
+	fprintf(f, "%-80s", "CRPIX1  = 1");
+	fprintf(f, "%-80s", "CRVAL1  = 1");
+	fprintf(f, "%-80s", "CDELT1  = 1");
+	fprintf(f, "%-80s", "CTYPE1  = ' '");
+	fprintf(f, "%-80s", "CUNIT1  = ' '");
+	fprintf(f, "%-80s", "CRPIX2  = 1");
+	fprintf(f, "%-80s", "CRVAL2  = 1");
+	fprintf(f, "%-80s", "CDELT2  = 1");
+	fprintf(f, "%-80s", "CTYPE2  = ' '");
+	fprintf(f, "%-80s", "CUNIT2  = ' '");
+	fprintf(f, "%-80s", "END");
+
+	pos = (unsigned int)ftell(f);
+	padding = 36*80 - (pos%36*80);
+	for(i=0; i<padding; i++) {
+		fprintf(f, " ");
+	}
+
+	/* data has to be big-endian */
+	if( is_little_endian() ) {
+		double *big_endian_image = (double *)malloc(sizeof(double) * m->width * m->height);
+		for(j=0; j!=m->height; j++) {
+			for(i=0; i!=m->width; i++) {
+				pos = i + j*m->width;
+				big_endian_image[pos] = to_bigendian(m->image[pos]);
+			}
+		}
+
+		/* Simply replace the model's image, nobody will use it but us */
+		free(m->image);
+		m->image = big_endian_image;
+	}
+
+	fwrite(m->image, sizeof(double), m->width * m->height, f);
+
+	/* Pad with zeroes until we complete the current 36*80 block */
+	padding = 36*80 - ((m->width * m->height) % (36*80));
+	void *zeros = calloc(padding, sizeof(double));
+	fwrite(zeros, sizeof(double), padding, f);
+	free(zeros);
+	fclose(f);
+
+	return 0;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -275,7 +373,7 @@ int main(int argc, char *argv[]) {
 	unsigned int width = 100, height = 100;
 	double magzero = 0, *psf = NULL;
 	unsigned int n_profiles = 0, i, j, psf_width = 0, psf_height = 0;
-	char *endptr, *error;
+	char *endptr, *error, *fits_output = NULL;
 	output_t output = none;
 	profit_profile *profile;
 	profit_profile **profiles;
@@ -294,7 +392,7 @@ int main(int argc, char *argv[]) {
 	profiles = (profit_profile **)malloc(sizeof(profit_profile *) * n_profiles);
 	n_profiles = 0;
 
-	while( (opt = getopt(argc, argv, "h?vP:p:w:H:m:tb")) != -1 ) {
+	while( (opt = getopt(argc, argv, "h?vP:p:w:H:m:tbf:")) != -1 ) {
 		switch(opt) {
 
 			case 'h':
@@ -354,6 +452,12 @@ int main(int argc, char *argv[]) {
 				output = binary;
 				break;
 
+			case 'f':
+				free(fits_output);
+				fits_output = strdup(optarg);
+				output = fits;
+				break;
+
 			default:
 				usage(stderr, argv);
 				return 1;
@@ -403,6 +507,13 @@ int main(int argc, char *argv[]) {
 					printf("%g ", m->image[j*m->width + i]);
 				}
 				printf("\n");
+			}
+			break;
+
+		case fits:
+			if( to_fits(m, fits_output) ) {
+				perror("Error while saving image to FITS file");
+				return 1;
 			}
 			break;
 
