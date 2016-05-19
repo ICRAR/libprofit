@@ -11,7 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   introduction.rst
    usage.rst
+   profiles.rst
    bindings.rst
    api.rst
