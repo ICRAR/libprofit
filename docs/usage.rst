@@ -1,9 +1,32 @@
-Using libprofit
-===============
+Using *libprofit*
+=================
+
+From the command-line
+---------------------
+
+*libprofit* ships with a command-line utility ``profit-cli``
+that reads the model and profile parameters from the command-line
+and generates the corresponding image.
+It supports all the profiles supported by *libprofit*,
+and can output the resulting image as text values, a binary stream,
+or as a simple FITS file.
+
+Run ``profit-cli -h`` for a full description on how to use it,
+how to specify profiles and model parameters,
+and how to control its output.
+
+Programatically
+---------------
+
+As it name implies, *libprofit* also ships a shared library
+exposing an API that can be used by any third-party application.
+This section gives a brief overview on how to use this API.
+For a full reference please refer to :doc:`api`.
 
 .. default-domain:: c
+.. highlight:: c
 
-At the core of libprofit sits :type:`profit_model`.
+At the core of *libprofit* sits :type:`profit_model`.
 This structure holds all the information needed to generate an image.
 Different profiles (instances of :type:`profit_profile`)
 are appended to the model, which is then evaluated.

@@ -1,14 +1,17 @@
 Profiles
 ========
 
-This is the list of profiles supported by libprofit.
-
 .. contents::
 
-Sersic
-------
+This section lists the profiles currently supported by *libprofit*.
 
-The sersic profile follows I don't know what.
+``sersic``
+----------
+
+An implementation of the
+`Sersic luminosity profile <https://en.wikipedia.org/wiki/Sersic_profile>`_.
+The sersic profile describes the intensity of a galaxy
+depending on its distance to the center.
 
 The sersic profile accepts the following parameters:
 
@@ -41,3 +44,24 @@ This sub-sampling can be controller by the following additional parameters:
 * **resolution**: Resolution (both horizontal and vertical) to be used
   on each new recursion level.
 * **acc**: Accuracy after which recursion stops.
+
+``sky``
+-------
+
+The sky profile provides a constant value for an entire image.
+
+* **bg**: Value per pixel for the background.
+  This should be the value as measured in the original image,
+  i.e. there is no need to worry about the effect of the model's ``magzero``.
+
+``psf``
+-------
+
+The psf profile adds the model's psf to the model's image
+at a specific location and for a given user-defined magnitude.
+
+* **xcen**: The x position at which to generate the centred PSF
+  (can be fractional pixels).
+* **ycen**: The y position at which to generate the centred PSF
+  (can be fractional pixels).
+* **mag**: The total flux magnitude of the PSF.

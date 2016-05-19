@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to libprofit's documentation!
-=====================================
+libprofit
+=========
 
-Contents:
+libprofit is a C library that produces images based on different luminosity profiles.
 
 .. toctree::
    :maxdepth: 2
