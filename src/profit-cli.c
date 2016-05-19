@@ -295,17 +295,20 @@ int to_fits(profit_model *m, char *fits_output) {
 	FILE *f;
 	unsigned int i, j, pos, padding;
 	char hdr[80];
+	char *filename = NULL;
 
 	/* Append .fits if not in the name yet */
-	if( strstr(fits_output, ".fits") != &fits_output[strlen(fits_output) - 5] ) {
-		fits_output = (char *)realloc(fits_output, strlen(fits_output) + 5);
-		strcat(fits_output, ".fits");
+	if( strlen(fits_output) < 5 ||
+	    (strstr(fits_output, ".fits") != &fits_output[strlen(fits_output) - 5]) ) {
+		filename = (char *)malloc(strlen(fits_output) + 6);
+		sprintf(filename, "%s.fits", fits_output);
 	}
 
-	f = fopen(fits_output, "wb");
-	free(fits_output);
+	f = fopen(filename, "wb");
+	if( filename != fits_output ) {
+		free(filename);
+	}
 	if( !f ) {
-		profit_cleanup(m);
 		return 1;
 	}
 
@@ -435,8 +438,7 @@ int main(int argc, char *argv[]) {
 			case 't':
 				if( output != none ) {
 					fprintf(stderr, "-t and -b cannot be used together\n");
-					profit_cleanup(m);
-					return 1;
+					CLEAN_AND_EXIT(1);
 				}
 				output = text;
 				break;
