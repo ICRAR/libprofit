@@ -50,11 +50,12 @@ double _sersic_for_xy_r(profit_sersic_profile *sp,
 }
 
 static inline
-void _sersic_translate_rotate(profit_sersic_profile *sp, double x, double y, double *x_ser, double *y_ser) {
+void _image_to_sersic_coordinates(profit_sersic_profile *sp, double x, double y, double *x_ser, double *y_ser) {
 	x -= sp->xcen;
 	y -= sp->ycen;
 	*x_ser = x * sp->_cos_ang - y * sp->_sin_ang;
-	*y_ser = (x * sp->_sin_ang + y * sp->_cos_ang) / sp->axrat;
+	*y_ser = x * sp->_sin_ang + y * sp->_cos_ang;
+	*y_ser *= sp->axrat;
 }
 
 static
@@ -80,11 +81,11 @@ double _sersic_sumpix(profit_sersic_profile *sp,
 		for(j=0; j < sp->resolution; j++) {
 			y += half_ybin;
 
-			_sersic_translate_rotate(sp, x, y, &x_ser, &y_ser);
+			_image_to_sersic_coordinates(sp, x, y, &x_ser, &y_ser);
 			subval = _sersic_for_xy_r(sp, x_ser, y_ser, 0, false);
 
 			if( recurse ) {
-				testval = _sersic_for_xy_r(sp, x_ser, fabs(y_ser) + fabs(ybin/sp->axrat), 0, false);
+				testval = _sersic_for_xy_r(sp, x_ser, fabs(y_ser) + fabs(ybin*sp->axrat), 0, false);
 				if( fabs(testval/subval - 1.0) > sp->acc ) {
 					subval = _sersic_sumpix(sp,
 					                        x - half_xbin, x + half_xbin,
@@ -123,7 +124,7 @@ void profit_make_sersic(profit_profile *profile, profit_model *model, double *im
 		for(j=0; j < model->height; j++) {
 			y += half_ybin;
 
-			_sersic_translate_rotate(sp, x, y, &x_ser, &y_ser);
+			_image_to_sersic_coordinates(sp, x, y, &x_ser, &y_ser);
 
 			/*
 			 * No need for further refinement, return sersic profile
@@ -198,7 +199,8 @@ void profit_init_sersic(profit_profile *profile, profit_model *model) {
 
 	/* Other way to get sin is doing: cos^2 + sin^2 = 1
 	 * sersic_p->_sin_ang = sqrt(1. - cos_ang * cos_ang) * (angrad < M_PI ? -1. : 1.);
-	 * The performance seems pretty similar though, and doing sin() is more readable
+	 * The performance seems pretty similar (measured on a x64 Linux with gcc and clang)
+	 * and doing sin() is more readable.
 	 */
 
 }
