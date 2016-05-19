@@ -332,7 +332,6 @@ int to_fits(profit_model *m, char *fits_output) {
 #define FITS_BLOCK_SIZE (36*80)
 	pos = (unsigned int)ftell(f);
 	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
-	printf("%u is pos, %d is padding\n", pos, padding);
 	for(i=0; i<padding; i++) {
 		fprintf(f, " ");
 	}
@@ -384,6 +383,11 @@ int main(int argc, char *argv[]) {
 	profit_profile *profile;
 	profit_model *m = profit_create_model();
 
+#define CLEAN_AND_EXIT(code) \
+	profit_cleanup(m); \
+	free(fits_output); \
+	return code
+
 	while( (opt = getopt(argc, argv, "h?vP:p:w:H:m:tbf:i:")) != -1 ) {
 		switch(opt) {
 
@@ -399,8 +403,7 @@ int main(int argc, char *argv[]) {
 			case 'p':
 				profile = parse_profile(optarg);
 				if( profile == NULL ) {
-					profit_cleanup(m);
-					return 1;
+					CLEAN_AND_EXIT(1);
 				}
 				profit_add_profile(m, profile);
 				break;
@@ -409,8 +412,7 @@ int main(int argc, char *argv[]) {
 				psf = parse_psf(optarg, &psf_width, &psf_height);
 				if( !psf ) {
 					usage(stderr, argv);
-					profit_cleanup(m);
-					return 1;
+					CLEAN_AND_EXIT(1);
 				}
 				break;
 
@@ -426,8 +428,7 @@ int main(int argc, char *argv[]) {
 				magzero = strtod(optarg, &endptr);
 				if( magzero == 0 && endptr == optarg ) {
 					fprintf(stderr, "Invalid magzero value: %s\n", optarg);
-					profit_cleanup(m);
-					return 1;
+					CLEAN_AND_EXIT(1);
 				}
 				break;
 
@@ -443,8 +444,7 @@ int main(int argc, char *argv[]) {
 			case 'b':
 				if( output != none ) {
 					fprintf(stderr, "-b and -t cannot be used together\n");
-					profit_cleanup(m);
-					return 1;
+					CLEAN_AND_EXIT(1);
 				}
 				output = binary;
 				break;
@@ -462,8 +462,7 @@ int main(int argc, char *argv[]) {
 
 			default:
 				usage(stderr, argv);
-				profit_cleanup(m);
-				return 1;
+				CLEAN_AND_EXIT(1);
 
 		}
 	}
@@ -471,7 +470,7 @@ int main(int argc, char *argv[]) {
 	/* No profiles given */
 	if( !m->n_profiles ) {
 		usage(stderr, argv);
-		return 1;
+		CLEAN_AND_EXIT(1);
 	}
 
 	/* We default to text output */
@@ -510,8 +509,7 @@ int main(int argc, char *argv[]) {
 	error = profit_get_error(m);
 	if( error ) {
 		fprintf(stderr, "Error while calculating model: %s\n", error);
-		profit_cleanup(m);
-		return 1;
+		CLEAN_AND_EXIT(1);
 	}
 
 	switch(output) {
@@ -532,7 +530,7 @@ int main(int argc, char *argv[]) {
 		case fits:
 			if( to_fits(m, fits_output) ) {
 				perror("Error while saving image to FITS file");
-				return 1;
+				CLEAN_AND_EXIT(1);
 			}
 			break;
 
@@ -544,7 +542,6 @@ int main(int argc, char *argv[]) {
 			fprintf(stderr, "Output not currently supported: %d\n", output);
 	}
 
-	profit_cleanup(m);
-	return 0;
+	CLEAN_AND_EXIT(0);
 
 }
