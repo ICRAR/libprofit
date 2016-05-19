@@ -329,8 +329,10 @@ int to_fits(profit_model *m, char *fits_output) {
 	fprintf(f, "%-80s", "CUNIT2  = ' '");
 	fprintf(f, "%-80s", "END");
 
+#define FITS_BLOCK_SIZE (36*80)
 	pos = (unsigned int)ftell(f);
-	padding = 36*80 - (pos%36*80);
+	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
+	printf("%u is pos, %d is padding\n", pos, padding);
 	for(i=0; i<padding; i++) {
 		fprintf(f, " ");
 	}
@@ -353,7 +355,7 @@ int to_fits(profit_model *m, char *fits_output) {
 	fwrite(m->image, sizeof(double), m->width * m->height, f);
 
 	/* Pad with zeroes until we complete the current 36*80 block */
-	padding = 36*80 - ((m->width * m->height) % (36*80));
+	padding = FITS_BLOCK_SIZE - ((m->width * m->height) % FITS_BLOCK_SIZE);
 	void *zeros = calloc(padding, sizeof(double));
 	fwrite(zeros, sizeof(double), padding, f);
 	free(zeros);
