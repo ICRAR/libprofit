@@ -533,7 +533,7 @@ int main(int argc, char *argv[]) {
 			break;
 
 		case performance:
-			printf("Ran %d iterations in %.3f [s] (%.3f [ms] per iteration)\n", iterations, duration/1000000., duration/1000./iterations);
+			printf("Ran %d iterations in %.3f [s] (%.3f [ms] per iteration)\n", iterations, (double)duration/1000000., (double)duration/1000./iterations);
 			break;
 
 		default:
