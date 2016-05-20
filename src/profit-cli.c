@@ -378,8 +378,8 @@ int main(int argc, char *argv[]) {
 	int opt;
 	unsigned int width = 100, height = 100, iterations = 1;
 	long duration;
-	double magzero = 0, *psf = NULL;
-	unsigned int i, j, psf_width = 0, psf_height = 0;
+	double magzero = 0;
+	unsigned int i, j;
 	char *endptr, *error, *fits_output = NULL;
 	output_t output = none;
 	profit_profile *profile;
@@ -396,11 +396,11 @@ int main(int argc, char *argv[]) {
 			case 'h':
 			case '?':
 				usage(stdout, argv);
-				return 0;
+				CLEAN_AND_EXIT(0);
 
 			case 'v':
 				printf("libprofit version %s\n", PROFIT_VERSION);
-				return 0;
+				CLEAN_AND_EXIT(0);
 
 			case 'p':
 				profile = parse_profile(optarg);
@@ -411,8 +411,8 @@ int main(int argc, char *argv[]) {
 				break;
 
 			case 'P':
-				psf = parse_psf(optarg, &psf_width, &psf_height);
-				if( !psf ) {
+				m->psf = parse_psf(optarg, &m->psf_width, &m->psf_height);
+				if( !m->psf ) {
 					usage(stderr, argv);
 					CLEAN_AND_EXIT(1);
 				}
@@ -484,9 +484,6 @@ int main(int argc, char *argv[]) {
 	m->res_x      = width;
 	m->res_y      = height;
 	m->magzero    = magzero;
-	m->psf        = psf;
-	m->psf_width  = psf_width;
-	m->psf_height = psf_height;
 
 	/* Go, go, go */
 	profit_eval_model(m);
