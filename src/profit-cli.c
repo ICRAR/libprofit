@@ -34,7 +34,6 @@
 #include "psf.h"
 #include "sersic.h"
 #include "sky.h"
-#include "version.h"
 
 char **_parse_profile_value(char *token) {
 	char **key_and_val;

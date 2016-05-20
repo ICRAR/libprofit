@@ -1,4 +1,4 @@
-CFLAGS += -I../include -fPIC
+CFLAGS += -I../include -fPIC -DPROFIT_VERSION='"$(shell cat ../VERSION)"'
 LDFLAGS += -lm
 OBJS = sersic.o profit.o sky.o psf.o convolve.o
 
