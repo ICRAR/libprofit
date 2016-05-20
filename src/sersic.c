@@ -28,9 +28,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_GSL
-#include "gsl/gsl_cdf.h"
-#include "gsl/gsl_sf_gamma.h"
+/*
+ * We use either GSL or Rmath to provide the low-level
+ * beta, gamma and qgamma_inv functions needed by the sersic profile.
+ * If neither is given, the user will have to feed the profiles with
+ * the appropriate function pointers after creating them.
+ */
+#if defined(HAVE_GSL)
+#include <gsl/gsl_cdf.h>
+#include <gsl/gsl_sf_gamma.h>
+#elif defined(HAVE_R)
+#define R_NO_REMAP
+#include <Rmath.h>
 #endif
 
 #include "sersic.h"
@@ -205,6 +214,12 @@ void profit_init_sersic(profit_profile *profile, profit_model *model) {
 
 }
 
+#if defined(HAVE_R)
+double _Rf_qgamma_wrapper(double a, double b, double c) {
+	return Rf_qgamma(a, b, c, 1, 0);
+}
+#endif
+
 profit_profile *profit_create_sersic() {
 	profit_sersic_profile *p = (profit_sersic_profile *)malloc(sizeof(profit_sersic_profile));
 	p->profile.init_profile = &profit_init_sersic;
@@ -226,10 +241,18 @@ profit_profile *profit_create_sersic() {
 	p->resolution = 9;
 	p->max_recursions = 2;
 
-#ifdef HAVE_GSL
+	/*
+	 * Point to the corresponding implementation, or leave as NULL if not
+	 * possible. In that case the user will have to provide their own functions.
+	 */
+#if defined(HAVE_GSL)
 	p->_beta = &gsl_sf_beta;
 	p->_gammafn = &gsl_sf_gamma;
 	p->_qgamma = &gsl_cdf_gamma_Qinv;
+#elif defined(HAVE_R)
+	p->_qgamma = &_Rf_qgamma_wrapper;
+	p->_gammafn = &Rf_gammafn;
+	p->_beta = &Rf_beta;
 #else
 	p->_qgamma = NULL;
 	p->_gammafn = NULL;
