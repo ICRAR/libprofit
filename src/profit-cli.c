@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
 
 #include "profit.h"
 #include "psf.h"
@@ -303,7 +303,7 @@ int to_fits(profit_model *m, char *fits_output) {
 		sprintf(filename, "%s.fits", fits_output);
 	}
 
-	f = fopen(filename, "wb");
+	f = fopen(filename, "w+");
 	if( filename != fits_output ) {
 		free(filename);
 	}
@@ -485,23 +485,16 @@ int main(int argc, char *argv[]) {
 	m->res_y      = height;
 	m->magzero    = magzero;
 
-	/* Go, go, go */
-	profit_eval_model(m);
-
-	if( output == performance ) {
-
-		/* This means that we evaluated the model once, but who cares */
-		struct timespec start, end;
-		clock_gettime(CLOCK_MONOTONIC, &start);
-		for(i=0; i!=iterations; i++) {
-			free(m->image);
-			free(m->error);
-			profit_eval_model(m);
-		}
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_nsec - start.tv_nsec)/1000;
-
+	/* This means that we evaluated the model once, but who cares */
+	struct timeval start, end;
+	gettimeofday(&start, NULL);
+	for(i=0; i!=iterations; i++) {
+		free(m->image);
+		free(m->error);
+		profit_eval_model(m);
 	}
+	gettimeofday(&end, NULL);
+	duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
 
 	/* Check for any errors */
 	error = profit_get_error(m);
