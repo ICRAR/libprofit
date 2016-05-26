@@ -48,14 +48,47 @@ static inline
 double _sersic_for_xy_r(profit_sersic_profile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
-	if( sp->box != 0. ) {
-		double box = sp->box + 2.;
-		r = pow( pow(fabs(x), box) + pow(fabs(y), box), 1./box);
+
+	/*
+	 * The evaluation of the sersic profile at sersic coordinates (x,y).
+	 *
+	 * The sersic profile has this form:
+	 *
+	 * e^{-bn * (r_factor - 1)}
+	 * where r_factor = (r/Re)^{1/nser}
+	 *              r = (x^{2+b} + y^{2+b})^{1/(2+b)}
+	 *              b = box parameter
+	 *
+	 * Reducing:
+	 *  r_factor = (x/re)^{2+b} + (y/re)^{2+b})^{1/(nser*(2+b)}
+	 *
+	 */
+
+	double r_factor;
+	if( reuse_r && sp->box == 0. ){
+		r_factor = pow(r/sp->re, 1/sp->nser);
 	}
-	else if( !reuse_r ){
-		r = sqrt(x*x + y*y);
+	else {
+		double exponent = sp->box + 2;
+		double base = pow(fabs(x/sp->re), exponent) + pow(fabs(y/sp->re), exponent);
+		double divisor = sp->nser*exponent;
+
+		if( divisor == 0.5 ) {
+			r_factor = base*base;
+		} else if( divisor == 1. ) {
+			r_factor = base;
+		} else if( divisor == 2. ) {
+			r_factor = sqrt(base);
+		} else if( divisor == 3. ) {
+			r_factor = cbrt(base);
+		} else if( divisor == 4. ) {
+			r_factor = sqrt(sqrt((base)));
+		} else {
+			r_factor = pow(base, 1/divisor);
+		}
 	}
-	return exp(-sp->_bn*(pow(r/sp->re,1/sp->nser)-1));
+
+	return exp(-sp->_bn * (r_factor - 1));
 }
 
 static inline
