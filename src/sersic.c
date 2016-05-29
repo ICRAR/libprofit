@@ -95,8 +95,8 @@ static inline
 void _image_to_sersic_coordinates(profit_sersic_profile *sp, double x, double y, double *x_ser, double *y_ser) {
 	x -= sp->xcen;
 	y -= sp->ycen;
-	*x_ser = x * sp->_cos_ang - y * sp->_sin_ang;
-	*y_ser = x * sp->_sin_ang + y * sp->_cos_ang;
+	*x_ser =  x * sp->_cos_ang + y * sp->_sin_ang;
+	*y_ser = -x * sp->_sin_ang + y * sp->_cos_ang;
 	*y_ser /= sp->axrat;
 }
 
