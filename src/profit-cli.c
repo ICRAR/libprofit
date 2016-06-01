@@ -69,7 +69,7 @@ char **_parse_profile_value(char *token) {
 		} \
 	} while(0);
 
-#define _READ_BOOL_OR_FAIL(key, val, name, dst) \
+#define _READ_FROM_LONGINT_OR_FAIL(key, val, name, dst, TYPE) \
 	do { \
 		char *endptr; \
 		long int tmp; \
@@ -79,10 +79,14 @@ char **_parse_profile_value(char *token) {
 				fprintf(stderr, "Invalid integer value for %s: %s\n", key, val); \
 				return -1;\
 			} \
-			dst = (bool)tmp;\
+			dst = (TYPE)tmp;\
 			return 1; \
 		} \
 	} while(0);
+
+#define _READ_BOOL_OR_FAIL(key, val, name, dst) _READ_FROM_LONGINT_OR_FAIL(key, val, name, dst, bool)
+#define _READ_UINT_OR_FAIL(key, val, name, dst) _READ_FROM_LONGINT_OR_FAIL(key, val, name, dst, unsigned int)
+
 
 short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
 	profit_sersic_profile *s = (profit_sersic_profile *)p;
@@ -91,10 +95,16 @@ short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
 	_READ_DOUBLE_OR_FAIL(key, val, "mag",   s->mag);
 	_READ_DOUBLE_OR_FAIL(key, val, "re",    s->re);
 	_READ_DOUBLE_OR_FAIL(key, val, "nser",  s->nser);
-	_READ_DOUBLE_OR_FAIL(key, val, "box",   s->box);
 	_READ_DOUBLE_OR_FAIL(key, val, "ang",   s->ang);
 	_READ_DOUBLE_OR_FAIL(key, val, "axrat", s->axrat);
-	_READ_BOOL_OR_FAIL(key, val, "rough",    s->rough);
+	_READ_DOUBLE_OR_FAIL(key, val, "box",   s->box);
+
+	_READ_BOOL_OR_FAIL(  key, val, "rough",          s->rough);
+	_READ_DOUBLE_OR_FAIL(key, val, "acc",            s->acc);
+	_READ_DOUBLE_OR_FAIL(key, val, "re_switch",      s->re_switch);
+	_READ_UINT_OR_FAIL(  key, val, "resolution",     s->resolution);
+	_READ_UINT_OR_FAIL(  key, val, "max_recursions", s->max_recursions);
+
 	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
 	return 0;
 }
