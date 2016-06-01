@@ -173,7 +173,7 @@ void profit_make_sersic(profit_profile *profile, profit_model *model, double *im
 			 * TODO: the radius calculation doesn't take into account boxing
 			 */
 			r_ser = sqrt(x_ser*x_ser + y_ser*y_ser);
-			if( sp->rough || sp->nser < 0.5 || r_ser/sp->re > sp->re_switch ){
+			if( sp->rough || r_ser/sp->re > sp->re_switch ){
 				pixel_val = _sersic_for_xy_r(sp, x_ser, y_ser, r_ser, true);
 			}
 			else {
