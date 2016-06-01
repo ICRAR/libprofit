@@ -54,11 +54,11 @@ char **_parse_profile_value(char *token) {
 	return key_and_val;
 }
 
-#define _READ_DOUBLE_OR_FAIL(key, val, name, len, dst) \
+#define _READ_DOUBLE_OR_FAIL(key, val, name, dst) \
 	do { \
 		char *endptr; \
 		double tmp; \
-		if ( !strncmp(key, name, len) ) { \
+		if ( !strcmp(key, name) ) { \
 			tmp = strtod(val, &endptr); \
 			if( tmp == 0 && endptr == val ) { \
 				fprintf(stderr, "Invalid double value for %s: %s\n", key, val); \
@@ -69,11 +69,11 @@ char **_parse_profile_value(char *token) {
 		} \
 	} while(0);
 
-#define _READ_BOOL_OR_FAIL(key, val, name, len, dst) \
+#define _READ_BOOL_OR_FAIL(key, val, name, dst) \
 	do { \
 		char *endptr; \
 		long int tmp; \
-		if ( !strncmp(key, name, len) ) { \
+		if ( !strcmp(key, name) ) { \
 			tmp = strtol(val, &endptr, 10); \
 			if( tmp == 0 && endptr == val ) { \
 				fprintf(stderr, "Invalid integer value for %s: %s\n", key, val); \
@@ -86,31 +86,31 @@ char **_parse_profile_value(char *token) {
 
 short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
 	profit_sersic_profile *s = (profit_sersic_profile *)p;
-	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  4, s->xcen);
-	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  4, s->ycen);
-	_READ_DOUBLE_OR_FAIL(key, val, "mag",   3, s->mag);
-	_READ_DOUBLE_OR_FAIL(key, val, "re",    2, s->re);
-	_READ_DOUBLE_OR_FAIL(key, val, "nser",  4, s->nser);
-	_READ_DOUBLE_OR_FAIL(key, val, "box",   3, s->box);
-	_READ_DOUBLE_OR_FAIL(key, val, "ang",   3, s->ang);
-	_READ_DOUBLE_OR_FAIL(key, val, "axrat", 5, s->axrat);
-	_READ_BOOL_OR_FAIL(key, val, "rough",    5, s->rough);
-	_READ_BOOL_OR_FAIL(key, val, "convolve", 8, p->convolve);
+	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  s->xcen);
+	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  s->ycen);
+	_READ_DOUBLE_OR_FAIL(key, val, "mag",   s->mag);
+	_READ_DOUBLE_OR_FAIL(key, val, "re",    s->re);
+	_READ_DOUBLE_OR_FAIL(key, val, "nser",  s->nser);
+	_READ_DOUBLE_OR_FAIL(key, val, "box",   s->box);
+	_READ_DOUBLE_OR_FAIL(key, val, "ang",   s->ang);
+	_READ_DOUBLE_OR_FAIL(key, val, "axrat", s->axrat);
+	_READ_BOOL_OR_FAIL(key, val, "rough",    s->rough);
+	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
 	return 0;
 }
 
 short _keyval_to_sky(profit_profile *p, char *key, char *val) {
 	profit_sky_profile *s = (profit_sky_profile *)p;
-	_READ_DOUBLE_OR_FAIL(key, val, "bg",  2, s->bg);
-	_READ_BOOL_OR_FAIL(key, val, "convolve", 8, p->convolve);
+	_READ_DOUBLE_OR_FAIL(key, val, "bg",  s->bg);
+	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
 	return 0;
 }
 
 short _keyval_to_psf(profit_profile *p, char *key, char *val) {
 	profit_psf_profile *s = (profit_psf_profile *)p;
-	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  4, s->xcen);
-	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  4, s->ycen);
-	_READ_DOUBLE_OR_FAIL(key, val, "mag",   3, s->mag);
+	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  s->xcen);
+	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  s->ycen);
+	_READ_DOUBLE_OR_FAIL(key, val, "mag",   s->mag);
 	return 0;
 }
 
