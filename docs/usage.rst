@@ -37,7 +37,8 @@ The basic usage pattern then is as follows:
 
 	 profit_model *model = profit_create_model();
 
-#. Create a profile (for a list of supported names see :doc:`profiles`)::
+#. Create a profile. For a list of supported names see :doc:`profiles`;
+   if you want to support a new profile see :doc:`new_profile`::
 
 	 profit_profile *sersic_profile = profit_create_profile("sersic");
 

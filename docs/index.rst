@@ -13,5 +13,6 @@ libprofit is a C library that produces images based on different luminosity prof
 
    usage.rst
    profiles.rst
+   new_profile.rst
    bindings.rst
    api.rst
