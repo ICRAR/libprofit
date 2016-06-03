@@ -6,12 +6,14 @@
 libprofit
 =========
 
-libprofit is a C library that produces images based on different luminosity profiles.
+*libprofit* is a C library that produces images based on different luminosity profiles.
 
 .. toctree::
    :maxdepth: 2
 
    usage.rst
+   coordinates.rst
+   structure.rst
    profiles.rst
    new_profile.rst
    bindings.rst

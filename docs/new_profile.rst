@@ -6,8 +6,8 @@ Adding a profile
 
 .. contents::
 
-In this section we explain
-the steps required to add a new profile to libprofit.
+This section explains
+the steps required to add a new profile to *libprofit*.
 
 A profile needs three parts to be complete:
 
@@ -34,14 +34,15 @@ define the C structure that will hold all its information.
 Any kind of information can be added to the structure,
 but it is **required** that the first member of the structure
 is of type ``profit_profile``.
-This member is used internally by libprofit
+This member is used internally by *libprofit*
 to handle all profile types as being of the same kind.
 The current profiles name this first member simply ``profile``,
 so the same name is suggested for new profiles.
 It is suggested you also ``typedef`` your new structure for easier
 reference in the future.
 Again, any name can be chosen,
-but to keep things consistent we use ``profit_xxxx_profile``
+but to keep things consistent
+``profit_xxxx_profile`` is used throughout the code,
 with ``xxxx``` being the name of the profile.
 
 The structure above should be defined
@@ -85,15 +86,15 @@ Its signature looks like this::
 The initialization function takes in two arguments:
 the containing ``model``
 and the particular ``profile`` being initialized
-(see :ref:`structure`).
+(see :doc:`structure`).
 Its responsibility is to validate the inputs of the profile.
 
 The first thing you want to do in the function
 is to cast the profile into the ``profit_example_profilt`` type
 to have access to its specific members.
-In the case of the ``example`` profile we mentioned
+In the case of the ``example`` profile it was mentioned
 that all parameters must be positive,
-so we then test for that.
+so the code must test for that.
 If a violation occurs, an error string is recorded
 n the ``profile->error`` field.
 This error will prevent the profile (and in fact the whole model)
@@ -123,9 +124,10 @@ An example implementation would thus look like this::
 Note that having access to the model means
 that one can validate profile-specific values
 against model-global values as well.
-For example, if we add the restriction
+For example, if a new restriction is added stating
 that the ``example`` profile can only be run on images
-that are bigger than 20 x 20 then we could add::
+that are bigger than 20 x 20
+then the following code could be added::
 
  if ( model->width < 20 || model->height < 20 ) {
      profile->error = strdup("can't apply example profile to images less than 20x20");
@@ -165,7 +167,7 @@ with data organized in rows first, columns later.
 This means that to access pixel ``(x,y)``
 one must access the array at position ``x + y*model->width``.
 
-We mentioned earlier that the ``example`` profile
+It was mentioned earlier that the ``example`` profile
 fills the image by taking the X and Y coordinates
 and filling the pixel
 with the value ``|(param1 - param2) * param3 * (x - y)|``.
@@ -213,6 +215,8 @@ The code above performs the following steps:
    which is a floating point number representing
    the horizontal image coordinate
    used to evaluate the profile on that pixel.
+   See :doc:`coordinates` for more details
+   on the coordinate system used by *libprofit*.
 #. Similarly, on line 15 we loop around the Y axis.
 #. Being now on a given X and Y coordinate,
    we evaluate our profile on line 18.
@@ -232,7 +236,7 @@ and populates it with its default values.
 It also associates every new created profile
 with the two previously mentioned functions.
 
-For our example, this would look like this::
+For this example the code would look like this::
 
  profit_profile *profit_create_example() {
 
@@ -266,21 +270,21 @@ This is necessary for :ref:`wiring_up`:.
 Wiring up
 ---------
 
-To finally wire up your new profile with the rest of libprofit
+To finally wire up your new profile with the rest of *libprofit*
 you need to give it a name.
 This is done at the ``profit.c`` file.
 Open it in an editor
 and look for the ``_all_profiles`` array.
-In this array we list the creation functions of all profiles,
+This array lists the creation functions of all profiles,
 and associate them with an name.
 
-To add the ``example`` profile we thus add the following line,
-just before the ``Sentinel`` line::
+To add the ``example`` profile the following line must thus be added,
+just before the end of the array and the *sentinel* item::
 
  {"example", profit_create_example},
 
 In order to be able to "see" the creation function
-we also need to include the ``example.h`` file,
+the ``example.h`` file must also be included,
 which is done earlier on in ``profit.c``::
 
  #include "example.h"
