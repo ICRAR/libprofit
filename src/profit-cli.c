@@ -106,6 +106,9 @@ short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
 	_READ_UINT_OR_FAIL(  key, val, "max_recursions", s->max_recursions);
 	_READ_BOOL_OR_FAIL(  key, val, "adjust",         s->adjust);
 
+	_READ_DOUBLE_OR_FAIL(key, val, "re_max",       s->re_max);
+	_READ_BOOL_OR_FAIL(  key, val, "rescale_flux", s->rescale_flux);
+
 	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
 	return 0;
 }
