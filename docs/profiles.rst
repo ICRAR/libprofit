@@ -45,6 +45,21 @@ This sub-sampling can be controller by the following additional parameters:
   on each new recursion level.
 * **acc**: Accuracy after which recursion stops.
 
+The sersic profile also implements far-pixel filtering,
+quickly zeroing pixels that are too far away
+from the profile center.
+This filtering can be controller by the following parameters:
+
+* **re_max**: Maximum *re*-based distance to consider for filtering.
+* **rescale_flux**: Whether the calculated profile flux should be scaled
+  to take into account the filtering performed by **re_max**.
+
+Finally, an **adjust** parameter allows the user
+whether adjustments of most of the parameters described
+above should be done automatically depending on the profile parameters.
+*libprofit* makes a reasonable compromise between speed and accuracy,
+and therefore this option is turned on by default.
+
 ``sky``
 -------
 
