@@ -53,9 +53,6 @@ This filtering can be controller by the following parameters:
 * **re_max**: Maximum *re*-based distance to consider for filtering.
 * **rescale_flux**: Whether the calculated profile flux should be scaled
   to take into account the filtering performed by **re_max**.
-* **calcmask**: A logical 2D map that indicates whether the profile
-  should be calculated at a given pixel or not.
-  By default all pixels are calculated.
 
 Finally, an **adjust** parameter allows the user
 whether adjustments of most of the parameters described

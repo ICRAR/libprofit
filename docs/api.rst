@@ -7,7 +7,8 @@ Data types
 ----------
 
 *libprofit* has two main data types:
-the model structure and the base profile structure.
+the model structure (:type:`profit_model`)
+and the base profile structure (:type:`profit_profile`).
 We introduce the base profile first, then the model.
 
 .. type:: profit_profile
@@ -35,7 +36,8 @@ We introduce the base profile first, then the model.
    An error string indicating that an error related to this profile was
    detected. The error string can be set either during the profile
    initialization or during the image creation process. Users should check
-   that there is no error in any of the profiles after making a model.
+   that there is no error in any of the profiles after making a model
+   using :func:`profit_get_error`.
 
 .. member:: bool profit_profile.convolve:
 
@@ -43,6 +45,8 @@ We introduce the base profile first, then the model.
    should be convolved with the model's PSF or not.
    Setting this flag to ``true`` but failing to provide a PSF
    results in an error.
+
+
 
 .. type:: profit_model
 
@@ -63,6 +67,13 @@ We introduce the base profile first, then the model.
    It must be greater than 0.
    See :doc:`coordinates` for more details.
 
+.. member:: double * profit_model.image
+
+   The image produced by this model.
+   The image has the dimensions specified in the model.
+   Users should check if there was any error when evaluating the model
+   using :func:`profit_get_error`, in which case this field will remain unset.
+
 .. member:: unsigned int profit_model.res_x
 
    The span of the horizontal coordinate of the image that profit will generate
@@ -76,15 +87,46 @@ We introduce the base profile first, then the model.
    It must be greater than 0.
    See :doc:`coordinates` for more details.
 
+.. member:: double profit_model.magzero
+
+   The zero magnitude of this model.
 
 .. member:: unsigned int profit_model.n_profiles
 
-   The number of profiles used to generate the model's image
+   The number of profiles used to generate the model's image.
 
-.. member:: profit_profile **profit_model.profiles;
+.. member:: profit_profile ** profit_model.profiles
 
    A list of pointers to the individual profiles
-	ued to generate the model's image
+   used to generate the model's image.
+
+.. member:: double * profit_model.psf
+
+   An array containing the values of a Point Spread Function (PSF).
+   The PSF is used to convolve the profiles that request convolving,
+   and as the source image of the ``psf`` profile.
+
+.. member:: unsigned int profit_model.psf_width
+
+   The width of the PSF image.
+
+.. member:: unsigned int profit_model.psf_height
+
+   The height of the PSF image.
+
+.. member:: bool * profit_model.calcmask
+
+   A boolean mask with the same dimensions of the model
+   that indicates for each pixel of the image
+   whether the profiles should be calculated or not.
+   If ``NULL`` all pixels are calculated.
+
+.. member:: char * profit_model.error
+
+   An error string indicating that an error at the model level has been
+   detected.
+   Users should check that there is no error in any of the profiles
+   after making a model using :func:`profit_get_error`.
 
 Functions
 ---------

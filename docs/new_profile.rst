@@ -26,6 +26,9 @@ and filling the pixel
 with the value ``|(param1 - param2) * param3 * (x - y)|``
 and requires that all parameters are positive or 0.
 
+The data types used in this example
+are described in detail in :doc:`api`.
+
 Data type
 ---------
 
@@ -175,7 +178,7 @@ An implementation of this would then look like this:
 
 .. code-block:: c
  :linenos:
- :emphasize-lines: 8,11,15,18,19
+ :emphasize-lines: 8,11,15,18-20
 
  void profit_make_example(profit_profile *profile, profit_model *model, double *image) {
 
@@ -194,8 +197,10 @@ An implementation of this would then look like this:
          for (j=0; j < model->height; j++) {
             y += half_ybin;
 
-            double val = fabs( (e->param1 - e->param2) * e->param3 * (x - y) );
-            image[i + j*model->width] = val;
+            if ( !model->calcmask || model->calcmask[i + j*model->width] ) {
+               double val = fabs( (e->param1 - e->param2) * e->param3 * (x - y) );
+               image[i + j*model->width] = val;
+            }
 
             y += half_ybin;
          }
@@ -218,9 +223,12 @@ The code above performs the following steps:
    See :doc:`coordinates` for more details
    on the coordinate system used by *libprofit*.
 #. Similarly, on line 15 we loop around the Y axis.
+#. The model might specify a calculation mask,
+   indicating that some pixels should not be calculated,
+   which is checked in line 18
 #. Being now on a given X and Y coordinate,
-   we evaluate our profile on line 18.
-#. Finally on line 19 we store the evaluated profile
+   we evaluate our profile on line 19.
+#. Finally on line 20 we store the evaluated profile
    on the corresponding pixel of the image.
 
 Creation
@@ -263,7 +271,7 @@ cast as a ``profit_profile``, is returned.
 The signature of the creation function
 is also the only one of the three
 that needs to be put into the profile's ``.h`` file.
-This is necessary for :ref:`wiring_up`:.
+This is necessary for :ref:`wiring_up`.
 
 .. _wiring_up:
 

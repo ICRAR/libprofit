@@ -46,8 +46,10 @@ void profit_make_example(profit_profile *profile, profit_model *model, double *i
 		for (j=0; j < model->height; j++) {
 			y += half_ybin;
 
-			double val = fabs( (e->param1 - e->param2) * e->param3 * (x - y) );
-			image[i + j*model->width] = val;
+			if ( !model->calcmask || model->calcmask[i + j*model->width] ) {
+				double val = fabs( (e->param1 - e->param2) * e->param3 * (x - y) );
+				image[i + j*model->width] = val;
+			}
 
 			y += half_ybin;
 		}
