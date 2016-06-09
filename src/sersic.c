@@ -175,6 +175,7 @@ void profit_make_sersic(profit_profile *profile, profit_model *model, double *im
 
 			/* We were instructed, we were instructed to ignore this pixel */
 			if( model->calcmask && !model->calcmask[i + j*model->width] ) {
+				x += half_xbin;
 				continue;
 			}
 
