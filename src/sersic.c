@@ -283,8 +283,8 @@ void profit_init_sersic(profit_profile *profile, profit_model *model) {
 		 */
 		resolution = (unsigned int)ceil(160 / re_switch);
 		resolution += resolution%2;
-		resolution = resolution > 16 ? 16 : resolution;
-		resolution = resolution < 10 ? 10 : resolution;
+		resolution = resolution > 10 ? 10 : resolution;
+		resolution = resolution <  4 ?  4 : resolution;
 
 		sersic_p->re_switch = re_switch / re;
 		sersic_p->resolution = resolution;
