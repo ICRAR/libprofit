@@ -32,7 +32,7 @@
 void profit_normalize(double *image, unsigned int img_width, unsigned int img_height) {
 
 	unsigned int i;
-	unsigned int size = img_widht * img_height;
+	unsigned int size = img_width * img_height;
 	double sum = 0;
 
 	double *in = image;
@@ -76,11 +76,11 @@ double *profit_convolve(double *src, unsigned int src_width, unsigned int src_he
 			for (l = 0; l < krn_height; l++) {
 				for (k = 0; k < krn_width; k++) {
 
-					src_i = i + l - krn_center_x;
-					src_j = j + k - krn_center_x;
+					src_i = (int)i + (int)l - (int)krn_center_x;
+					src_j = (int)j + (int)k - (int)krn_center_y;
 					if( src_i >= 0 && src_i < src_width &&
 					    src_j >= 0 && src_j < src_height ) {
-						pixel +=  src[src_i + src_j*src_width] * krn[k + l*krn_width];
+						pixel +=  src[(unsigned int)src_i + (unsigned int)src_j*src_width] * krn[k + l*krn_width];
 					}
 				}
 			}

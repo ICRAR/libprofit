@@ -190,7 +190,7 @@ void profit_eval_model(profit_model *model) {
 		}
 	}
 	if( convolve ) {
-		ssize_t psf_size = sizeof(double) * model->psf_width * model->psf_height;
+		size_t psf_size = sizeof(double) * model->psf_width * model->psf_height;
 		double *psf = (double *)malloc(psf_size);
 		memcpy(psf, model->psf, psf_size);
 		profit_normalize(psf, model->psf_width, model->psf_height);
