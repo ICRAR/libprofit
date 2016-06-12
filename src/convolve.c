@@ -61,30 +61,54 @@ double *profit_convolve(double *src, unsigned int src_width, unsigned int src_he
 
 	double *convolution = (double *)calloc(src_width * src_height, sizeof(double));
 
+	double *out = convolution;
+	double *srcPtr1 = src, *srcPtr2;
+	double *krnPtr;
+	bool *maskPtr = mask;
+
+	if( mask ) {
+		maskPtr -= 1;
+	}
+
 	/* Convolve! */
 	/* Loop around the output image first... */
 	for (j = 0; j < src_height; j++) {
 		for (i = 0; i < src_width; i++) {
 
 			/* Don't convolve this pixel */
-			if( mask && !mask[i + j*src_width] ) {
-				continue;
+			if( mask ) {
+				maskPtr++;
+				if( !*maskPtr ) {
+					srcPtr1++;
+					out++;
+					continue;
+				}
 			}
 
 			/* ... now loop around the kernel */
 			pixel = 0;
+			krnPtr = krn;
+			srcPtr2 = srcPtr1 - krn_center_x - krn_center_y*krn_width;
 			for (l = 0; l < krn_height; l++) {
+
+				src_i = (int)i + (int)l - (int)krn_center_x;
 				for (k = 0; k < krn_width; k++) {
 
-					src_i = (int)i + (int)l - (int)krn_center_x;
 					src_j = (int)j + (int)k - (int)krn_center_y;
 					if( src_i >= 0 && src_i < src_width &&
 					    src_j >= 0 && src_j < src_height ) {
-						pixel +=  src[(unsigned int)src_i + (unsigned int)src_j*src_width] * krn[k + l*krn_width];
+						pixel +=  *srcPtr2 * *krnPtr;
 					}
+
+					srcPtr2++;
+					krnPtr++;
 				}
+				srcPtr2 += src_width - krn_width;
 			}
-			convolution[i + j*src_width] = pixel;
+
+			*out = pixel;
+			srcPtr1++;
+			out++;
 		}
 	}
 
