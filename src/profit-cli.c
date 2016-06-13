@@ -330,13 +330,18 @@ int to_fits(profit_model *m, char *fits_output) {
 		return 1;
 	}
 
-	/* Standard headers*/
-	fprintf(f, "%-80s", "SIMPLE  = T               / File conforms to FITS standard");
-	fprintf(f, "%-80s", "BITPIX  = -64             / Bits per pixel");
-	fprintf(f, "%-80s", "NAXIS   = 2               / Number of axes");
-	sprintf(hdr, "NAXIS1  = %-10.0u                / Width", m->width);
+	/*
+	 * Standard headers
+	 *
+	 * The first five headers are required, and must be in "fixed format",
+	 * meaning that their values must be right-indented on column 30, sigh...
+	 */
+	fprintf(f, "%-80s", "SIMPLE  =                    T / File conforms to FITS standard");
+	fprintf(f, "%-80s", "BITPIX  =                  -64 / Bits per pixel");
+	fprintf(f, "%-80s", "NAXIS   =                    2 / Number of axes");
+	sprintf(hdr, "NAXIS1  =           %10.0u / Width", m->width);
 	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "NAXIS2  = %-10.0u                / Height", m->height);
+	sprintf(hdr, "NAXIS2  =           %10.0u / Height", m->height);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CRPIX1  = 1");
 	fprintf(f, "%-80s", "CRVAL1  = 1");
@@ -375,9 +380,9 @@ int to_fits(profit_model *m, char *fits_output) {
 	fwrite(m->image, sizeof(double), m->width * m->height, f);
 
 	/* Pad with zeroes until we complete the current 36*80 block */
-	padding = FITS_BLOCK_SIZE - ((m->width * m->height) % FITS_BLOCK_SIZE);
-	void *zeros = calloc(padding, sizeof(double));
-	fwrite(zeros, sizeof(double), padding, f);
+	padding = FITS_BLOCK_SIZE - ((sizeof(double) * m->width * m->height) % FITS_BLOCK_SIZE);
+	void *zeros = calloc(padding, 1);
+	fwrite(zeros, 1, padding, f);
 	free(zeros);
 	fclose(f);
 
