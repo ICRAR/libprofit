@@ -313,7 +313,7 @@ int to_fits(profit_model *m, char *fits_output) {
 	FILE *f;
 	unsigned int i, j, pos, padding;
 	char hdr[80];
-	char *filename = NULL;
+	char *filename = fits_output;
 
 	/* Append .fits if not in the name yet */
 	if( strlen(fits_output) < 5 ||
