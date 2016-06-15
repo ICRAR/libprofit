@@ -11,6 +11,7 @@ libprofit
 .. toctree::
    :maxdepth: 2
 
+   getting.rst
    usage.rst
    coordinates.rst
    structure.rst
