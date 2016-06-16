@@ -173,7 +173,7 @@ void profit_make_sersic(profit_profile *profile, profit_model *model, double *im
 		for(i=0; i < model->width; i++) {
 			x += half_xbin;
 
-			/* We were instructed, we were instructed to ignore this pixel */
+			/* We were instructed to ignore this pixel */
 			if( model->calcmask && !model->calcmask[i + j*model->width] ) {
 				x += half_xbin;
 				continue;
@@ -294,11 +294,11 @@ void profit_init_sersic(profit_profile *profile, profit_model *model) {
 		 * If the user didn't give a re_max we calculate one that covers
 		 * %99.99 of the flux
 		 */
-		if( sersic_p->re_max == 0 ){
+		if( sersic_p->re_max == 0 ) {
 			sersic_p->re_max = ceil(profit_sersic_fluxfrac(sersic_p, 0.9999));
 		}
 		sersic_p->_rescale_factor = 1;
-		if( sersic_p->rescale_flux ){
+		if( sersic_p->rescale_flux ) {
 			double flux_r;
 			flux_r = bn * pow(sersic_p->re_max/re, 1/nser);
 			flux_r = sersic_p->_pgamma(flux_r, 2*nser);
