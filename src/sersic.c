@@ -128,7 +128,7 @@ double _sersic_sumpix(profit_sersic_profile *sp,
 			subval = _sersic_for_xy_r(sp, x_ser, y_ser, 0, false);
 
 			if( recurse ) {
-				testval = _sersic_for_xy_r(sp, x_ser, fabs(y_ser) + fabs(ybin*sp->_sin_ang), 0, false);
+				testval = _sersic_for_xy_r(sp, x_ser, fabs(y_ser) + fabs(ybin*sp->_sin_ang/sp->axrat), 0, false);
 				if( fabs(testval/subval - 1.0) > sp->acc ) {
 					subval = _sersic_sumpix(sp,
 					                        x - half_xbin, x + half_xbin,
@@ -304,6 +304,12 @@ void profit_init_sersic(profit_profile *profile, profit_model *model) {
 			flux_r = sersic_p->_pgamma(flux_r, 2*nser);
 			sersic_p->_rescale_factor = 1/flux_r;
 		}
+
+		/* Adjust the accuracy we'll use for sub-pixel integration */
+		double acc = 0.4 / nser;
+		acc = fmax(0.1, acc) / axrat;
+		sersic_p->acc = acc;
+
 	}
 
 	/*
