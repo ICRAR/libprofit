@@ -129,6 +129,7 @@ short _keyval_to_psf(profit_profile *p, char *key, char *val) {
 }
 
 profit_profile *desc_to_profile(
+	profit_model *model,
 	char *description,
 	const char* name,
 	unsigned short allow_empty_profile,
@@ -145,7 +146,7 @@ profit_profile *desc_to_profile(
 		return NULL;
 	}
 
-	p = profit_create_profile(name);
+	p = profit_create_profile(model, name);
 	if( !description ) {
 		return p;
 	}
@@ -175,7 +176,7 @@ profit_profile *desc_to_profile(
 	return p;
 }
 
-profit_profile *parse_profile(char *description) {
+profit_profile *parse_profile(profit_model *model, char *description) {
 
 	/* The description might be only a name */
 	char *subdesc = NULL;
@@ -187,13 +188,13 @@ profit_profile *parse_profile(char *description) {
 	}
 
 	if( !strncmp(description, "sersic", name_end) ) {
-		return desc_to_profile(subdesc, "sersic", 0, &_keyval_to_sersic);
+		return desc_to_profile(model, subdesc, "sersic", 0, &_keyval_to_sersic);
 	}
 	else if( !strncmp(description, "sky", name_end) ) {
-		return desc_to_profile(subdesc, "sky", 0, &_keyval_to_sky);
+		return desc_to_profile(model, subdesc, "sky", 0, &_keyval_to_sky);
 	}
 	else if( !strncmp(description, "psf", name_end) ) {
-		return desc_to_profile(subdesc, "psf", 0, &_keyval_to_psf);
+		return desc_to_profile(model, subdesc, "psf", 0, &_keyval_to_psf);
 	}
 
 	fprintf(stderr, "Unknown profile name in profile description: %s\n", description);
@@ -427,11 +428,10 @@ int main(int argc, char *argv[]) {
 				CLEAN_AND_EXIT(0);
 
 			case 'p':
-				profile = parse_profile(optarg);
+				profile = parse_profile(m, optarg);
 				if( profile == NULL ) {
 					CLEAN_AND_EXIT(1);
 				}
-				profit_add_profile(m, profile);
 				break;
 
 			case 'P':

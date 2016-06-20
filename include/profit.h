@@ -168,18 +168,13 @@ typedef struct _profit_model {
 profit_model *profit_create_model(void);
 
 /**
- * Creates a new profile for the given name.
- * On success, the new profile is created and its reference is returned for
- * further customization.
+ * Creates a new profile for the given name and adds it to the given model.
+ * On success, the new profile is created, added to the model,
+ * and its reference is returned for further customization.
  * On failure (i.e., if a profile with the given name is not supported) NULL is
- * returned.
+ * returned and no profile is added to the model.
  */
-profit_profile *profit_create_profile(const char *profile_name);
-
-/**
- * Adds the given profile to the model.
- */
-void profit_add_profile(profit_model *model, profit_profile *profile);
+profit_profile *profit_create_profile(profit_model *model, const char *profile_name);
 
 /**
  * Calculates an image using the information contained in the model.

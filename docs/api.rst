@@ -140,17 +140,13 @@ For an example on how to use them see :doc:`usage`.
    Creates a new model to which profiles can be added, and that can
    be used to calculate an image.
 
-.. function:: profit_profile * profit_create_profile(const char * profile_name)
+.. function:: profit_profile * profit_create_profile(profit_model * model, const char * profile_name)
 
-   Creates a new profile for the given name.
-   On success, the new profile is created and its reference is returned for
-   further customization.
+   Creates a new profile for the given name and adds it to the given model.
+   On success, the new profile is created, added to the model,
+   and its reference is returned for further customization.
    On failure (i.e., if a profile with the given name is not supported)
-   ``NULL`` is returned.
-
-.. function:: void profit_add_profile(profit_model * model, profit_profile * profile)
-
-   Adds the given profile to the model.
+   ``NULL`` is returned and no profile is added to the model.
 
 .. function:: void profit_eval_model(profit_model * model)
 

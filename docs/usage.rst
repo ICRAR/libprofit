@@ -40,7 +40,7 @@ The basic usage pattern then is as follows:
 #. Create a profile. For a list of supported names see :doc:`profiles`;
    if you want to support a new profile see :doc:`new_profile`::
 
-	 profit_profile *sersic_profile = profit_create_profile("sersic");
+	 profit_profile *sersic_profile = profit_create_profile(model, "sersic");
 
 #. Customize your profile.
    An explicit cast must be performed on the :type:`profit_profile` to turn it
@@ -54,11 +54,7 @@ The basic usage pattern then is as follows:
 	 sp->axrat = 0.345;
 	 [...]
 
-#. Add the new profile to the model::
-
-	 profit_add_profile(model, sersic_profile);
-
-#. Repeat the previous three steps for all profiles
+#. Repeat the previous two steps for all profiles
    you want to include in your model.
 
 #. Evaluate the model simply run::

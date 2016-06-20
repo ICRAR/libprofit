@@ -57,7 +57,18 @@ profit_model *profit_create_model() {
 	return model;
 }
 
-profit_profile* profit_create_profile(const char * profile_name) {
+void _profit_add_profile(profit_model *model, profit_profile *profile) {
+	if( !model->n_profiles ) {
+		model->profiles = (profit_profile **)malloc(sizeof(profit_profile **));
+	}
+	else {
+		model->profiles = realloc(model->profiles, (model->n_profiles + 1) * sizeof(profit_profile *));
+	}
+	model->profiles[model->n_profiles] = profile;
+	model->n_profiles++;
+}
+
+profit_profile* profit_create_profile(profit_model *model, const char * profile_name) {
 
 	struct _profit_profile_index *p = _all_profiles;
 	while(1) {
@@ -66,6 +77,7 @@ profit_profile* profit_create_profile(const char * profile_name) {
 		}
 		if( !strcmp(profile_name, p->name) ) {
 			profit_profile *profile = p->create();
+			_profit_add_profile(model, profile);
 			profile->error = NULL;
 			profile->name = profile_name;
 			profile->convolve = false;
@@ -75,17 +87,6 @@ profit_profile* profit_create_profile(const char * profile_name) {
 	}
 
 	return NULL;
-}
-
-void profit_add_profile(profit_model *model, profit_profile *profile) {
-	if( !model->n_profiles ) {
-		model->profiles = (profit_profile **)malloc(sizeof(profit_profile **));
-	}
-	else {
-		model->profiles = realloc(model->profiles, (model->n_profiles + 1) * sizeof(profit_profile *));
-	}
-	model->profiles[model->n_profiles] = profile;
-	model->n_profiles++;
 }
 
 void profit_eval_model(profit_model *model) {
