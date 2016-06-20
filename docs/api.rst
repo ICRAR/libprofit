@@ -16,7 +16,7 @@ We introduce the base profile first, then the model.
    The base structure that ever profile type must use.
    It contains all the shared aspects across profiles,
    like a name, an error string, and pointers to the functions
-   that initialize and evaluate a profile
+   that validate and evaluate a profile
 
    A member of this type **must** be declared as the first structure member
    of each profile type structure.
@@ -35,7 +35,7 @@ We introduce the base profile first, then the model.
 
    An error string indicating that an error related to this profile was
    detected. The error string can be set either during the profile
-   initialization or during the image creation process. Users should check
+   validation or during the image creation process. Users should check
    that there is no error in any of the profiles after making a model
    using :func:`profit_get_error`.
 

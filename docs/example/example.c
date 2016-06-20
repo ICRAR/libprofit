@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "example.h"
 
-void profit_init_example(profit_profile *profile, profit_model *model) {
+void profit_validate_example(profit_profile *profile, profit_model *model) {
 
 	profit_example_profile *e = (profit_example_profile *)profile;
 
@@ -29,7 +29,7 @@ void profit_init_example(profit_profile *profile, profit_model *model) {
 	*/
 }
 
-void profit_make_example(profit_profile *profile, profit_model *model, double *image) {
+void profit_evaluate_example(profit_profile *profile, profit_model *model, double *image) {
 
 	double x, y;
 	unsigned int i, j;
@@ -60,8 +60,8 @@ void profit_make_example(profit_profile *profile, profit_model *model, double *i
 profit_profile *profit_create_example() {
 
 	profit_example_profile *e = (profit_example_profile*) malloc(sizeof(profit_example_profile));
-	e->profile.init_profile = &profit_init_example;
-	e->profile.make_profile = &profit_make_example;
+	e->profile.validate_profile = &profit_validate_example;
+	e->profile.evaluate_profile = &profit_evaluate_example;
 
 	e->param1 = 1.;
 	e->param2 = 2.;

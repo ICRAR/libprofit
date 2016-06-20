@@ -150,7 +150,7 @@ double _sersic_sumpix(profit_sersic_profile *sp,
 }
 
 static
-void profit_make_sersic(profit_profile *profile, profit_model *model, double *image) {
+void profit_evaluate_sersic(profit_profile *profile, profit_model *model, double *image) {
 
 	unsigned int i, j;
 	double x, y, pixel_val;
@@ -220,7 +220,7 @@ double profit_sersic_fluxfrac(profit_sersic_profile *sp, double fraction) {
 }
 
 static
-void profit_init_sersic(profit_profile *profile, profit_model *model) {
+void profit_validate_sersic(profit_profile *profile, profit_model *model) {
 
 	profit_sersic_profile *sersic_p = (profit_sersic_profile *)profile;
 	double nser = sersic_p->nser;
@@ -349,8 +349,8 @@ double _Rf_pgamma_wrapper(double q, double shape) {
 
 profit_profile *profit_create_sersic() {
 	profit_sersic_profile *p = (profit_sersic_profile *)malloc(sizeof(profit_sersic_profile));
-	p->profile.init_profile = &profit_init_sersic;
-	p->profile.make_profile = &profit_make_sersic;
+	p->profile.validate_profile = &profit_validate_sersic;
+	p->profile.evaluate_profile = &profit_evaluate_sersic;
 
 	/* Sane defaults */
 	p->xcen = 0;

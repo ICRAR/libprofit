@@ -13,7 +13,7 @@ A profile needs three parts to be complete:
 
 * A new data type that contains
   all the information needed by the profile
-* A set of functions that create it and evaluate it
+* A set of functions that create, validate and evaluate it
 * A association with a standard name
 
 In all steps below,
@@ -68,29 +68,31 @@ Each profile requires a minimum of three functions
 that need to be written
 
 * One to create a new profile,
-* One to initialize it, and
+* One to validate its values, and
 * One to evaluate it
 
 They can carry any name,
 but the current convention is that they are called
-``profit_create_xxxx``, ``profit_init_xxxx`` and ``profit_make_xxxx``
+``profit_create_xxxx``, ``profit_validate_xxxx`` and ``profit_evaluate_xxxx``
 respectively, where ``xxxx`` is the name of the profile.
 The functions should live all
 in the same file ``.c`` so they can easily see each other.
 
-Initialization
-^^^^^^^^^^^^^^
+Validation
+^^^^^^^^^^
 
-We will start by looking at the initialization function.
+We will start by looking at the validation function.
 Its signature looks like this::
 
- void profit_init_example(profit_profile *profile, profit_model *model);
+ void profit_validate_example(profit_profile *profile, profit_model *model);
 
-The initialization function takes in two arguments:
+The validation function takes in two arguments:
 the containing ``model``
-and the particular ``profile`` being initialized
+and the particular ``profile`` being validated
 (see :doc:`structure`).
-Its responsibility is to validate the inputs of the profile.
+Its responsibility, as its name implies,
+is to validate the inputs of the profile,
+checking that they obey the required minimum to make the operation successful.
 
 The first thing you want to do in the function
 is to cast the profile into the ``profit_example_profilt`` type
@@ -105,7 +107,7 @@ from being evaluated.
 
 An example implementation would thus look like this::
 
- void profit_init_example(profit_profile *profile, profit_model *model) {
+ void profit_validate_example(profit_profile *profile, profit_model *model) {
 
      profit_example_profile *e = (profit_example_profile *)profile;
 
@@ -138,7 +140,7 @@ then the following code could be added::
  }
 
 Finally, if a profile needs no validation at all
-an initialization function must still be provided
+a validation function must still be provided
 with an empty body.
 
 Evaluation
@@ -147,9 +149,9 @@ Evaluation
 Next, we loop to the evaluation profile function.
 Its signature looks like this::
 
- void profit_make_example(profit_profile *profile, profit_model *model, double *image);
+ void profit_evaluate_example(profit_profile *profile, profit_model *model, double *image);
 
-Just like in the initialization function,
+Just like in the validation function,
 both the containing model
 and the specific profile to evaluate
 are given,
@@ -180,7 +182,7 @@ An implementation of this would then look like this:
  :linenos:
  :emphasize-lines: 8,11,15,18-20
 
- void profit_make_example(profit_profile *profile, profit_model *model, double *image) {
+ void profit_evaluate_example(profit_profile *profile, profit_model *model, double *image) {
 
      double x, y;
      unsigned int i, j;
@@ -249,8 +251,8 @@ For this example the code would look like this::
  profit_profile *profit_create_example() {
 
     profit_example_profile *e = (profit_example_profile*) malloc(sizeof(profit_example_profile));
-    e->profile.init_profile = &profit_init_example;
-    e->profile.make_profile = &profit_make_example;
+    e->profile.validate_profile = &profit_validate_example;
+    e->profile.evaluate_profile = &profit_evaluate_example;
 
     e->param1 = 1.;
     e->param2 = 2.;
@@ -262,7 +264,7 @@ For this example the code would look like this::
 The first line of the function
 reserves memory for the new profile.
 The second and third lines
-bind the initialization and evaluation functions
+bind the validation and evaluation functions
 to your new profile.
 Then default values are assigned to each of the parameters,
 and finally the new profile,
@@ -314,7 +316,7 @@ that have been described below.
 ``example.h`` contains the new data type definition,
 plus the signature of the creation function,
 while ``example.c`` contains the implementation
-of the creation, initialization and evaluation
+of the creation, validation and evaluation
 of ``example`` profiles.
 
 .. literalinclude:: example/example.h

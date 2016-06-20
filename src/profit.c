@@ -145,11 +145,13 @@ void profit_eval_model(profit_model *model) {
 		return;
 	}
 
-	/* Initialize all profiles. Each profile can fail during initialization
-	 * in which case we don't proceed any further */
+	/*
+	 * Validate all profiles.
+	 * Each profile can fail during validation in which case we don't proceed any further
+	 */
 	for(p=0; p < model->n_profiles; p++) {
 		profit_profile *profile = model->profiles[p];
-		profile->init_profile(profile, model);
+		profile->validate_profile(profile, model);
 		if( profile->error ) {
 			return;
 		}
@@ -170,7 +172,7 @@ void profit_eval_model(profit_model *model) {
 	for(p=0; p < model->n_profiles; p++) {
 		profit_profile *profile = model->profiles[p];
 		profile_images[p] = (double *)calloc(model->width * model->height, sizeof(double));
-		profile->make_profile(profile, model, profile_images[p]);
+		profile->evaluate_profile(profile, model, profile_images[p]);
 	}
 
 	/*

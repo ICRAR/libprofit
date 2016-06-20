@@ -56,17 +56,19 @@ typedef struct _profit_profile {
 	bool convolve;
 
 	/**
-	 * A pointer to the function that performs the initial calculations needed
-	 * by the profile, which are not dependent on individual positions. This
-	 * function can signal an error.
+	 * A pointer to the function that performs the initial profile validation,
+	 * making sure that all parameters of the profile are correct and can be
+	 * safely used to create an image.
+	 * This function can signal an error by setting a value in the error member
+	 * of this structure.
 	 */
-	void (* init_profile)(struct _profit_profile *profile, struct _profit_model *model);
+	void (* validate_profile)(struct _profit_profile *profile, struct _profit_model *model);
 
 	/**
-	 * The main function of the profile, which is in charge of filling the given
-	 * image array with the corresponding values for each pixel's intensity.
+	 * A pointer to the function that performs the profile evaluation.
+	 * This is the main function of the profile.
 	 */
-	void (* make_profile)(struct _profit_profile *profile, struct _profit_model *model, double *image);
+	void (* evaluate_profile)(struct _profit_profile *profile, struct _profit_model *model, double *image);
 
 	/**
 	 * An error string indicating that an error related to this profile was
