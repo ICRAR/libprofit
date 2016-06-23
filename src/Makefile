@@ -1,5 +1,5 @@
 CFLAGS += -I../include -fPIC -DPROFIT_VERSION='"$(shell cat ../VERSION)"'
-LDFLAGS += -lm
+LDFLAGS += -L. -lm
 OBJS = sersic.o profit.o sky.o psf.o convolve.o
 
 .PHONY: all clean
@@ -9,7 +9,7 @@ clean:
 	rm -f *.o libprofit.so profit-cli
 
 libprofit.so: $(OBJS)
-	$(CC) -shared $(LDFLAGS) -o $@ $^
+	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
 profit-cli: profit-cli.o libprofit.so
 	$(CC)  profit-cli.o -o $@ -lprofit $(LDFLAGS)
