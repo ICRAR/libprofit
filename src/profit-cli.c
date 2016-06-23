@@ -381,7 +381,7 @@ int to_fits(profit_model *m, char *fits_output) {
 	fwrite(m->image, sizeof(double), m->width * m->height, f);
 
 	/* Pad with zeroes until we complete the current 36*80 block */
-	padding = FITS_BLOCK_SIZE - ((sizeof(double) * m->width * m->height) % FITS_BLOCK_SIZE);
+	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * m->width * m->height) % FITS_BLOCK_SIZE);
 	void *zeros = calloc(padding, 1);
 	fwrite(zeros, 1, padding, f);
 	free(zeros);
