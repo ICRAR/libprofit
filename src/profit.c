@@ -205,6 +205,7 @@ void profit_eval_model(profit_model *model) {
 	}
 	free(profile_images);
 
+	/* Done! Good job :-) */
 }
 
 char *profit_get_error(profit_model *m) {
