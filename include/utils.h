@@ -38,6 +38,15 @@ extern "C"
  */
 void profit_add_images(double *dest, double *src, unsigned int width, unsigned int height);
 
+/**
+ * Normalizes the values of image so their total sum is 1.
+ *
+ * The values are written back into the image, so if the original needs to be retained
+ * then a copy should be supplied.
+ */
+void profit_normalize(double *image, unsigned int img_width, unsigned int img_height);
+
+
 #ifdef __cplusplus
 }
 #endif

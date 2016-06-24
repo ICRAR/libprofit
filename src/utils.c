@@ -32,3 +32,23 @@ void profit_add_images(double *dest, double *src,
 	}
 
 }
+
+void profit_normalize(double *image, unsigned int img_width, unsigned int img_height) {
+
+	unsigned int i;
+	unsigned int size = img_width * img_height;
+	double sum = 0;
+
+	double *in = image;
+	for(i=0; i!=size; i++) {
+		sum += *in;
+		in++;
+	}
+
+	in = image;
+	for(i=0; i!=size; i++) {
+		*in /= sum;
+		in++;
+	}
+
+}
