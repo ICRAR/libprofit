@@ -28,7 +28,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "profit.h"
 #include "psf.h"
@@ -271,7 +274,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -w        Image width. Defaults to 100\n");
 	fprintf(file,"  -H        Image height. Defaults to 100\n");
 	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
-	fprintf(file,"  -P        PSF function (specified as w:h:val1,val2...)\n");
+	fprintf(file,"  -P        PSF function (specified as w:h:val1,val2..., or as a FITS filename)\n");
 	fprintf(file,"  -h,-?     Show this help and exit\n");
 	fprintf(file,"  -v        Show the program version and exit\n\n");
 	fprintf(file,"Profiles should be specified as follows:\n\n");
@@ -294,7 +297,7 @@ bool is_little_endian() {
 }
 
 static inline
-double to_bigendian(double v) {
+double swap_bytes(double v) {
 	double r;
 	char *vbytes = (char *)(&v);
 	char *rbytes = (char *)(&r);
@@ -307,6 +310,62 @@ double to_bigendian(double v) {
 	rbytes[6] = vbytes[1];
 	rbytes[7] = vbytes[0];
 	return r;
+}
+
+#define FITS_BLOCK_SIZE (36*80)
+
+double *read_image_from_fits_file(char *filename, unsigned int *width, unsigned int *height) {
+
+	FILE *f;
+	unsigned int i, pos, padding;
+	char hdr[80];
+
+	*width = *height = 0;
+
+	f = fopen(filename, "rb");
+	if( !f ) {
+		perror("Couldn't open file for reading");
+		return NULL;
+	}
+
+	/*
+	 * Standard headers, we're assuming they say 'T" for SIMPLE, -64 for BITPIX
+	 * and 2 for NAXIS.
+	 */
+	while( fread(hdr, 1, 80, f) ) {
+
+		if( !strncmp("NAXIS1", hdr, 6) ) {
+			sscanf(hdr, "NAXIS1 = %u", width);
+			printf("%u\n", *width);
+		}
+		else if( !strncmp("NAXIS2", hdr, 6) ) {
+			sscanf(hdr, "NAXIS2 = %u", height);
+			printf("%u\n", *height);
+		}
+		else if( !strncmp("END", hdr, 3) ) {
+			break;
+		}
+	}
+
+	pos = (unsigned int)ftell(f);
+	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
+	fseek(f, padding, SEEK_CUR);
+
+	unsigned int size = *width * *height;
+	double *out = (double *)malloc(sizeof(double) * size);
+	fread(out, size, sizeof(double), f);
+	fclose(f);
+
+	/* data has to be big-endian */
+	if( is_little_endian() ) {
+		double *it = out;
+		for(i=0; i!=size; i++) {
+			*it = swap_bytes(*it);
+			it++;
+		}
+	}
+
+	return out;
 }
 
 int to_fits(profit_model *m, char *fits_output) {
@@ -356,7 +415,6 @@ int to_fits(profit_model *m, char *fits_output) {
 	fprintf(f, "%-80s", "CUNIT2  = ' '");
 	fprintf(f, "%-80s", "END");
 
-#define FITS_BLOCK_SIZE (36*80)
 	pos = (unsigned int)ftell(f);
 	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
 	for(i=0; i<padding; i++) {
@@ -369,7 +427,7 @@ int to_fits(profit_model *m, char *fits_output) {
 		for(j=0; j!=m->height; j++) {
 			for(i=0; i!=m->width; i++) {
 				pos = i + j*m->width;
-				big_endian_image[pos] = to_bigendian(m->image[pos]);
+				big_endian_image[pos] = swap_bytes(m->image[pos]);
 			}
 		}
 
@@ -409,6 +467,7 @@ int main(int argc, char *argv[]) {
 	output_t output = none;
 	profit_profile *profile;
 	profit_model *m = profit_create_model();
+	struct stat stat_buf;
 
 #define CLEAN_AND_EXIT(code) \
 	profit_cleanup(m); \
@@ -435,7 +494,14 @@ int main(int argc, char *argv[]) {
 				break;
 
 			case 'P':
-				m->psf = parse_psf(optarg, &m->psf_width, &m->psf_height);
+				if( !stat(optarg, &stat_buf) ) {
+					m->psf = read_image_from_fits_file(optarg, &m->psf_width, &m->psf_height);
+					printf("w/h: %u/%u\n", m->psf_width, m->psf_height);
+					printf("first/before-last: %g/%g\n", m->psf[0], m->psf[m->psf_width * m->psf_height - 2]);
+				}
+				else {
+					m->psf = parse_psf(optarg, &m->psf_width, &m->psf_height);
+				}
 				if( !m->psf ) {
 					usage(stderr, argv);
 					CLEAN_AND_EXIT(1);
