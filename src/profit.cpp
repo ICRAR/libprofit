@@ -24,12 +24,10 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
+#include <cstring>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "convolve.h"
 #include "profit.h"
@@ -56,8 +54,8 @@ struct _profit_profile_index _all_profiles[] = {
 };
 
 Profile::Profile() :
-	error(),
-	convolve(false)
+	convolve(false),
+	error()
 {
 	// no-op
 }
@@ -145,13 +143,14 @@ void Model::evaluate() {
 
 	this->xbin = this->width/(double)this->res_x;
 	this->ybin = this->height/(double)this->res_y;
-	this->image = (double *)calloc(this->width * this->height, sizeof(double));
+	this->image = new double[this->width * this->height];
 	if( !this->image ) {
 		stringstream ss;
 		ss << "Cannot allocate memory for image with w=" << this->width << ", h=" << this->height;
 		this->error = ss.str();
 		return;
 	}
+	memset(this->image, 0, sizeof(double) * this->width * this->height);
 
 	/*
 	 * Validate all profiles.
@@ -173,13 +172,14 @@ void Model::evaluate() {
 	 * probably we should study what is the best way to go here (e.g.,
 	 * parallelize only if we have more than 2 or 3 profiles)
 	 */
-	double **profile_images = (double **)malloc(sizeof(double *) * this->profiles.size());
+	vector<double *>profile_images(this->profiles.size());
 #if _OPENMP
 	#pragma omp parallel for private(p)
 #endif
 	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
 		Profile *profile = *pit;
-		profile_images[p] = (double *)calloc(this->width * this->height, sizeof(double));
+		profile_images[p] = new double[this->width * this->height];
+		memset(profile_images[p], 0, sizeof(double) * this->width * this->height);
 		profile->evaluate(profile_images[p]);
 	}
 
@@ -199,20 +199,19 @@ void Model::evaluate() {
 	}
 	if( convolve ) {
 		size_t psf_size = sizeof(double) * this->psf_width * this->psf_height;
-		double *psf = (double *)malloc(psf_size);
+		double* psf = new double[psf_size];
 		memcpy(psf, this->psf, psf_size);
 		profit_normalize(psf, this->psf_width, this->psf_height);
 		profit_convolve(this->image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask, true);
-		free(psf);
+		delete [] psf;
 	}
 	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
 		Profile *profile = *pit;
 		if( !profile->convolve ) {
 			profit_add_images(this->image, profile_images[p], this->width, this->height);
 		}
-		free(profile_images[p]);
+		delete [] profile_images[p];
 	}
-	free(profile_images);
 
 	/* Done! Good job :-) */
 }
@@ -240,9 +239,9 @@ Model::~Model() {
 		Profile *profile = *p;
 		delete profile;
 	}
-	free(this->image);
-	free(this->psf);
-	free(this->calcmask);
+	delete [] this->image;
+	delete [] this->psf;
+	delete [] this->calcmask;
 }
 
 } /* namespace profit */

@@ -150,7 +150,7 @@ void PsfProfile::evaluate(double *image) {
 
 	unsigned int new_psf_w = model->psf_width + 1;
 	unsigned int new_psf_h = model->psf_height + 1;
-	double *new_psf = (double *)calloc(new_psf_w * new_psf_h, sizeof(double));
+	double *new_psf = new double[new_psf_w * new_psf_h];
 
 	for(j=0; j!=new_psf_h; j++) {
 		for(i=0; i!=new_psf_w; i++) {
@@ -178,7 +178,7 @@ void PsfProfile::evaluate(double *image) {
                                   new_psf, new_psf_w, new_psf_h,
 	                               (int)floor(psf_origin_x), (int)floor(psf_origin_y));
 
-	free(new_psf);
+	delete [] new_psf;
 
 }
 

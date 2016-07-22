@@ -42,7 +42,7 @@ double *profit_convolve(double *src, unsigned int src_width, unsigned int src_he
 	unsigned int krn_half_height = (krn_height - 1) / 2;
 	int src_i, src_j;
 
-	double *convolution = (double *)calloc(src_width * src_height, sizeof(double));
+	double *convolution = new double[src_width * src_height];
 
 	double *out = convolution - 1;
 	double *srcPtr1 = src - 1, *srcPtr2;
@@ -98,7 +98,7 @@ double *profit_convolve(double *src, unsigned int src_width, unsigned int src_he
 
 	if( replace ) {
 		src = (double *)memcpy(src, convolution, sizeof(double) * src_width * src_height);
-		free(convolution);
+		delete [] convolution;
 		return src;
 	}
 

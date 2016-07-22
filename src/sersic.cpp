@@ -24,8 +24,10 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _USE_MATH_DEFINES
 #include <math.h>
-#include <stdlib.h>
+
+#include <algorithm>
 
 /*
  * We use either GSL or Rmath to provide the low-level
@@ -42,6 +44,8 @@
 #endif
 
 #include "sersic.h"
+
+using namespace std;
 
 namespace profit
 {
@@ -249,7 +253,7 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 		 * GALFIT anywhere)
 		 */
 		re_switch = ceil(profit_sersic_fluxfrac(sp, 1. - nser*nser/2e3));
-		re_switch = fmax(fmin(re_switch, 20.), 2.);
+		re_switch = max(min(re_switch, 20.), 2.);
 
 		/*
 		 * Calculate a bound, adaptive upscale; if re is large then we don't need

@@ -585,7 +585,7 @@ int main(int argc, char *argv[]) {
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
 	for(i=0; i!=iterations; i++) {
-		free(m->image);
+		delete [] m->image;
 		m->evaluate();
 	}
 	gettimeofday(&end, NULL);
