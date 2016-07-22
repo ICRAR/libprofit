@@ -94,7 +94,7 @@ double *profit_convolve(double *src, unsigned int src_width, unsigned int src_he
 	}
 
 	if( replace ) {
-		src = memcpy(src, convolution, sizeof(double) * src_width * src_height);
+		src = (double *)memcpy(src, convolution, sizeof(double) * src_width * src_height);
 		free(convolution);
 		return src;
 	}

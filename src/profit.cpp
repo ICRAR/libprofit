@@ -63,7 +63,7 @@ void _profit_add_profile(profit_model *model, profit_profile *profile) {
 		model->profiles = (profit_profile **)malloc(sizeof(profit_profile **));
 	}
 	else {
-		model->profiles = realloc(model->profiles, (model->n_profiles + 1) * sizeof(profit_profile *));
+		model->profiles = (profit_profile **)realloc(model->profiles, (model->n_profiles + 1) * sizeof(profit_profile *));
 	}
 	model->profiles[model->n_profiles] = profile;
 	model->n_profiles++;

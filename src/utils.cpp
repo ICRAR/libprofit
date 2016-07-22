@@ -24,6 +24,8 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+extern "C" {
+
 void profit_add_images(double *dest, double *src,
                        unsigned int width, unsigned int height) {
 
@@ -50,5 +52,7 @@ void profit_normalize(double *image, unsigned int img_width, unsigned int img_he
 		*in /= sum;
 		in++;
 	}
+
+}
 
 }
