@@ -53,27 +53,15 @@ struct _profit_profile_index _all_profiles[] = {
 };
 
 Model::Model() :
-    width(0), height(0),
-	 res_x(0), res_y(0),
-	 magzero(0),
-	 psf(NULL), psf_width(0), psf_height(0),
-	 calcmask(NULL), image(NULL),
-    n_profiles(0), profiles(NULL),
-	 error(NULL)
+	width(0), height(0),
+	res_x(0), res_y(0),
+	magzero(0),
+	psf(NULL), psf_width(0), psf_height(0),
+	calcmask(NULL), image(NULL),
+	profiles(),
+	error(NULL)
 {
 	// no-op
-}
-
-static inline
-void _profit_add_profile(Model *model, Profile *profile) {
-	if( !model->n_profiles ) {
-		model->profiles = (Profile **)malloc(sizeof(Profile **));
-	}
-	else {
-		model->profiles = (Profile **)realloc(model->profiles, (model->n_profiles + 1) * sizeof(Profile *));
-	}
-	model->profiles[model->n_profiles] = profile;
-	model->n_profiles++;
 }
 
 Profile* Model::add_profile(const char * profile_name) {
@@ -85,11 +73,11 @@ Profile* Model::add_profile(const char * profile_name) {
 		}
 		if( !strcmp(profile_name, p->name) ) {
 			Profile *profile = p->create();
-			_profit_add_profile(this, profile);
 			profile->model = this;
 			profile->error = NULL;
 			profile->name = profile_name;
 			profile->convolve = false;
+			this->profiles.push_back(profile);
 			return profile;
 		}
 		p++;
@@ -124,12 +112,14 @@ void Model::evaluate() {
 	 * If at least one profile is requesting convolving we require
 	 * a valid psf.
 	 */
-	for(p=0; p!=this->n_profiles; p++) {
-		if( this->profiles[p]->convolve ) {
+	std::vector<Profile *>::iterator pit;
+	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
+		Profile *profile = *pit;
+		if( profile->convolve ) {
 			if( !this->psf ) {
 				const char *msg = "Profile %s requires convolution but no psf was provided";
-				this->error = (char *)malloc(strlen(msg) - 1 + strlen(this->profiles[p]->name));
-				sprintf(this->error, msg, this->profiles[p]->name);
+				this->error = (char *)malloc(strlen(msg) - 1 + strlen(profile->name));
+				sprintf(this->error, msg, profile->name);
 				return;
 			}
 			if( !this->psf_width ) {
@@ -158,8 +148,8 @@ void Model::evaluate() {
 	 * Validate all profiles.
 	 * Each profile can fail during validation in which case we don't proceed any further
 	 */
-	for(p=0; p < this->n_profiles; p++) {
-		Profile *profile = this->profiles[p];
+	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
+		Profile *profile = *pit;
 		profile->validate();
 		if( profile->error ) {
 			return;
@@ -174,12 +164,12 @@ void Model::evaluate() {
 	 * probably we should study what is the best way to go here (e.g.,
 	 * parallelize only if we have more than 2 or 3 profiles)
 	 */
-	double **profile_images = (double **)malloc(sizeof(double *) * this->n_profiles);
+	double **profile_images = (double **)malloc(sizeof(double *) * this->profiles.size());
 #if _OPENMP
 	#pragma omp parallel for private(p)
 #endif
-	for(p=0; p < this->n_profiles; p++) {
-		Profile *profile = this->profiles[p];
+	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
+		Profile *profile = *pit;
 		profile_images[p] = (double *)calloc(this->width * this->height, sizeof(double));
 		profile->evaluate(profile_images[p]);
 	}
@@ -191,8 +181,9 @@ void Model::evaluate() {
 	 * and after that we add up the remaining images.
 	 */
 	bool convolve = false;
-	for(p=0; p != this->n_profiles; p++) {
-		if( this->profiles[p]->convolve ) {
+	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
+		Profile *profile = *pit;
+		if( profile->convolve ) {
 			convolve = true;
 			profit_add_images(this->image, profile_images[p], this->width, this->height);
 		}
@@ -205,8 +196,9 @@ void Model::evaluate() {
 		profit_convolve(this->image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask, true);
 		free(psf);
 	}
-	for(p=0; p != this->n_profiles; p++) {
-		if( !this->profiles[p]->convolve ) {
+	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
+		Profile *profile = *pit;
+		if( !profile->convolve ) {
 			profit_add_images(this->image, profile_images[p], this->width, this->height);
 		}
 		free(profile_images[p]);
@@ -218,14 +210,15 @@ void Model::evaluate() {
 
 char *Model::get_error() {
 
-	unsigned int i;
-
 	if( this->error ) {
 		return this->error;
 	}
-	for(i=0; i!=this->n_profiles; i++) {
-		if( this->profiles[i]->error ) {
-			return this->profiles[i]->error;
+
+	std::vector<Profile *>::iterator p;
+	for(p=this->profiles.begin(); p!=this->profiles.end(); p++) {
+		Profile *profile = *p;
+		if( profile->error ) {
+			return profile->error;
 		}
 	}
 	return NULL;
@@ -233,16 +226,13 @@ char *Model::get_error() {
 
 Model::~Model() {
 
-	unsigned int i;
-	Profile *p;
-
-	for(i=0; i!=this->n_profiles; i++) {
-		p = this->profiles[i];
-		free(p->error);
-		free(p);
+	std::vector<Profile *>::iterator p;
+	for(p=this->profiles.begin(); p!=this->profiles.end(); p++) {
+		Profile *profile = *p;
+		free(profile->error);
+		delete profile;
 	}
 	free(this->error);
-	free(this->profiles);
 	free(this->image);
 	free(this->psf);
 	free(this->calcmask);

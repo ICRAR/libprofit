@@ -27,6 +27,8 @@
 #ifndef _PROFIT_H_
 #define _PROFIT_H_
 
+#include <vector>
+
 namespace profit
 {
 
@@ -43,6 +45,20 @@ class Model;
 class Profile {
 
 public:
+
+	/**
+	 * Performs the initial profile validation, making sure that all parameters
+	 * of the profile are correct and can be safely used to create an image.
+	 * This function can signal an error by setting a value in the error member
+	 * of this structure.
+	 */
+	virtual void validate() = 0;
+
+	/**
+	 * Performs the profile evaluation and saves the resulting image into
+	 * the given `image` array. This is the main function of the profile.
+	 */
+	virtual void evaluate(double *image) = 0;
 
 	/* A pointer to the model this profile belongs to */
 	Model *model;
@@ -64,20 +80,6 @@ public:
 	 * that there is no error in any of the profiles after making a model.
 	 */
 	char *error;
-
-	/**
-	 * Performs the initial profile validation, making sure that all parameters
-	 * of the profile are correct and can be safely used to create an image.
-	 * This function can signal an error by setting a value in the error member
-	 * of this structure.
-	 */
-	virtual void validate() = 0;
-
-	/**
-	 * Performs the profile evaluation and saves the resulting image into
-	 * the given `image` array. This is the main function of the profile.
-	 */
-	virtual void evaluate(double *image) = 0;
 
 };
 
@@ -187,15 +189,10 @@ public:
 	double *image;
 
 	/**
-	 * The number of profiles used to generate the model's image
-	 */
-	unsigned int n_profiles;
-
-	/**
 	 * A list of pointers to the individual profiles used to generate the
 	 * model's image
 	 */
-	Profile **profiles;
+	std::vector<Profile *> profiles;
 
 	/**
 	 * An error string indicating that there is something wrong with the model.

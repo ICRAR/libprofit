@@ -561,7 +561,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* No profiles given */
-	if( !m->n_profiles ) {
+	if( !m->profiles.size() ) {
 		usage(stderr, argv);
 		CLEAN_AND_EXIT(1);
 	}
