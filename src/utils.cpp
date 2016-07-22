@@ -26,8 +26,8 @@
 
 namespace profit {
 
-void profit_add_images(double *dest, double *src,
-                       unsigned int width, unsigned int height) {
+void add_images(double *dest, double *src,
+                unsigned int width, unsigned int height) {
 
 	for(unsigned int i=0; i != width*height; i++, dest++, src++) {
 		*dest += *src;
@@ -35,7 +35,7 @@ void profit_add_images(double *dest, double *src,
 
 }
 
-void profit_normalize(double *image, unsigned int img_width, unsigned int img_height) {
+void normalize(double *image, unsigned int img_width, unsigned int img_height) {
 
 	unsigned int i;
 	unsigned int size = img_width * img_height;

@@ -42,9 +42,9 @@ void PsfProfile::validate()  {
 }
 
 static inline
-void profit_psf_normalize_and_apply(PsfProfile *psf, Model *model, double *image,
-                                    double *psf_img, unsigned int psf_w, unsigned int psf_h,
-												int target_x, int target_y) {
+void psf_normalize_and_apply(PsfProfile *psf, Model *model, double *image,
+                             double *psf_img, unsigned int psf_w, unsigned int psf_h,
+                             int target_x, int target_y) {
 
 	unsigned int i, j, img_x, img_y;
 
@@ -108,12 +108,12 @@ void PsfProfile::evaluate(double *image) {
 	double psf_origin_x = this->xcen - model->psf_width/2.;
 	double psf_origin_y = this->ycen - model->psf_height/2.;
 	if( (model->psf_width % 2 == 0 && model->psf_height % 2 == 0) && \
-       (floor(psf_origin_x) == psf_origin_x || ceil(psf_origin_x) == psf_origin_x) && \
+	    (floor(psf_origin_x) == psf_origin_x || ceil(psf_origin_x) == psf_origin_x) && \
 	    (floor(psf_origin_y) == psf_origin_y || ceil(psf_origin_y) == psf_origin_y) ) {
 
-		profit_psf_normalize_and_apply(this, model, image,
-		                               model->psf, model->psf_width, model->psf_height,
-		                               (int)psf_origin_x, (int)psf_origin_y);
+		psf_normalize_and_apply(this, model, image,
+		                        model->psf, model->psf_width, model->psf_height,
+		                        (int)psf_origin_x, (int)psf_origin_y);
 
 		return;
 	}
@@ -173,9 +173,9 @@ void PsfProfile::evaluate(double *image) {
 		}
 	}
 
-	profit_psf_normalize_and_apply(this, model, image,
-                                  new_psf, new_psf_w, new_psf_h,
-	                               (int)floor(psf_origin_x), (int)floor(psf_origin_y));
+	psf_normalize_and_apply(this, model, image,
+	                        new_psf, new_psf_w, new_psf_h,
+	                        (int)floor(psf_origin_x), (int)floor(psf_origin_y));
 
 	delete [] new_psf;
 
@@ -190,4 +190,4 @@ PsfProfile::PsfProfile() :
 	// no-op
 }
 
-} /* namespace profit */
+} /* namespace rofit */

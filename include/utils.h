@@ -34,7 +34,7 @@ namespace profit
  * Adds the individual values from `src` and `dest` and stores the result
  * in `dest`. Both images must have the same given width and height.
  */
-void profit_add_images(double *dest, double *src, unsigned int width, unsigned int height);
+void add_images(double *dest, double *src, unsigned int width, unsigned int height);
 
 /**
  * Normalizes the values of image so their total sum is 1.
@@ -42,7 +42,7 @@ void profit_add_images(double *dest, double *src, unsigned int width, unsigned i
  * The values are written back into the image, so if the original needs to be retained
  * then a copy should be supplied.
  */
-void profit_normalize(double *image, unsigned int img_width, unsigned int img_height);
+void normalize(double *image, unsigned int img_width, unsigned int img_height);
 
 } /* namespace profit */
 

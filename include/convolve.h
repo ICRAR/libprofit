@@ -40,9 +40,9 @@ namespace profit
  * A mask parameter also controls which pixels from the original image should be
  * convolved. If NULL all pixels are convolved.
  */
-double *profit_convolve(double *src, unsigned int src_width, unsigned int src_height,
-                        double *krn, unsigned int krn_width, unsigned int krn_height,
-                        bool *mask, bool replace);
+double *convolve(double *src, unsigned int src_width, unsigned int src_height,
+                 double *krn, unsigned int krn_width, unsigned int krn_height,
+                 bool *mask, bool replace);
 
 } /* namespace profit */
 

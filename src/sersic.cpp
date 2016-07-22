@@ -208,7 +208,7 @@ double _sersic_sumpix(SersicProfile *sp,
 }
 
 static inline
-double profit_sersic_fluxfrac(SersicProfile *sp, double fraction) {
+double sersic_fluxfrac(SersicProfile *sp, double fraction) {
 	double ratio = sp->_qgamma(fraction, 2*sp->nser) / sp->_bn;
 	return sp->re * pow(ratio, sp->nser);
 }
@@ -251,7 +251,7 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 		 * but don't let it become less than 1 pixel (means we do no worse than
 		 * GALFIT anywhere)
 		 */
-		re_switch = ceil(profit_sersic_fluxfrac(sp, 1. - nser*nser/2e3));
+		re_switch = ceil(sersic_fluxfrac(sp, 1. - nser*nser/2e3));
 		re_switch = max(min(re_switch, 20.), 2.);
 
 		/*
@@ -271,7 +271,7 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 		 * %99.99 of the flux
 		 */
 		if( sp->re_max == 0 ) {
-			sp->re_max = ceil(profit_sersic_fluxfrac(sp, 0.9999));
+			sp->re_max = ceil(sersic_fluxfrac(sp, 0.9999));
 		}
 		sp->_rescale_factor = 1;
 		if( sp->rescale_flux ) {

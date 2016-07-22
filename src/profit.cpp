@@ -188,21 +188,21 @@ void Model::evaluate() {
 		Profile *profile = *pit;
 		if( profile->convolve ) {
 			convolve = true;
-			profit_add_images(this->image, profile_images[p], this->width, this->height);
+			add_images(this->image, profile_images[p], this->width, this->height);
 		}
 	}
 	if( convolve ) {
 		size_t psf_size = sizeof(double) * this->psf_width * this->psf_height;
 		double* psf = new double[psf_size];
 		memcpy(psf, this->psf, psf_size);
-		profit_normalize(psf, this->psf_width, this->psf_height);
-		profit_convolve(this->image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask, true);
+		normalize(psf, this->psf_width, this->psf_height);
+		profit::convolve(this->image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask, true);
 		delete [] psf;
 	}
 	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
 		Profile *profile = *pit;
 		if( !profile->convolve ) {
-			profit_add_images(this->image, profile_images[p], this->width, this->height);
+			add_images(this->image, profile_images[p], this->width, this->height);
 		}
 		delete [] profile_images[p];
 	}
