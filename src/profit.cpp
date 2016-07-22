@@ -37,6 +37,8 @@
 #include "sky.h"
 #include "utils.h"
 
+namespace profit {
+
 struct _profit_profile_index {
 	char *name;
 	profit_profile *(* create)(void);
@@ -240,3 +242,5 @@ void profit_cleanup(profit_model *m) {
 	free(m->calcmask);
 	free(m);
 }
+
+} /* namespace profit */

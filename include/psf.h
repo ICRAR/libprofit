@@ -26,15 +26,13 @@
 #ifndef _PSF_H_
 #define _PSF_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #include "profit.h"
 
+namespace profit
+{
+
 typedef struct _profit_psf_profile {
-	profit_profile profile;
+	profit::profit_profile profile;
 	double xcen;
 	double ycen;
 	double mag;
@@ -43,10 +41,8 @@ typedef struct _profit_psf_profile {
 	double scale;
 } profit_psf_profile;
 
-profit_profile *profit_create_psf(void);
+profit::profit_profile *profit_create_psf(void);
 
-#ifdef __cplusplus
-}
-#endif
+} /* namespace profit */
 
 #endif /* _PSF_H_ */

@@ -26,12 +26,8 @@
 #ifndef _CONVOLUTION_H_
 #define _CONVOLUTION_H_
 
-#include <stdbool.h>
-
-#ifdef __cplusplus
-extern "C"
+namespace profit
 {
-#endif
 
 /**
  * Convolves image src with the kernel krn.
@@ -48,9 +44,7 @@ double *profit_convolve(double *src, unsigned int src_width, unsigned int src_he
                         double *krn, unsigned int krn_width, unsigned int krn_height,
                         bool *mask, bool replace);
 
-#ifdef __cplusplus
-}
-#endif
+} /* namespace profit */
 
 #endif /* _CONVOLUTION_H_ */
 

@@ -29,6 +29,9 @@
 
 #include "convolve.h"
 
+namespace profit
+{
+
 double *profit_convolve(double *src, unsigned int src_width, unsigned int src_height,
                         double *krn, unsigned int krn_width, unsigned int krn_height,
                         bool *mask, bool replace){
@@ -101,3 +104,5 @@ double *profit_convolve(double *src, unsigned int src_width, unsigned int src_he
 
 	return convolution;
 }
+
+} /* namespace profit */

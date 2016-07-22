@@ -38,6 +38,8 @@
 #include "sersic.h"
 #include "sky.h"
 
+using namespace profit;
+
 char **_parse_profile_value(char *token) {
 	char **key_and_val;
 	char *equals = strchr(token, '=');

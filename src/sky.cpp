@@ -28,6 +28,8 @@
 
 #include "sky.h"
 
+namespace profit {
+
 static
 void profit_validate_sky(profit_profile *profile, profit_model *model) {
 	/* no-op for the time being, probably check value in range, etc */
@@ -69,3 +71,5 @@ profit_profile *profit_create_sky() {
 	p->bg = 0.;
 	return (profit_profile *)p;
 }
+
+} /* namespace profit */

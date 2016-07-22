@@ -26,17 +26,13 @@
 #ifndef _SERSIC_H_
 #define _SERSIC_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-#include <stdbool.h>
-
 #include "profit.h"
 
+namespace profit
+{
+
 typedef struct _profit_sersic_profile {
-	profit_profile profile;
+	profit::profit_profile profile;
 
 	/* General parameters */
 	double xcen;
@@ -75,10 +71,8 @@ typedef struct _profit_sersic_profile {
 
 } profit_sersic_profile;
 
-profit_profile *profit_create_sersic(void);
+profit::profit_profile *profit_create_sersic(void);
 
-#ifdef __cplusplus
-}
-#endif
+} /* namespace profit */
 
 #endif /* _SERSIC_H_ */

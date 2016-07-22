@@ -27,12 +27,8 @@
 #ifndef _PROFIT_H_
 #define _PROFIT_H_
 
-#include <stdbool.h>
-
-#ifdef __cplusplus
-extern "C"
+namespace profit
 {
-#endif
 
 struct _profit_model;
 
@@ -199,8 +195,6 @@ char *profit_get_error(profit_model *model);
  */
 void profit_cleanup(profit_model *model);
 
-#ifdef __cplusplus
-}
-#endif
+} /* namespace profit */
 
 #endif /* _PROFIT_H_ */

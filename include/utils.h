@@ -27,10 +27,8 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-#ifdef __cplusplus
-extern "C"
+namespace profit
 {
-#endif
 
 /*
  * Adds the individual values from `src` and `dest` and stores the result
@@ -46,9 +44,6 @@ void profit_add_images(double *dest, double *src, unsigned int width, unsigned i
  */
 void profit_normalize(double *image, unsigned int img_width, unsigned int img_height);
 
-
-#ifdef __cplusplus
-}
-#endif
+} /* namespace profit */
 
 #endif /* _UTILS_H_ */

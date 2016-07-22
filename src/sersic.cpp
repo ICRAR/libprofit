@@ -44,6 +44,9 @@
 
 #include "sersic.h"
 
+namespace profit
+{
+
 static inline
 double _sersic_for_xy_r(profit_sersic_profile *sp,
                         double x, double y,
@@ -471,3 +474,5 @@ profit_profile *profit_create_sersic() {
 #endif
 	return (profit_profile *)p;
 }
+
+} /* namespace profit */

@@ -30,6 +30,9 @@
 
 #include "psf.h"
 
+namespace profit
+{
+
 static
 void profit_validate_psf(profit_profile *profile, profit_model *model)  {
 	profit_psf_profile *psf = (profit_psf_profile *)profile;
@@ -194,3 +197,5 @@ profit_profile *profit_create_psf() {
 	psf->mag  = 0;
 	return (profit_profile *)psf;
 }
+
+} /* namespace profit */
