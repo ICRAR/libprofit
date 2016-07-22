@@ -89,8 +89,6 @@ Profile* Model::add_profile(string profile_name) {
 
 void Model::evaluate() {
 
-	unsigned int p;
-
 	/* Check limits */
 	if( !this->width ) {
 		this->error = "Model's width is 0";
@@ -113,9 +111,7 @@ void Model::evaluate() {
 	 * If at least one profile is requesting convolving we require
 	 * a valid psf.
 	 */
-	vector<Profile *>::iterator pit;
-	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
-		Profile *profile = *pit;
+	for(auto profile: this->profiles) {
 		if( profile->convolve ) {
 			if( !this->psf ) {
 				stringstream ss;
@@ -150,8 +146,7 @@ void Model::evaluate() {
 	 * Validate all profiles.
 	 * Each profile can fail during validation in which case we don't proceed any further
 	 */
-	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
-		Profile *profile = *pit;
+	for(auto profile: this->profiles) {
 		profile->validate();
 		if( profile->error.size() ) {
 			return;
@@ -166,15 +161,12 @@ void Model::evaluate() {
 	 * probably we should study what is the best way to go here (e.g.,
 	 * parallelize only if we have more than 2 or 3 profiles)
 	 */
-	vector<double *>profile_images(this->profiles.size());
-#if _OPENMP
-	#pragma omp parallel for private(p)
-#endif
-	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
-		Profile *profile = *pit;
-		profile_images[p] = new double[this->width * this->height];
-		memset(profile_images[p], 0, sizeof(double) * this->width * this->height);
-		profile->evaluate(profile_images[p]);
+	vector<double *> profile_images;
+	for(auto profile: this->profiles) {
+		double *profile_image = new double[this->width * this->height];
+		memset(profile_image, 0, sizeof(double) * this->width * this->height);
+		profile->evaluate(profile_image);
+		profile_images.push_back(profile_image);
 	}
 
 	/*
@@ -184,12 +176,13 @@ void Model::evaluate() {
 	 * and after that we add up the remaining images.
 	 */
 	bool convolve = false;
-	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
-		Profile *profile = *pit;
+	vector<double *>::iterator it = profile_images.begin();
+	for(auto profile: this->profiles) {
 		if( profile->convolve ) {
 			convolve = true;
-			add_images(this->image, profile_images[p], this->width, this->height);
+			add_images(this->image, *it, this->width, this->height);
 		}
+		it++;
 	}
 	if( convolve ) {
 		size_t psf_size = sizeof(double) * this->psf_width * this->psf_height;
@@ -199,12 +192,13 @@ void Model::evaluate() {
 		profit::convolve(this->image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask, true);
 		delete [] psf;
 	}
-	for(p=0, pit=this->profiles.begin(); pit!=this->profiles.end(); pit++, p++) {
-		Profile *profile = *pit;
+	it = profile_images.begin();
+	for(auto profile: this->profiles) {
 		if( !profile->convolve ) {
-			add_images(this->image, profile_images[p], this->width, this->height);
+			add_images(this->image, *it, this->width, this->height);
 		}
-		delete [] profile_images[p];
+		delete [] *it;
+		it++;
 	}
 
 	/* Done! Good job :-) */
@@ -216,9 +210,7 @@ string Model::get_error() {
 		return this->error;
 	}
 
-	vector<Profile *>::iterator p;
-	for(p=this->profiles.begin(); p!=this->profiles.end(); p++) {
-		Profile *profile = *p;
+	for(auto profile: this->profiles) {
 		if( profile->error.size() ) {
 			return profile->error;
 		}
@@ -228,9 +220,7 @@ string Model::get_error() {
 
 Model::~Model() {
 
-	vector<Profile *>::iterator p;
-	for(p=this->profiles.begin(); p!=this->profiles.end(); p++) {
-		Profile *profile = *p;
+	for(auto profile: this->profiles) {
 		delete profile;
 	}
 	delete [] this->image;
