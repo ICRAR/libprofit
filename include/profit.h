@@ -48,6 +48,7 @@ class Profile {
 public:
 
 	Profile();
+	virtual ~Profile() = 0;
 
 	/**
 	 * Performs the initial profile validation, making sure that all parameters

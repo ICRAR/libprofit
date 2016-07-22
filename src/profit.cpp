@@ -60,6 +60,10 @@ Profile::Profile() :
 	// no-op
 }
 
+Profile::~Profile()
+{
+	// no-op
+}
 
 Model::Model() :
 	width(0), height(0),
