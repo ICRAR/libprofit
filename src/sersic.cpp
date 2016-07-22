@@ -49,7 +49,18 @@ using namespace std;
 namespace profit
 {
 
-static inline
+enum nser_t {
+	general,
+	pointfive,
+	one,
+	two,
+	three,
+	four,
+	eight
+};
+
+template <bool boxy, nser_t t>
+inline
 double _sersic_for_xy_r(SersicProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
@@ -92,7 +103,7 @@ double _sersic_for_xy_r(SersicProfile *sp,
 			 * box != 0
 			 */
 			double exponent = sp->box + 2;
-			base = pow(fabs(x/sp->re), exponent) + pow(fabs(y/sp->re), exponent);
+			base = pow(abs(x/sp->re), exponent) + pow(abs(y/sp->re), exponent);
 			double exp_divisor = sp->nser*exponent;
 
 			if( exp_divisor == 0.5 ) {
@@ -158,7 +169,7 @@ void _image_to_sersic_coordinates(SersicProfile *sp, double x, double y, double 
 	*y_ser /= sp->axrat;
 }
 
-static
+template <bool boxy, nser_t t>
 double _sersic_sumpix(SersicProfile *sp,
                       double x0, double x1, double y0, double y1,
                       unsigned int recur_level, unsigned int max_recursions,
@@ -183,16 +194,16 @@ double _sersic_sumpix(SersicProfile *sp,
 			y += half_ybin;
 
 			_image_to_sersic_coordinates(sp, x, y, &x_ser, &y_ser);
-			subval = _sersic_for_xy_r(sp, x_ser, y_ser, 0, false);
+			subval = _sersic_for_xy_r<boxy, t>(sp, x_ser, y_ser, 0, false);
 
 			if( recurse ) {
-				testval = _sersic_for_xy_r(sp, x_ser, fabs(y_ser) + fabs(ybin*sp->_cos_ang/sp->axrat), 0, false);
-				if( fabs(testval/subval - 1.0) > sp->acc ) {
-					subval = _sersic_sumpix(sp,
-					                        x - half_xbin, x + half_xbin,
-					                        y - half_ybin, y + half_ybin,
-					                        recur_level + 1, max_recursions,
-					                        resolution);
+				testval = _sersic_for_xy_r<boxy, t>(sp, x_ser, abs(y_ser) + abs(ybin*sp->_cos_ang/sp->axrat), 0, false);
+				if( abs(testval/subval - 1.0) > sp->acc ) {
+					subval = _sersic_sumpix<boxy, t>(sp,
+					                                 x - half_xbin, x + half_xbin,
+					                                 y - half_ybin, y + half_ybin,
+					                                 recur_level + 1, max_recursions,
+					                                 resolution);
 				}
 			}
 
@@ -283,7 +294,7 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 
 		/* Adjust the accuracy we'll use for sub-pixel integration */
 		double acc = 0.4 / nser;
-		acc = fmax(0.1, acc) / axrat;
+		acc = max(0.1, acc) / axrat;
 		sp->acc = acc;
 
 	}
@@ -332,13 +343,10 @@ void SersicProfile::validate() {
 }
 
 /**
- * The sersic evaluation function
+ * The main sersic evaluation function
  */
-void SersicProfile::evaluate(double *image) {
-
-
-	SersicProfile *sp = this;
-	Model *model = this->model;
+template <bool boxy, nser_t t>
+void _evaluate(SersicProfile *sp, Model *model, double *image) {
 
 	unsigned int i, j;
 	double x, y, pixel_val;
@@ -385,19 +393,19 @@ void SersicProfile::evaluate(double *image) {
 				pixel_val = 0.;
 			}
 			else if( sp->rough || r_ser/sp->re > sp->re_switch ){
-				pixel_val = _sersic_for_xy_r(sp, x_ser, y_ser, r_ser, true);
+				pixel_val = _sersic_for_xy_r<boxy, t>(sp, x_ser, y_ser, r_ser, true);
 			}
 			else {
 
-				bool center = fabs(x - sp->xcen) < 1. && fabs(y - sp->ycen) < 1.;
+				bool center = abs(x - sp->xcen) < 1. && abs(y - sp->ycen) < 1.;
 				unsigned int resolution = center ? 8 : sp->resolution;
 				unsigned int max_recursions = center ? 10 : sp->max_recursions;
 
 				/* Subsample and integrate */
-				pixel_val =  _sersic_sumpix(sp,
-				                            x - half_xbin, x + half_xbin,
-				                            y - half_ybin, y + half_ybin,
-				                            0, max_recursions, resolution);
+				pixel_val =  _sersic_sumpix<boxy, t>(sp,
+				                                     x - half_xbin, x + half_xbin,
+				                                     y - half_ybin, y + half_ybin,
+				                                     0, max_recursions, resolution);
 			}
 
 			image[i + j*model->width] = scale * pixel_val;
@@ -406,6 +414,30 @@ void SersicProfile::evaluate(double *image) {
 		y += half_ybin;
 	}
 
+}
+
+void SersicProfile::evaluate(double *image) {
+
+	Model *m = this->model;
+
+	if( this->box != 0 ) {
+		     if( this->nser == 0.5 ) _evaluate<true, pointfive>(this, m, image);
+		else if( this->nser == 1 )   _evaluate<true, one>(this, m, image);
+		else if( this->nser == 2 )   _evaluate<true, two>(this, m, image);
+		else if( this->nser == 3 )   _evaluate<true, three>(this, m, image);
+		else if( this->nser == 4 )   _evaluate<true, four>(this, m, image);
+		else if( this->nser == 8 )   _evaluate<true, eight>(this, m, image);
+		else                         _evaluate<true, general>(this, m, image);
+	}
+	else {
+		     if( this->nser == 0.5 ) _evaluate<false, pointfive>(this, m, image);
+		else if( this->nser == 1 )   _evaluate<false, one>(this, m, image);
+		else if( this->nser == 2 )   _evaluate<false, two>(this, m, image);
+		else if( this->nser == 3 )   _evaluate<false, three>(this, m, image);
+		else if( this->nser == 4 )   _evaluate<false, four>(this, m, image);
+		else if( this->nser == 8 )   _evaluate<false, eight>(this, m, image);
+		else                         _evaluate<false, general>(this, m, image);
+	}
 }
 
 #if defined(HAVE_GSL)
