@@ -40,19 +40,6 @@ using namespace std;
 
 namespace profit {
 
-struct _profit_profile_index {
-	char *name;
-	Profile *(* create)(void);
-};
-
-static
-struct _profit_profile_index _all_profiles[] = {
-	{"sky",    profit_create_sky},
-	{"sersic", profit_create_sersic},
-	{"psf",    profit_create_psf},
-	{NULL, NULL} // Sentinel
-};
-
 Profile::Profile() :
 	convolve(false),
 	error()
@@ -79,22 +66,25 @@ Model::Model() :
 
 Profile* Model::add_profile(string profile_name) {
 
-	struct _profit_profile_index *p = _all_profiles;
-	while(1) {
-		if( p->name == NULL ) {
-			break;
-		}
-		if( profile_name == p->name ) {
-			Profile *profile = p->create();
-			profile->model = this;
-			profile->name = profile_name;
-			this->profiles.push_back(profile);
-			return profile;
-		}
-		p++;
+	Profile *profile = NULL;
+	if( profile_name == "sky" ) {
+		profile = static_cast<Profile *>(new SkyProfile());
+	}
+	else if ( profile_name == "sersic" ) {
+		profile = static_cast<Profile *>(new SersicProfile());
+	}
+	else if ( profile_name == "psf" ) {
+		profile = static_cast<Profile *>(new PsfProfile());
 	}
 
-	return NULL;
+	if( profile == NULL ) {
+		return NULL;
+	}
+
+	profile->model = this;
+	profile->name = profile_name;
+	this->profiles.push_back(profile);
+	return profile;
 }
 
 void Model::evaluate() {

@@ -476,9 +476,4 @@ SersicProfile::SersicProfile() :
 
 }
 
-Profile *profit_create_sersic() {
-	SersicProfile *sp = new SersicProfile();
-	return dynamic_cast<Profile *>(sp);
-}
-
 } /* namespace profit */

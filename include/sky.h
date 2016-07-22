@@ -41,8 +41,6 @@ public:
 	double bg;
 };
 
-Profile *profit_create_sky(void);
-
 } /* namespace profit */
 
 #endif /* _SKY_H_ */

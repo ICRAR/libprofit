@@ -77,8 +77,6 @@ public:
 
 };
 
-Profile *profit_create_sersic(void);
-
 } /* namespace profit */
 
 #endif /* _SERSIC_H_ */

@@ -190,8 +190,4 @@ PsfProfile::PsfProfile() :
 	// no-op
 }
 
-Profile *profit_create_psf() {
-	return static_cast<Profile *>(new PsfProfile());
-}
-
 } /* namespace profit */

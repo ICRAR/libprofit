@@ -61,10 +61,6 @@ void SkyProfile::evaluate(double *image) {
 	}
 }
 
-Profile *profit_create_sky() {
-	return static_cast<Profile *>(new SkyProfile());
-}
-
 SkyProfile::SkyProfile() :
 	Profile(),
 	bg(0.)

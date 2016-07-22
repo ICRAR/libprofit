@@ -45,8 +45,6 @@ public:
 	double scale;
 };
 
-Profile *profit_create_psf(void);
-
 } /* namespace profit */
 
 #endif /* _PSF_H_ */
