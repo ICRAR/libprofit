@@ -49,6 +49,41 @@ using namespace std;
 namespace profit
 {
 
+/*
+ * The evaluation of the sersic profile at sersic coordinates (x,y).
+ *
+ * The sersic profile has this form:
+ *
+ * e^{-bn * (r_factor - 1)}
+ * where r_factor = (r/Re)^{1/nser}
+ *              r = (x^{2+b} + y^{2+b})^{1/(2+b)}
+ *              b = box parameter
+ *
+ * Reducing:
+ *  r_factor = ((x/re)^{2+b} + (y/re)^{2+b})^{1/(nser*(2+b)}
+ *
+ * Although this reduced form has only three powers instead of 4
+ * in the original form, it still doesn't mean that it's the fastest
+ * way of computing r_factor. Depending on the libc/libm being used
+ * using a combination of sqrt, cbrt and pow will yield better or
+ * worse performances (within certain limits).
+ *
+ * Also, in particular for b = 0:
+ *  r_factor = ((x*x + y*y/(re*re))^{1/(2*nser}
+ *
+ * In our code we thus logically decompose r_factor (for both cases) as such:
+ *
+ * r_factor = base^(1/invexp)
+ *
+ * We then use specialized code templates to get the proper base, the proper
+ * invexp, and finally to check whether some calls to pow() can be avoided or
+ * not.
+ */
+
+/*
+ * The nser parameter is a double; we need an enumeration of the known values
+ * to optimize for to use in our templates
+ */
 enum nser_t {
 	general,
 	pointfive,
@@ -56,105 +91,149 @@ enum nser_t {
 	two,
 	three,
 	four,
-	eight
+	eight,
+	sixteen
 };
 
+/*
+ * r_factor calculation follows. Several template specializations avoid the
+ * call to pow().
+ * This first generic template will finally be called only with parameters
+ * true/general because all the other combinations are already specialized.
+ */
+
+/* "true" cases for r_factor */
+template<bool boxy, nser_t t>
+inline double _r_factor(double b, double invexp)
+{
+  return pow(b, 1/invexp);
+}
+
+template<> inline double _r_factor<true, pointfive>(double b, double invexp)
+{
+	return b*b;
+}
+
+template<> inline double _r_factor<true, one>(double b, double invexp)
+{
+	return b;
+}
+
+template<> inline double _r_factor<true, two>(double b, double invexp)
+{
+	return sqrt(b);
+}
+
+template<> inline double _r_factor<true, three>(double b, double invexp)
+{
+	return cbrt(b);
+}
+
+template<> inline double _r_factor<true, four>(double b, double invexp)
+{
+	return sqrt(sqrt(b));
+}
+
+template<> inline double _r_factor<true, eight>(double b, double invexp)
+{
+	return sqrt(sqrt(sqrt(b)));
+}
+
+template<> inline double _r_factor<true, sixteen>(double b, double invexp)
+{
+	return sqrt(sqrt(sqrt(sqrt(b))));
+}
+
+/* "false" cases for r_factor */
+template<> inline double _r_factor<false, general>(double b, double invexp)
+{
+	return pow(sqrt(b), 1/invexp);
+}
+
+template<> inline double _r_factor<false, pointfive>(double b, double invexp)
+{
+	return b;
+}
+
+template<> inline double _r_factor<false, one>(double b, double invexp)
+{
+	return sqrt(b);
+}
+
+template<> inline double _r_factor<false, two>(double b, double invexp)
+{
+	return sqrt(sqrt(b));
+}
+
+template<> inline double _r_factor<false, three>(double b, double invexp)
+{
+	return cbrt(sqrt(b));
+}
+
+template<> inline double _r_factor<false, four>(double b, double invexp)
+{
+	return sqrt(sqrt(sqrt(b)));
+}
+
+template<> inline double _r_factor<false, eight>(double b, double invexp)
+{
+	return sqrt(sqrt(sqrt(sqrt(b))));
+}
+
+template<> inline double _r_factor<false, sixteen>(double b, double invexp)
+{
+	return sqrt(sqrt(sqrt(sqrt(sqrt(b)))));
+}
+
+/*
+ * The base component of r_factor
+ */
+template<bool boxy>
+inline double _base(double x, double y, double re, double exponent)
+{
+	return pow(fabs(x/re), exponent) + pow(fabs(y/re), exponent);
+}
+
+template<>
+inline double _base<false>(double x, double y, double re, double exponent)
+{
+	return (x*x + y*y)/(re * re);
+}
+
+/*
+ * The invexpt component of r_factor
+ */
+template<bool boxy>
+inline double _invexp(const double nser, const double exponent)
+{
+  return nser*exponent;
+}
+
+template<>
+inline double _invexp<false>(const double nser, const double exponent)
+{
+  return nser;
+}
+
+
+/*
+ * The main sersic evaluation function for a given X/Y coordinate
+ */
 template <bool boxy, nser_t t>
 inline
 double _sersic_for_xy_r(SersicProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
 
-	/*
-	 * The evaluation of the sersic profile at sersic coordinates (x,y).
-	 *
-	 * The sersic profile has this form:
-	 *
-	 * e^{-bn * (r_factor - 1)}
-	 * where r_factor = (r/Re)^{1/nser}
-	 *              r = (x^{2+b} + y^{2+b})^{1/(2+b)}
-	 *              b = box parameter
-	 *
-	 * Reducing:
-	 *  r_factor = (x/re)^{2+b} + (y/re)^{2+b})^{1/(nser*(2+b)}
-	 *
-	 * Although this reduced form has only three powers instead of 4
-	 * in the original form, it still doesn't mean that it's the fastest
-	 * way of computing r_factor. Depending on the libc/libm being used
-	 * using a combination of sqrt, cbrt and pow will yield better or
-	 * worse performances (within certain limits).
-	 * The different "if/else if/if" statements below cover those
-	 * cases where we've found that some performance can be gained
-	 * by using different computation routes.
-	 *
-	 */
-
 	double r_factor;
 	if( reuse_r && sp->box == 0. ){
 		r_factor = pow(r/sp->re, 1/sp->nser);
 	}
 	else {
-
 		double base;
-
-		if( sp->box != 0 ) {
-
-			/*
-			 * box != 0
-			 */
-			double exponent = sp->box + 2;
-			base = pow(abs(x/sp->re), exponent) + pow(abs(y/sp->re), exponent);
-			double exp_divisor = sp->nser*exponent;
-
-			if( exp_divisor == 0.5 ) {
-				r_factor = base*base;
-			} else if( exp_divisor == 1. ) {
-				r_factor = base;
-			} else if( exp_divisor == 2. ) {
-				r_factor = sqrt(base);
-			} else if( exp_divisor == 3. ) {
-				r_factor = cbrt(base);
-			} else if( exp_divisor == 4. ) {
-				r_factor = sqrt(sqrt(base));
-			} else if( exp_divisor == 8. ) {
-				r_factor = sqrt(sqrt(sqrt(base)));
-			} else if( exp_divisor == 16. ) {
-				r_factor = sqrt(sqrt(sqrt(sqrt(base))));
-			} else {
-				r_factor = pow(base, 1/exp_divisor);
-			}
-
-		}
-
-		else {
-
-			/*
-			 * box == 0
-			 * thus r_factor = base ^ (1/2*nser)
-			 * We still avoid calling pow as much as possible
-			 **/
-			base = (x*x + y*y)/(sp->re * sp->re);
-
-			if( sp->nser == 0.5 ) {
-				r_factor = base;
-			} else if( sp->nser == 1. ) {
-				r_factor = sqrt(base);
-			} else if( sp->nser == 2. ) {
-				r_factor = sqrt(sqrt(base));
-			} else if( sp->nser == 3. ) {
-				r_factor = cbrt(sqrt(base));
-			} else if( sp->nser == 4. ) {
-				r_factor = sqrt(sqrt(sqrt(base)));
-			} else if( sp->nser == 8. ) {
-				r_factor = sqrt(sqrt(sqrt(sqrt(base))));
-			} else if( sp->nser == 16. ) {
-				r_factor = sqrt(sqrt(sqrt(sqrt(sqrt(base)))));
-			} else {
-				r_factor = pow(sqrt(base), 1/sp->nser);
-			}
-
-		}
-
+		double exponent = sp->box + 2;
+		base = _base<boxy>(x, y, sp->re, exponent);
+		r_factor = _r_factor<boxy,t>(base,_invexp<boxy>(sp->nser,exponent));
 	}
 
 	return exp(-sp->_bn * (r_factor - 1));
@@ -427,6 +506,7 @@ void SersicProfile::evaluate(double *image) {
 		else if( this->nser == 3 )   _evaluate<true, three>(this, m, image);
 		else if( this->nser == 4 )   _evaluate<true, four>(this, m, image);
 		else if( this->nser == 8 )   _evaluate<true, eight>(this, m, image);
+		else if( this->nser == 16 )  _evaluate<true, sixteen>(this, m, image);
 		else                         _evaluate<true, general>(this, m, image);
 	}
 	else {
@@ -436,6 +516,7 @@ void SersicProfile::evaluate(double *image) {
 		else if( this->nser == 3 )   _evaluate<false, three>(this, m, image);
 		else if( this->nser == 4 )   _evaluate<false, four>(this, m, image);
 		else if( this->nser == 8 )   _evaluate<false, eight>(this, m, image);
+		else if( this->nser == 16 )  _evaluate<false, sixteen>(this, m, image);
 		else                         _evaluate<false, general>(this, m, image);
 	}
 }
