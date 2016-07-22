@@ -26,7 +26,6 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
 
 /*
  * We use either GSL or Rmath to provide the low-level
@@ -311,19 +310,19 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 void SersicProfile::validate() {
 
 	if( !this->_pgamma ) {
-		this->error = strdup("Missing pgamma function on sersic profile");
+		this->error = "Missing pgamma function on sersic profile";
 		return;
 	}
 	if( !this->_qgamma ) {
-		this->error = strdup("Missing qgamma function on sersic profile");
+		this->error = "Missing qgamma function on sersic profile";
 		return;
 	}
 	if( !this->_gammafn ) {
-		this->error = strdup("Missing gamma function on sersic profile");
+		this->error = "Missing gamma function on sersic profile";
 		return;
 	}
 	if( !this->_beta ) {
-		this->error = strdup("Missing beta function on sersic profile");
+		this->error = "Missing beta function on sersic profile";
 		return;
 	}
 

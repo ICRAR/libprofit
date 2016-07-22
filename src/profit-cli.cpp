@@ -33,12 +33,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <string>
+
 #include "profit.h"
 #include "psf.h"
 #include "sersic.h"
 #include "sky.h"
 
 using namespace profit;
+using namespace std;
 
 char **_parse_profile_value(char *token) {
 	char **key_and_val;
@@ -465,11 +468,12 @@ int main(int argc, char *argv[]) {
 	long duration;
 	double magzero = 0;
 	unsigned int i, j;
-	char *endptr, *error, *fits_output = NULL;
+	char *endptr, *fits_output = NULL;
 	output_t output = none;
 	Profile *profile;
 	Model *m = new Model();
 	struct stat stat_buf;
+	string error;
 
 #define CLEAN_AND_EXIT(code) \
 	delete m; \
@@ -582,7 +586,6 @@ int main(int argc, char *argv[]) {
 	gettimeofday(&start, NULL);
 	for(i=0; i!=iterations; i++) {
 		free(m->image);
-		free(m->error);
 		m->evaluate();
 	}
 	gettimeofday(&end, NULL);
@@ -590,8 +593,8 @@ int main(int argc, char *argv[]) {
 
 	/* Check for any errors */
 	error = m->get_error();
-	if( error ) {
-		fprintf(stderr, "Error while calculating model: %s\n", error);
+	if( error.size() ) {
+		fprintf(stderr, "Error while calculating model: %s\n", error.c_str());
 		CLEAN_AND_EXIT(1);
 	}
 

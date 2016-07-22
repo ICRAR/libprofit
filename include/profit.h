@@ -27,6 +27,7 @@
 #ifndef _PROFIT_H_
 #define _PROFIT_H_
 
+#include <string>
 #include <vector>
 
 namespace profit
@@ -45,6 +46,8 @@ class Model;
 class Profile {
 
 public:
+
+	Profile();
 
 	/**
 	 * Performs the initial profile validation, making sure that all parameters
@@ -71,7 +74,7 @@ public:
 	/**
 	 * The name of this profile
 	 */
-	const char *name;
+	std::string name;
 
 	/**
 	 * An error string indicating that an error related to this profile was
@@ -79,7 +82,7 @@ public:
 	 * initialization or during the image creation process. Users should check
 	 * that there is no error in any of the profiles after making a model.
 	 */
-	char *error;
+	std::string error;
 
 };
 
@@ -117,7 +120,7 @@ public:
 	 * On failure (i.e., if a profile with the given name is not supported) NULL is
 	 * returned and no profile is added to the model.
 	 */
-	Profile *add_profile(const char *profile_name);
+	Profile *add_profile(std::string profile_name);
 
 	/**
 	 * Calculates an image using the information contained in the model.
@@ -129,10 +132,10 @@ public:
 	 * Returns the first error string found either on the model itself or in any of
 	 * it profiles. This method should be called on the model right after invoking
 	 * profit_eval_model to make sure that no errors were found during the process.
-	 * If NULL is returned it means that no errors were found and that the image
-	 * stored in the model is valid.
+	 * If an empty string is returned it means that no errors were found and
+	 * that the image stored in the model is valid.
 	 */
-	char *get_error();
+	std::string get_error();
 
 	/**
 	 * The width of the model to generate
@@ -198,7 +201,7 @@ public:
 	 * An error string indicating that there is something wrong with the model.
 	 * Users should check that there is no error after making a model.
 	 */
-	char *error;
+	std::string error;
 
 };
 

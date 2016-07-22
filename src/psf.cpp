@@ -25,7 +25,6 @@
  */
 
 #include <math.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "psf.h"
@@ -36,7 +35,7 @@ namespace profit
 void PsfProfile::validate()  {
 
 	if( !this->model->psf ) {
-		this->error = strdup("No psf present in the model, cannot produce a psf profile");
+		this->error = "No psf present in the model, cannot produce a psf profile";
 		return;
 	}
 	this->scale = pow(10, -0.4*(this->mag - this->model->magzero));
