@@ -41,7 +41,7 @@ namespace profit {
 
 struct _profit_profile_index {
 	char *name;
-	profit_profile *(* create)(void);
+	Profile *(* create)(void);
 };
 
 static
@@ -52,26 +52,31 @@ struct _profit_profile_index _all_profiles[] = {
 	{NULL, NULL} // Sentinel
 };
 
-profit_model *profit_create_model() {
-	profit_model *model = (profit_model *)calloc(1, sizeof(profit_model));
-	model->n_profiles = 0;
-	model->profiles = NULL;
-	model->calcmask = NULL;
-	return model;
+Model::Model() :
+    width(0), height(0),
+	 res_x(0), res_y(0),
+	 magzero(0),
+	 psf(NULL), psf_width(0), psf_height(0),
+	 calcmask(NULL), image(NULL),
+    n_profiles(0), profiles(NULL),
+	 error(NULL)
+{
+	// no-op
 }
 
-void _profit_add_profile(profit_model *model, profit_profile *profile) {
+static inline
+void _profit_add_profile(Model *model, Profile *profile) {
 	if( !model->n_profiles ) {
-		model->profiles = (profit_profile **)malloc(sizeof(profit_profile **));
+		model->profiles = (Profile **)malloc(sizeof(Profile **));
 	}
 	else {
-		model->profiles = (profit_profile **)realloc(model->profiles, (model->n_profiles + 1) * sizeof(profit_profile *));
+		model->profiles = (Profile **)realloc(model->profiles, (model->n_profiles + 1) * sizeof(Profile *));
 	}
 	model->profiles[model->n_profiles] = profile;
 	model->n_profiles++;
 }
 
-profit_profile* profit_create_profile(profit_model *model, const char * profile_name) {
+Profile* Model::add_profile(const char * profile_name) {
 
 	struct _profit_profile_index *p = _all_profiles;
 	while(1) {
@@ -79,8 +84,9 @@ profit_profile* profit_create_profile(profit_model *model, const char * profile_
 			break;
 		}
 		if( !strcmp(profile_name, p->name) ) {
-			profit_profile *profile = p->create();
-			_profit_add_profile(model, profile);
+			Profile *profile = p->create();
+			_profit_add_profile(this, profile);
+			profile->model = this;
 			profile->error = NULL;
 			profile->name = profile_name;
 			profile->convolve = false;
@@ -92,25 +98,25 @@ profit_profile* profit_create_profile(profit_model *model, const char * profile_
 	return NULL;
 }
 
-void profit_eval_model(profit_model *model) {
+void Model::evaluate() {
 
 	unsigned int p;
 
 	/* Check limits */
-	if( !model->width ) {
-		model->error = strdup("Model's width is 0");
+	if( !this->width ) {
+		this->error = strdup("Model's width is 0");
 		return;
 	}
-	else if( !model->height ) {
-		model->error = strdup("Model's height is 0");
+	else if( !this->height ) {
+		this->error = strdup("Model's height is 0");
 		return;
 	}
-	else if( !model->res_x ) {
-		model->error = strdup("Model's res_x is 0");
+	else if( !this->res_x ) {
+		this->error = strdup("Model's res_x is 0");
 		return;
 	}
-	else if( !model->res_y ) {
-		model->error = strdup("Model's res_y is 0");
+	else if( !this->res_y ) {
+		this->error = strdup("Model's res_y is 0");
 		return;
 	}
 
@@ -118,33 +124,33 @@ void profit_eval_model(profit_model *model) {
 	 * If at least one profile is requesting convolving we require
 	 * a valid psf.
 	 */
-	for(p=0; p!=model->n_profiles; p++) {
-		if( model->profiles[p]->convolve ) {
-			if( !model->psf ) {
+	for(p=0; p!=this->n_profiles; p++) {
+		if( this->profiles[p]->convolve ) {
+			if( !this->psf ) {
 				const char *msg = "Profile %s requires convolution but no psf was provided";
-				model->error = (char *)malloc(strlen(msg) - 1 + strlen(model->profiles[p]->name));
-				sprintf(model->error, msg, model->profiles[p]->name);
+				this->error = (char *)malloc(strlen(msg) - 1 + strlen(this->profiles[p]->name));
+				sprintf(this->error, msg, this->profiles[p]->name);
 				return;
 			}
-			if( !model->psf_width ) {
-				model->error = strdup("Model's psf width is 0");
+			if( !this->psf_width ) {
+				this->error = strdup("Model's psf width is 0");
 				return;
 			}
-			if( !model->psf_height ) {
-				model->error = strdup("Model's psf height is 0");
+			if( !this->psf_height ) {
+				this->error = strdup("Model's psf height is 0");
 				return;
 			}
 			break;
 		}
 	}
 
-	model->xbin = model->width/(double)model->res_x;
-	model->ybin = model->height/(double)model->res_y;
-	model->image = (double *)calloc(model->width * model->height, sizeof(double));
-	if( !model->image ) {
+	this->xbin = this->width/(double)this->res_x;
+	this->ybin = this->height/(double)this->res_y;
+	this->image = (double *)calloc(this->width * this->height, sizeof(double));
+	if( !this->image ) {
 		char *msg = "Cannot allocate memory for image with w=%u, h=%u";
-		model->error = (char *)malloc( strlen(msg) - 4 + 20 ); /* 32bits unsigned max is 4294967295 (10 digits) */
-		sprintf(model->error, msg, model->width, model->height);
+		this->error = (char *)malloc( strlen(msg) - 4 + 20 ); /* 32bits unsigned max is 4294967295 (10 digits) */
+		sprintf(this->error, msg, this->width, this->height);
 		return;
 	}
 
@@ -152,9 +158,9 @@ void profit_eval_model(profit_model *model) {
 	 * Validate all profiles.
 	 * Each profile can fail during validation in which case we don't proceed any further
 	 */
-	for(p=0; p < model->n_profiles; p++) {
-		profit_profile *profile = model->profiles[p];
-		profile->validate_profile(profile, model);
+	for(p=0; p < this->n_profiles; p++) {
+		Profile *profile = this->profiles[p];
+		profile->validate();
 		if( profile->error ) {
 			return;
 		}
@@ -168,14 +174,14 @@ void profit_eval_model(profit_model *model) {
 	 * probably we should study what is the best way to go here (e.g.,
 	 * parallelize only if we have more than 2 or 3 profiles)
 	 */
-	double **profile_images = (double **)malloc(sizeof(double *) * model->n_profiles);
+	double **profile_images = (double **)malloc(sizeof(double *) * this->n_profiles);
 #if _OPENMP
 	#pragma omp parallel for private(p)
 #endif
-	for(p=0; p < model->n_profiles; p++) {
-		profit_profile *profile = model->profiles[p];
-		profile_images[p] = (double *)calloc(model->width * model->height, sizeof(double));
-		profile->evaluate_profile(profile, model, profile_images[p]);
+	for(p=0; p < this->n_profiles; p++) {
+		Profile *profile = this->profiles[p];
+		profile_images[p] = (double *)calloc(this->width * this->height, sizeof(double));
+		profile->evaluate(profile_images[p]);
 	}
 
 	/*
@@ -185,23 +191,23 @@ void profit_eval_model(profit_model *model) {
 	 * and after that we add up the remaining images.
 	 */
 	bool convolve = false;
-	for(p=0; p != model->n_profiles; p++) {
-		if( model->profiles[p]->convolve ) {
+	for(p=0; p != this->n_profiles; p++) {
+		if( this->profiles[p]->convolve ) {
 			convolve = true;
-			profit_add_images(model->image, profile_images[p], model->width, model->height);
+			profit_add_images(this->image, profile_images[p], this->width, this->height);
 		}
 	}
 	if( convolve ) {
-		size_t psf_size = sizeof(double) * model->psf_width * model->psf_height;
+		size_t psf_size = sizeof(double) * this->psf_width * this->psf_height;
 		double *psf = (double *)malloc(psf_size);
-		memcpy(psf, model->psf, psf_size);
-		profit_normalize(psf, model->psf_width, model->psf_height);
-		profit_convolve(model->image, model->width, model->height, psf, model->psf_width, model->psf_height, model->calcmask, true);
+		memcpy(psf, this->psf, psf_size);
+		profit_normalize(psf, this->psf_width, this->psf_height);
+		profit_convolve(this->image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask, true);
 		free(psf);
 	}
-	for(p=0; p != model->n_profiles; p++) {
-		if( !model->profiles[p]->convolve ) {
-			profit_add_images(model->image, profile_images[p], model->width, model->height);
+	for(p=0; p != this->n_profiles; p++) {
+		if( !this->profiles[p]->convolve ) {
+			profit_add_images(this->image, profile_images[p], this->width, this->height);
 		}
 		free(profile_images[p]);
 	}
@@ -210,37 +216,36 @@ void profit_eval_model(profit_model *model) {
 	/* Done! Good job :-) */
 }
 
-char *profit_get_error(profit_model *m) {
+char *Model::get_error() {
 
 	unsigned int i;
 
-	if( m->error ) {
-		return m->error;
+	if( this->error ) {
+		return this->error;
 	}
-	for(i=0; i!=m->n_profiles; i++) {
-		if( m->profiles[i]->error ) {
-			return m->profiles[i]->error;
+	for(i=0; i!=this->n_profiles; i++) {
+		if( this->profiles[i]->error ) {
+			return this->profiles[i]->error;
 		}
 	}
 	return NULL;
 }
 
-void profit_cleanup(profit_model *m) {
+Model::~Model() {
 
 	unsigned int i;
-	profit_profile *p;
+	Profile *p;
 
-	for(i=0; i!=m->n_profiles; i++) {
-		p = m->profiles[i];
+	for(i=0; i!=this->n_profiles; i++) {
+		p = this->profiles[i];
 		free(p->error);
 		free(p);
 	}
-	free(m->error);
-	free(m->profiles);
-	free(m->image);
-	free(m->psf);
-	free(m->calcmask);
-	free(m);
+	free(this->error);
+	free(this->profiles);
+	free(this->image);
+	free(this->psf);
+	free(this->calcmask);
 }
 
 } /* namespace profit */

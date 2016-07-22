@@ -48,7 +48,7 @@ namespace profit
 {
 
 static inline
-double _sersic_for_xy_r(profit_sersic_profile *sp,
+double _sersic_for_xy_r(SersicProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
 
@@ -148,7 +148,7 @@ double _sersic_for_xy_r(profit_sersic_profile *sp,
 }
 
 static inline
-void _image_to_sersic_coordinates(profit_sersic_profile *sp, double x, double y, double *x_ser, double *y_ser) {
+void _image_to_sersic_coordinates(SersicProfile *sp, double x, double y, double *x_ser, double *y_ser) {
 	x -= sp->xcen;
 	y -= sp->ycen;
 	*x_ser =  x * sp->_cos_ang + y * sp->_sin_ang;
@@ -157,7 +157,7 @@ void _image_to_sersic_coordinates(profit_sersic_profile *sp, double x, double y,
 }
 
 static
-double _sersic_sumpix(profit_sersic_profile *sp,
+double _sersic_sumpix(SersicProfile *sp,
                       double x0, double x1, double y0, double y1,
                       unsigned int recur_level, unsigned int max_recursions,
                       unsigned int resolution) {
@@ -206,13 +206,13 @@ double _sersic_sumpix(profit_sersic_profile *sp,
 }
 
 static inline
-double profit_sersic_fluxfrac(profit_sersic_profile *sp, double fraction) {
+double profit_sersic_fluxfrac(SersicProfile *sp, double fraction) {
 	double ratio = sp->_qgamma(fraction, 2*sp->nser) / sp->_bn;
 	return sp->re * pow(ratio, sp->nser);
 }
 
 static inline
-void sersic_initial_calculations(profit_sersic_profile *sp, profit_model *model) {
+void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 
 	double nser = sp->nser;
 	double re = sp->re;
@@ -308,25 +308,22 @@ void sersic_initial_calculations(profit_sersic_profile *sp, profit_model *model)
 /**
  * The sersic validation function
  */
-static
-void profit_validate_sersic(profit_profile *profile, profit_model *model) {
+void SersicProfile::validate() {
 
-	profit_sersic_profile *sp = (profit_sersic_profile *)profile;
-
-	if( !sp->_pgamma ) {
-		profile->error = strdup("Missing pgamma function on sersic profile");
+	if( !this->_pgamma ) {
+		this->error = strdup("Missing pgamma function on sersic profile");
 		return;
 	}
-	if( !sp->_qgamma ) {
-		profile->error = strdup("Missing qgamma function on sersic profile");
+	if( !this->_qgamma ) {
+		this->error = strdup("Missing qgamma function on sersic profile");
 		return;
 	}
-	if( !sp->_gammafn ) {
-		profile->error = strdup("Missing gamma function on sersic profile");
+	if( !this->_gammafn ) {
+		this->error = strdup("Missing gamma function on sersic profile");
 		return;
 	}
-	if( !sp->_beta ) {
-		profile->error = strdup("Missing beta function on sersic profile");
+	if( !this->_beta ) {
+		this->error = strdup("Missing beta function on sersic profile");
 		return;
 	}
 
@@ -335,8 +332,11 @@ void profit_validate_sersic(profit_profile *profile, profit_model *model) {
 /**
  * The sersic evaluation function
  */
-static
-void profit_evaluate_sersic(profit_profile *profile, profit_model *model, double *image) {
+void SersicProfile::evaluate(double *image) {
+
+
+	SersicProfile *sp = this;
+	Model *model = this->model;
 
 	unsigned int i, j;
 	double x, y, pixel_val;
@@ -344,8 +344,6 @@ void profit_evaluate_sersic(profit_profile *profile, profit_model *model, double
 	double half_xbin = model->xbin/2.;
 	double half_ybin = model->ybin/2.;
 	double bin_area = model->xbin * model->ybin;
-
-	profit_sersic_profile *sp = (profit_sersic_profile *)profile;
 
 	/*
 	 * All the pre-calculations needed by the sersic profile (Ie, cos/sin ang, etc)
@@ -427,10 +425,11 @@ double _Rf_pgamma_wrapper(double q, double shape) {
 /**
  * The sersic creation function
  */
-profit_profile *profit_create_sersic() {
-	profit_sersic_profile *p = (profit_sersic_profile *)malloc(sizeof(profit_sersic_profile));
-	p->profile.validate_profile = &profit_validate_sersic;
-	p->profile.evaluate_profile = &profit_evaluate_sersic;
+SersicProfile::SersicProfile() :
+	Profile()
+{
+
+	SersicProfile *p = this;
 
 	/* Sane defaults */
 	p->xcen = 0;
@@ -472,7 +471,12 @@ profit_profile *profit_create_sersic() {
 	p->_gammafn = NULL;
 	p->_beta = NULL;
 #endif
-	return (profit_profile *)p;
+
+}
+
+Profile *profit_create_sersic() {
+	SersicProfile *sp = new SersicProfile();
+	return dynamic_cast<Profile *>(sp);
 }
 
 } /* namespace profit */

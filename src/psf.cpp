@@ -33,20 +33,18 @@
 namespace profit
 {
 
-static
-void profit_validate_psf(profit_profile *profile, profit_model *model)  {
-	profit_psf_profile *psf = (profit_psf_profile *)profile;
+void PsfProfile::validate()  {
 
-	if( !model->psf ) {
-		psf->profile.error = strdup("No psf present in the model, cannot produce a psf profile");
+	if( !this->model->psf ) {
+		this->error = strdup("No psf present in the model, cannot produce a psf profile");
 		return;
 	}
-	psf->scale = pow(10, -0.4*(psf->mag - model->magzero));
+	this->scale = pow(10, -0.4*(this->mag - this->model->magzero));
 
 }
 
 static inline
-void profit_psf_normalize_and_apply(profit_psf_profile *psf, profit_model *model, double *image,
+void profit_psf_normalize_and_apply(PsfProfile *psf, Model *model, double *image,
                                     double *psf_img, unsigned int psf_w, unsigned int psf_h,
 												int target_x, int target_y) {
 
@@ -88,8 +86,7 @@ void profit_psf_normalize_and_apply(profit_psf_profile *psf, profit_model *model
 
 }
 
-static
-void profit_evaluate_psf(profit_profile *profile, profit_model *model, double *image) {
+void PsfProfile::evaluate(double *image) {
 
 	/*
 	 * TODO: This method still doesn't take into account the image xbin/ybin
@@ -97,7 +94,7 @@ void profit_evaluate_psf(profit_profile *profile, profit_model *model, double *i
 	 */
 
 	unsigned int i, j;
-	profit_psf_profile *psf = (profit_psf_profile *)profile;
+	Model *model = this->model;
 
 	/*
 	 * The PSF is not simply put "as is" in the nearest position of the desired
@@ -110,13 +107,13 @@ void profit_evaluate_psf(profit_profile *profile, profit_model *model, double *i
 	 * corresponds exactly to one pixel on the target image, allowing us to have
 	 * a direct copy of values.
 	 */
-	double psf_origin_x = psf->xcen - model->psf_width/2.;
-	double psf_origin_y = psf->ycen - model->psf_height/2.;
+	double psf_origin_x = this->xcen - model->psf_width/2.;
+	double psf_origin_y = this->ycen - model->psf_height/2.;
 	if( (model->psf_width % 2 == 0 && model->psf_height % 2 == 0) && \
        (floor(psf_origin_x) == psf_origin_x || ceil(psf_origin_x) == psf_origin_x) && \
 	    (floor(psf_origin_y) == psf_origin_y || ceil(psf_origin_y) == psf_origin_y) ) {
 
-		profit_psf_normalize_and_apply(psf, model, image,
+		profit_psf_normalize_and_apply(this, model, image,
 		                               model->psf, model->psf_width, model->psf_height,
 		                               (int)psf_origin_x, (int)psf_origin_y);
 
@@ -178,7 +175,7 @@ void profit_evaluate_psf(profit_profile *profile, profit_model *model, double *i
 		}
 	}
 
-	profit_psf_normalize_and_apply(psf, model, image,
+	profit_psf_normalize_and_apply(this, model, image,
                                   new_psf, new_psf_w, new_psf_h,
 	                               (int)floor(psf_origin_x), (int)floor(psf_origin_y));
 
@@ -186,16 +183,17 @@ void profit_evaluate_psf(profit_profile *profile, profit_model *model, double *i
 
 }
 
-profit_profile *profit_create_psf() {
+PsfProfile::PsfProfile() :
+	Profile(),
+	xcen(0),
+	ycen(0),
+	mag(0)
+{
+	// no-op
+}
 
-	profit_psf_profile *psf = (profit_psf_profile *)malloc(sizeof(profit_psf_profile));
-	psf->profile.validate_profile = &profit_validate_psf;
-	psf->profile.evaluate_profile = &profit_evaluate_psf;
-
-	psf->xcen = 0;
-	psf->ycen = 0;
-	psf->mag  = 0;
-	return (profit_profile *)psf;
+Profile *profit_create_psf() {
+	return static_cast<Profile *>(new PsfProfile());
 }
 
 } /* namespace profit */

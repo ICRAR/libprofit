@@ -31,8 +31,14 @@
 namespace profit
 {
 
-typedef struct _profit_sersic_profile {
-	profit::profit_profile profile;
+class SersicProfile : public Profile {
+
+public:
+
+	SersicProfile();
+
+	void validate();
+	void evaluate(double *image);
 
 	/* General parameters */
 	double xcen;
@@ -69,9 +75,9 @@ typedef struct _profit_sersic_profile {
 	double _sin_ang;
 	double _rescale_factor;
 
-} profit_sersic_profile;
+};
 
-profit::profit_profile *profit_create_sersic(void);
+Profile *profit_create_sersic(void);
 
 } /* namespace profit */
 

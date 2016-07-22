@@ -93,8 +93,8 @@ char **_parse_profile_value(char *token) {
 #define _READ_UINT_OR_FAIL(key, val, name, dst) _READ_FROM_LONGINT_OR_FAIL(key, val, name, dst, unsigned int)
 
 
-short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
-	profit_sersic_profile *s = (profit_sersic_profile *)p;
+short _keyval_to_sersic(Profile *p, char *key, char *val) {
+	SersicProfile *s = static_cast<SersicProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  s->xcen);
 	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  s->ycen);
 	_READ_DOUBLE_OR_FAIL(key, val, "mag",   s->mag);
@@ -118,40 +118,40 @@ short _keyval_to_sersic(profit_profile *p, char *key, char *val) {
 	return 0;
 }
 
-short _keyval_to_sky(profit_profile *p, char *key, char *val) {
-	profit_sky_profile *s = (profit_sky_profile *)p;
+short _keyval_to_sky(Profile *p, char *key, char *val) {
+	SkyProfile *s = static_cast<SkyProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "bg",  s->bg);
 	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
 	return 0;
 }
 
-short _keyval_to_psf(profit_profile *p, char *key, char *val) {
-	profit_psf_profile *s = (profit_psf_profile *)p;
+short _keyval_to_psf(Profile *p, char *key, char *val) {
+	PsfProfile *s = static_cast<PsfProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  s->xcen);
 	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  s->ycen);
 	_READ_DOUBLE_OR_FAIL(key, val, "mag",   s->mag);
 	return 0;
 }
 
-profit_profile *desc_to_profile(
-	profit_model *model,
+Profile *desc_to_profile(
+	Model *model,
 	char *description,
 	const char* name,
 	unsigned short allow_empty_profile,
-	short (keyval_to_param)(profit_profile *, char *, char *)
+	short (keyval_to_param)(Profile *, char *, char *)
 ) {
 
 	char *tok;
 	char **key_and_val;
 	short assigned;
-	profit_profile *p;
+	Profile *p;
 
 	if( !description && !allow_empty_profile ) {
 		fprintf(stderr, "Empty %s profile description\n", name);
 		return NULL;
 	}
 
-	p = profit_create_profile(model, name);
+	p = model->add_profile(name);
 	if( !description ) {
 		return p;
 	}
@@ -181,7 +181,7 @@ profit_profile *desc_to_profile(
 	return p;
 }
 
-profit_profile *parse_profile(profit_model *model, char *description) {
+Profile *parse_profile(Model *model, char *description) {
 
 	/* The description might be only a name */
 	char *subdesc = NULL;
@@ -370,7 +370,7 @@ double *read_image_from_fits_file(char *filename, unsigned int *width, unsigned 
 	return out;
 }
 
-int to_fits(profit_model *m, char *fits_output) {
+int to_fits(Model *m, char *fits_output) {
 
 	FILE *f;
 	unsigned int i, j, pos, padding;
@@ -467,12 +467,12 @@ int main(int argc, char *argv[]) {
 	unsigned int i, j;
 	char *endptr, *error, *fits_output = NULL;
 	output_t output = none;
-	profit_profile *profile;
-	profit_model *m = profit_create_model();
+	Profile *profile;
+	Model *m = new Model();
 	struct stat stat_buf;
 
 #define CLEAN_AND_EXIT(code) \
-	profit_cleanup(m); \
+	delete m; \
 	free(fits_output); \
 	return code
 
@@ -583,13 +583,13 @@ int main(int argc, char *argv[]) {
 	for(i=0; i!=iterations; i++) {
 		free(m->image);
 		free(m->error);
-		profit_eval_model(m);
+		m->evaluate();
 	}
 	gettimeofday(&end, NULL);
 	duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
 
 	/* Check for any errors */
-	error = profit_get_error(m);
+	error = m->get_error();
 	if( error ) {
 		fprintf(stderr, "Error while calculating model: %s\n", error);
 		CLEAN_AND_EXIT(1);

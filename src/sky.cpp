@@ -30,14 +30,14 @@
 
 namespace profit {
 
-static
-void profit_validate_sky(profit_profile *profile, profit_model *model) {
+void SkyProfile::validate() {
 	/* no-op for the time being, probably check value in range, etc */
 	return;
 }
 
-static
-void profit_evaluate_sky(profit_profile *profile, profit_model *model, double *image) {
+void SkyProfile::evaluate(double *image) {
+
+	Model *model = this->model;
 
 	/* Setup a pointer to iterate over the calcmask, if any */
 	bool *mask_ptr = model->calcmask;
@@ -45,7 +45,6 @@ void profit_evaluate_sky(profit_profile *profile, profit_model *model, double *i
 		mask_ptr -= 1;
 	}
 
-	profit_sky_profile *sky_p = (profit_sky_profile *)profile;
 	unsigned int i, size = model->width * model->height;
 
 	/* Fill the image with the background value */
@@ -59,17 +58,20 @@ void profit_evaluate_sky(profit_profile *profile, profit_model *model, double *i
 			}
 		}
 
-		*image = sky_p->bg;
+		*image = this->bg;
 		image++;
 	}
 }
 
-profit_profile *profit_create_sky() {
-	profit_sky_profile *p = (profit_sky_profile *)malloc(sizeof(profit_sky_profile));
-	p->profile.validate_profile = &profit_validate_sky;
-	p->profile.evaluate_profile = &profit_evaluate_sky;
-	p->bg = 0.;
-	return (profit_profile *)p;
+Profile *profit_create_sky() {
+	return static_cast<Profile *>(new SkyProfile());
+}
+
+SkyProfile::SkyProfile() :
+	Profile(),
+	bg(0.)
+{
+	// no-op
 }
 
 } /* namespace profit */

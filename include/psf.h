@@ -31,17 +31,21 @@
 namespace profit
 {
 
-typedef struct _profit_psf_profile {
-	profit::profit_profile profile;
+class PsfProfile : public Profile {
+
+public:
+	PsfProfile();
+	void validate();
+	void evaluate(double *image);
 	double xcen;
 	double ycen;
 	double mag;
 
 	/* This is calculated from mag */
 	double scale;
-} profit_psf_profile;
+};
 
-profit::profit_profile *profit_create_psf(void);
+Profile *profit_create_psf(void);
 
 } /* namespace profit */
 

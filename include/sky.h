@@ -32,12 +32,16 @@
 namespace profit
 {
 
-typedef struct _profit_sky_profile {
-	profit::profit_profile profile;
-	double bg;
-} profit_sky_profile;
+class SkyProfile : public Profile {
 
-profit::profit_profile *profit_create_sky(void);
+public:
+	SkyProfile();
+	void validate();
+	void evaluate(double *image);
+	double bg;
+};
+
+Profile *profit_create_sky(void);
 
 } /* namespace profit */
 
