@@ -6,7 +6,7 @@
  * Copyright by UWA (in the framework of the ICRAR)
  * All rights reserved
  *
- * Contributed by Aaron Robotham, Rodrigo Tobar
+ * Contributed by Aaron Robotham, Dan Taranu, Rodrigo Tobar
  *
  * This file is part of libprofit.
  *
