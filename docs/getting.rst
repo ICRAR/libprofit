@@ -9,7 +9,7 @@ To get a copy you can clone the repository::
 *libprofit*'s compilation system is still extremely simple.
 It uses ``make`` only to drive the compilation process,
 leaving the user with the responsibility of adjusting
-the ``CC``, ``CFLAGS`` and ``LDFLAGS`` variables as needed.
+the ``CXX``, ``CXXFLAGS`` and ``LDFLAGS`` variables as needed.
 Compiling it then is as simple as::
 
  $> cd src/
@@ -32,7 +32,7 @@ Compiling it then is as simple as::
 For example, if compiling *libprofit* with built-in support for the GSL
 then the following command will do::
 
- CFLAGS=-DHAVE_GSL LDFLAGS="-lgls -lgslcblas" make
+ CXXFLAGS=-DHAVE_GSL LDFLAGS="-lgls -lgslcblas" make
 
 In the future we might support a more automatic compilation system
 like ``cmake`` or ``autotools``.

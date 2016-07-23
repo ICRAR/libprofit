@@ -4,13 +4,23 @@
 
 #include "profit.h"
 
-typedef struct _profit_example_profile {
-	profit_profile profile;
+namespace profit
+{
+
+class ExampleProfile : public Profile {
+
+public:
+
+	ExampleProfile();
+	void validate();
+	void evaluate(double *image);
+
 	double param1;
 	double param2;
 	int param3;
-} profit_example_profile;
 
-profit_profile *profit_create_example(void);
+};
+
+} /* namespace profit */
 
 #endif

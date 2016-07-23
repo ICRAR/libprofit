@@ -1,0 +1,67 @@
+/* copyright statement, etc */
+
+#include <cmath>
+#include "example.h"
+
+namespace profit {
+
+ExampleProfile::ExampleProfile() :
+    Profile(),
+	 param1(1.),
+	 param2(2.),
+	 param3(3)
+{
+	// no-op
+}
+
+void ExampleProfile::validate() {
+
+	if ( this->param1 < 0 ) {
+		this->error = "param1 is negative";
+		return;
+	}
+	if ( this->param1 < 0 ) {
+		this->error = "param2 is negative";
+		return;
+	}
+	if ( this->param3 < 0 ) {
+		this->error = "param3 is negative";
+		return;
+	}
+
+	/*
+	if ( this->model->width < 20 || this->model->height < 20 ) {
+		this->error = "can't apply example profile to images less than 20x20";
+		return;
+	}
+	*/
+}
+
+void ExampleProfile::evaluate(double *image) {
+
+	Model *model = this->model;
+	double x, y;
+	unsigned int i, j;
+	double half_xbin = model->xbin/2.;
+	double half_ybin = model->ybin/2.;
+
+	x = 0;
+	for (i=0; i < model->width; i++) {
+		x += half_xbin;
+
+		y = 0;
+		for (j=0; j < model->height; j++) {
+			y += half_ybin;
+
+			if ( !model->calcmask || model->calcmask[i + j*model->width] ) {
+				double val = std::abs( (this->param1 - this->param2) * this->param3 * (x - y) );
+				image[i + j*model->width] = val;
+			}
+
+			y += half_ybin;
+		}
+		x += half_xbin;
+	}
+}
+
+} /* namespace profit */

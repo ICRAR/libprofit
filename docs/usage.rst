@@ -23,8 +23,8 @@ exposing an API that can be used by any third-party application.
 This section gives a brief overview on how to use this API.
 For a full reference please refer to :doc:`api`.
 
-.. default-domain:: c
-.. highlight:: c
+.. default-domain:: cpp
+.. highlight:: cpp
 
 At the core of *libprofit* sits :type:`profit_model`.
 This structure holds all the information needed to generate an image.
@@ -33,22 +33,28 @@ are appended to the model, which is then evaluated.
 
 The basic usage pattern then is as follows:
 
-#. First obtain a model instance::
+#. First obtain a model instance:
 
-	 profit_model *model = profit_create_model();
+.. code-block:: cpp
+
+	 Model *model = new Model();
 
 #. Create a profile. For a list of supported names see :doc:`profiles`;
-   if you want to support a new profile see :doc:`new_profile`::
+   if you want to support a new profile see :doc:`new_profile`:
 
-	 profit_profile *sersic_profile = profit_create_profile(model, "sersic");
+.. code-block:: cpp
+
+	 Profile *sersic_profile = model->add_profile("sersic");
 
 #. Customize your profile.
-   An explicit cast must be performed on the :type:`profit_profile` to turn it
-   into the specific profile type.
+   An explicit cast must be performed on the :class:`Profile` to turn it
+   into the specific profile sub-class.
    By convention these sub-types are named after the profile they represent,
-   like this::
+   like this:
 
-	 profit_sersic_profile *sp = (profit_sersic_profile *)sersic_profile;
+.. code-block:: cpp
+
+	 SersicProfile *sp = static_cast<SersicProfile *>(sersic_profile);
 	 sp->xcen = 34.67;
 	 sp->ycen = 9.23;
 	 sp->axrat = 0.345;
@@ -57,18 +63,22 @@ The basic usage pattern then is as follows:
 #. Repeat the previous two steps for all profiles
    you want to include in your model.
 
-#. Evaluate the model simply run::
+#. Evaluate the model simply run:
 
-	 profit_eval_model(model);
+.. code-block:: cpp
+
+	 model->evaluate();
 
 #. After running check if there are have been errors
    while generating the image.
    If no errors occurred you can safely access the data
-   stored in :member:`profit_model.image`::
+   stored in :member:`profit_model.image`:
 
-	 char *error = profit_get_error(model);
-	 if( error ) {
-	     printf("Oops! There was an error evaluating the model: %s", error);
+.. code-block:: cpp
+
+	 string error = model->get_error();
+	 if( error.size() ) {
+	     printf("Oops! There was an error evaluating the model: %s", error.c_str());
 	 }
 	 else {
 	    do_something_with_your_image(model->image);
@@ -77,7 +87,8 @@ The basic usage pattern then is as follows:
 #. Finally dispose of the model.
    This should **always** be called,
    regardless of whether the model was actually used or not,
-   or whether its evaluation was successful or not::
+   or whether its evaluation was successful or not:
 
-	 profit_cleanup(model);
+.. code-block:: cpp
 
+	 delete model;
