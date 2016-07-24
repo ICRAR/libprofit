@@ -40,9 +40,25 @@ using namespace std;
 
 namespace profit {
 
+invalid_parameter::invalid_parameter(string what_arg) :
+	exception(),
+	m_what(what_arg)
+{
+	// no-op
+}
+
+invalid_parameter::invalid_parameter(const invalid_parameter &e) :
+   m_what(e.m_what)
+{
+	// no-op
+}
+
+const char *invalid_parameter::what() const throw() {
+	return m_what.c_str();
+}
+
 Profile::Profile() :
-	convolve(false),
-	error()
+	convolve(false)
 {
 	// no-op
 }
@@ -58,8 +74,7 @@ Model::Model() :
 	magzero(0),
 	psf(NULL), psf_width(0), psf_height(0),
 	calcmask(NULL), image(NULL),
-	profiles(),
-	error()
+	profiles()
 {
 	// no-op
 }
@@ -91,20 +106,17 @@ void Model::evaluate() {
 
 	/* Check limits */
 	if( !this->width ) {
-		this->error = "Model's width is 0";
+		throw invalid_parameter( "Model's width is 0");
 		return;
 	}
 	else if( !this->height ) {
-		this->error = "Model's height is 0";
-		return;
+		throw invalid_parameter("Model's height is 0");
 	}
 	else if( !this->res_x ) {
-		this->error = "Model's res_x is 0";
-		return;
+		throw invalid_parameter("Model's res_x is 0");
 	}
 	else if( !this->res_y ) {
-		this->error = "Model's res_y is 0";
-		return;
+		throw invalid_parameter("Model's res_y is 0");
 	}
 
 	/*
@@ -116,16 +128,13 @@ void Model::evaluate() {
 			if( !this->psf ) {
 				stringstream ss;
 				ss <<  "Profile " << profile->name << " requires convolution but no psf was provided";
-				this->error = ss.str();
-				return;
+				throw invalid_parameter(ss.str());
 			}
 			if( !this->psf_width ) {
-				this->error = "Model's psf width is 0";
-				return;
+				throw invalid_parameter("Model's psf width is 0");
 			}
 			if( !this->psf_height ) {
-				this->error = "Model's psf height is 0";
-				return;
+				throw invalid_parameter("Model's psf height is 0");
 			}
 			break;
 		}
@@ -134,12 +143,6 @@ void Model::evaluate() {
 	this->xbin = this->width/(double)this->res_x;
 	this->ybin = this->height/(double)this->res_y;
 	this->image = new double[this->width * this->height];
-	if( !this->image ) {
-		stringstream ss;
-		ss << "Cannot allocate memory for image with w=" << this->width << ", h=" << this->height;
-		this->error = ss.str();
-		return;
-	}
 	memset(this->image, 0, sizeof(double) * this->width * this->height);
 
 	/*
@@ -148,9 +151,6 @@ void Model::evaluate() {
 	 */
 	for(auto profile: this->profiles) {
 		profile->validate();
-		if( profile->error.size() ) {
-			return;
-		}
 	}
 
 	/*
@@ -202,20 +202,6 @@ void Model::evaluate() {
 	}
 
 	/* Done! Good job :-) */
-}
-
-string Model::get_error() {
-
-	if( this->error.size() ) {
-		return this->error;
-	}
-
-	for(auto profile: this->profiles) {
-		if( profile->error.size() ) {
-			return profile->error;
-		}
-	}
-	return "";
 }
 
 Model::~Model() {

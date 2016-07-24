@@ -25,24 +25,23 @@ For a full reference please refer to :doc:`api`.
 
 .. default-domain:: cpp
 .. highlight:: cpp
+.. namespace:: profit
 
-At the core of *libprofit* sits :type:`profit_model`.
-This structure holds all the information needed to generate an image.
-Different profiles (instances of :type:`profit_profile`)
+At the core of *libprofit* sits :class:`Model`.
+This class holds all the information needed to generate an image.
+Different profiles (instances of :class:`Profile`)
 are appended to the model, which is then evaluated.
 
 The basic usage pattern then is as follows:
 
-#. First obtain a model instance:
-
-.. code-block:: cpp
+#. First obtain a model instance::
 
 	 Model *model = new Model();
+	 // You can also simply declare it in the stack:
+	 // Model model;
 
 #. Create a profile. For a list of supported names see :doc:`profiles`;
-   if you want to support a new profile see :doc:`new_profile`:
-
-.. code-block:: cpp
+   if you want to support a new profile see :doc:`new_profile`::
 
 	 Profile *sersic_profile = model->add_profile("sersic");
 
@@ -50,45 +49,37 @@ The basic usage pattern then is as follows:
    An explicit cast must be performed on the :class:`Profile` to turn it
    into the specific profile sub-class.
    By convention these sub-types are named after the profile they represent,
-   like this:
-
-.. code-block:: cpp
+   like this::
 
 	 SersicProfile *sp = static_cast<SersicProfile *>(sersic_profile);
 	 sp->xcen = 34.67;
 	 sp->ycen = 9.23;
 	 sp->axrat = 0.345;
-	 [...]
+	 // ...
 
 #. Repeat the previous two steps for all profiles
    you want to include in your model.
 
-#. Evaluate the model simply run:
-
-.. code-block:: cpp
+#. Evaluate the model simply run::
 
 	 model->evaluate();
 
-#. After running check if there are have been errors
-   while generating the image.
+#. If there are have been errors
+   while generating the image
+   an :class:`invalid_parameter` exception will be thrown by the code,
+   so users might want to use a ``try/catch`` statement
+   to identify these situations.
    If no errors occurred you can safely access the data
-   stored in :member:`profit_model.image`:
+   stored in :member:`Model::image`::
 
-.. code-block:: cpp
-
-	 string error = model->get_error();
-	 if( error.size() ) {
-	     printf("Oops! There was an error evaluating the model: %s", error.c_str());
-	 }
-	 else {
-	    do_something_with_your_image(model->image);
+	 try {
+	     model->evaluate();
+	     do_something_with_your_image(model->image);
+	 } catch (invalid_parameter &e) {
+	     cerr << "Oops! There was an error evaluating the model: " << e.what() << endl;
 	 }
 
-#. Finally dispose of the model.
-   This should **always** be called,
-   regardless of whether the model was actually used or not,
-   or whether its evaluation was successful or not:
-
-.. code-block:: cpp
+#. Finally dispose of the model::
 
 	 delete model;
+	 // If declared as a variable of the stack there's no need to delete it

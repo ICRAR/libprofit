@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <iostream>
 #include <string>
 
 #include "profit.h"
@@ -473,7 +474,6 @@ int main(int argc, char *argv[]) {
 	Profile *profile;
 	Model *m = new Model();
 	struct stat stat_buf;
-	string error;
 
 #define CLEAN_AND_EXIT(code) \
 	delete m; \
@@ -584,19 +584,17 @@ int main(int argc, char *argv[]) {
 	/* This means that we evaluated the model once, but who cares */
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
-	for(i=0; i!=iterations; i++) {
-		delete [] m->image;
-		m->evaluate();
+	try {
+		for(i=0; i!=iterations; i++) {
+			delete [] m->image;
+			m->evaluate();
+		}
+	} catch (invalid_parameter &e) {
+		cerr << "Error while calculating model: " << e.what() << endl;
+		CLEAN_AND_EXIT(1);
 	}
 	gettimeofday(&end, NULL);
 	duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
-
-	/* Check for any errors */
-	error = m->get_error();
-	if( error.size() ) {
-		fprintf(stderr, "Error while calculating model: %s\n", error.c_str());
-		CLEAN_AND_EXIT(1);
-	}
 
 	switch(output) {
 

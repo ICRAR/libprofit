@@ -27,11 +27,29 @@
 #ifndef _PROFIT_H_
 #define _PROFIT_H_
 
+#include <exception>
 #include <string>
 #include <vector>
 
 namespace profit
 {
+
+/*
+ * Exception class thrown when an invalid parameter has been supplied to either
+ * a model or a specific profile.
+ */
+class invalid_parameter : public std::exception
+{
+
+public:
+	invalid_parameter(std::string what);
+	invalid_parameter(const invalid_parameter &e);
+	const char *what() const throw();
+
+private:
+	std::string m_what;
+
+};
 
 /* Forward declaration */
 class Model;
@@ -53,8 +71,7 @@ public:
 	/**
 	 * Performs the initial profile validation, making sure that all parameters
 	 * of the profile are correct and can be safely used to create an image.
-	 * This function can signal an error by setting a value in the error member
-	 * of this structure.
+	 * This function can signal an error by throwing an invalid_parameter exception.
 	 */
 	virtual void validate() = 0;
 
@@ -76,14 +93,6 @@ public:
 	 * The name of this profile
 	 */
 	std::string name;
-
-	/**
-	 * An error string indicating that an error related to this profile was
-	 * detected. The error string can be set either during the profile
-	 * initialization or during the image creation process. Users should check
-	 * that there is no error in any of the profiles after making a model.
-	 */
-	std::string error;
 
 };
 
@@ -128,15 +137,6 @@ public:
 	 * The result of the computation is stored in the image field.
 	 */
 	void evaluate();
-
-	/**
-	 * Returns the first error string found either on the model itself or in any of
-	 * it profiles. This method should be called on the model right after invoking
-	 * profit_eval_model to make sure that no errors were found during the process.
-	 * If an empty string is returned it means that no errors were found and
-	 * that the image stored in the model is valid.
-	 */
-	std::string get_error();
 
 	/**
 	 * The width of the model to generate
@@ -197,12 +197,6 @@ public:
 	 * model's image
 	 */
 	std::vector<Profile *> profiles;
-
-	/**
-	 * An error string indicating that there is something wrong with the model.
-	 * Users should check that there is no error after making a model.
-	 */
-	std::string error;
 
 };
 

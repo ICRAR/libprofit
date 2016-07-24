@@ -1,6 +1,8 @@
 API
 ===
 
+.. contents::
+
 .. default-domain:: cpp
 .. namespace:: profit
 
@@ -9,11 +11,23 @@ the model class (:class:`Model`)
 and the base profile class (:class:`Profile`).
 We introduce the base profile first, then the model.
 
+Exceptions
+----------
+
+.. class:: invalid_parameter
+
+   An exception thrown by :class:`Profile` and :class:`Model` objects
+   to signal that an invalid parameter was set on them,
+   preventing an image from being calculated.
+
+Profile class
+-------------
+
 .. class:: Profile
 
    The base class that ever profile class must inherit from.
    It contains all the shared aspects across profiles,
-   like a name and an error string. It also specifies the methods
+   like a name. It also specifies the methods
    that validate and evaluate a profile, and that should be
    implemented by each profile subclass.
 
@@ -26,7 +40,7 @@ We introduce the base profile first, then the model.
 
    Abstract method to be implemented by subclasses.
    It checks that the parameters supplied to the profile are valid,
-   and signals an error otherwise.
+   and throws an :class:`invalid_parameter` exception otherwise.
 
 .. function:: virtual void evaluate(double * image) = 0
 
@@ -37,14 +51,6 @@ We introduce the base profile first, then the model.
 
    The name of this profile.
 
-.. member:: std::string error
-
-   An error string indicating that an error related to this profile was
-   detected. The error string can be set either during the profile
-   validation or during the image creation process. Users should check
-   that there is no error in any of the profiles after making a model
-   using :func:`::profit::Model::get_error`.
-
 .. member:: bool convolve
 
    A boolean flag indicating whether the image produced by this profile
@@ -54,6 +60,8 @@ We introduce the base profile first, then the model.
 
 .. namespace-pop::
 
+Model class
+-----------
 
 .. class:: Model
 
@@ -75,14 +83,6 @@ We introduce the base profile first, then the model.
    Calculates an image using the information contained in the model.
    The result of the computation is stored in the image field.
 
-.. function:: std::string get_error()
-
-   Returns the first error string found either on the model itself or in any of
-   it profiles. This method should be called on the model right after invoking
-   profit_eval_model to make sure that no errors were found during the process.
-   If a 0-length string is returned it means that no errors were found and that
-   the image stored in the model is valid.
-
 .. member:: unsigned int width
 
    The width, in pixels, of the image that profit will generate for this model.
@@ -99,8 +99,8 @@ We introduce the base profile first, then the model.
 
    The image produced by this model.
    The image has the dimensions specified in the model.
-   Users should check if there was any error when evaluating the model
-   using :member:`get_error`, in which case this field will remain unset.
+   If there was any error when evaluating the model
+   this field will remain unset.
 
 .. member:: unsigned int res_x
 
@@ -144,10 +144,3 @@ We introduce the base profile first, then the model.
    that indicates for each pixel of the image
    whether the profiles should be calculated or not.
    If ``NULL`` all pixels are calculated.
-
-.. member:: std::string error
-
-   An error string indicating that an error at the model level has been
-   detected.
-   Users should check that there is no error in any of the profiles
-   after making a model using :func:`profit_get_error`.

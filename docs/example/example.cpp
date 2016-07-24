@@ -17,22 +17,18 @@ ExampleProfile::ExampleProfile() :
 void ExampleProfile::validate() {
 
 	if ( this->param1 < 0 ) {
-		this->error = "param1 is negative";
-		return;
+		throw invalid_parameter("param1 is negative");
 	}
 	if ( this->param1 < 0 ) {
-		this->error = "param2 is negative";
-		return;
+		throw invalid_parameter("param2 is negative");
 	}
 	if ( this->param3 < 0 ) {
-		this->error = "param3 is negative";
-		return;
+		throw invalid_parameter("param3 is negative");
 	}
 
 	/*
 	if ( this->model->width < 20 || this->model->height < 20 ) {
-		this->error = "can't apply example profile to images less than 20x20";
-		return;
+		throw invalid_parameter("can't apply example profile to images less than 20x20");
 	}
 	*/
 }

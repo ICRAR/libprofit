@@ -403,20 +403,16 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 void SersicProfile::validate() {
 
 	if( !this->_pgamma ) {
-		this->error = "Missing pgamma function on sersic profile";
-		return;
+		throw invalid_parameter("Missing pgamma function on sersic profile");
 	}
 	if( !this->_qgamma ) {
-		this->error = "Missing qgamma function on sersic profile";
-		return;
+		throw invalid_parameter("Missing qgamma function on sersic profile");
 	}
 	if( !this->_gammafn ) {
-		this->error = "Missing gamma function on sersic profile";
-		return;
+		throw invalid_parameter("Missing gamma function on sersic profile");
 	}
 	if( !this->_beta ) {
-		this->error = "Missing beta function on sersic profile";
-		return;
+		throw invalid_parameter("Missing beta function on sersic profile");
 	}
 
 }

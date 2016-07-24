@@ -81,9 +81,8 @@ checking that they obey the required minimum to make the operation successful.
 In the case of the ``example`` profile it was mentioned
 that all parameters must be positive,
 so the code must test for that.
-If a violation occurs, an error string is recorded
-in the :member:`error <Profile::error>` field (inherited from the :class:`Profile` base class).
-This error will prevent the profile (and in fact the whole model)
+If a violation occurs, a :class:`invalid_parameter` exception is thrown.
+This exception will prevent the profile (and in fact the whole model)
 from being evaluated.
 
 An example implementation would thus look like this:
@@ -93,16 +92,13 @@ An example implementation would thus look like this:
  void ExampleProfile::validate() {
 
      if ( this->param1 < 0 ) {
-        this->error = "param1 is negative";
-        return;
+        throw invalid_parameter("param1 is negative");
      }
      if ( this->param1 < 0 ) {
-        this->error = "param2 is negative";
-        return;
+        throw invalid_parameter("param2 is negative");
      }
      if ( this->param3 < 0 ) {
-        this->error = "param3 is negative";
-        return;
+        throw invalid_parameter("param3 is negative");
      }
 
  }
@@ -120,8 +116,7 @@ then the following code could be added:
 .. code-block:: cpp
 
  if ( this->model->width < 20 || this->model->height < 20 ) {
-     this->error = "can't apply example profile to images less than 20x20";
-     return;
+     throw invalid_parameter("can't apply example profile to images less than 20x20");
  }
 
 Finally, if a profile needs no validation at all
