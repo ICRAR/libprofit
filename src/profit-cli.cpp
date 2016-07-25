@@ -342,11 +342,9 @@ double *read_image_from_fits_file(char *filename, unsigned int *width, unsigned 
 
 		if( !strncmp("NAXIS1", hdr, 6) ) {
 			sscanf(hdr, "NAXIS1 = %u", width);
-			printf("%u\n", *width);
 		}
 		else if( !strncmp("NAXIS2", hdr, 6) ) {
 			sscanf(hdr, "NAXIS2 = %u", height);
-			printf("%u\n", *height);
 		}
 		else if( !strncmp("END", hdr, 3) ) {
 			break;
@@ -502,8 +500,6 @@ int main(int argc, char *argv[]) {
 			case 'P':
 				if( !stat(optarg, &stat_buf) ) {
 					m->psf = read_image_from_fits_file(optarg, &m->psf_width, &m->psf_height);
-					printf("w/h: %u/%u\n", m->psf_width, m->psf_height);
-					printf("first/before-last: %g/%g\n", m->psf[0], m->psf[m->psf_width * m->psf_height - 2]);
 				}
 				else {
 					m->psf = parse_psf(optarg, &m->psf_width, &m->psf_height);
