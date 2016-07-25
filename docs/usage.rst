@@ -83,3 +83,7 @@ The basic usage pattern then is as follows:
 
 	 delete model;
 	 // If declared as a variable of the stack there's no need to delete it
+
+To illustrate this process, refer to the following figure:
+
+.. image:: images/evaluation.png

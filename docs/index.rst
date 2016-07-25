@@ -14,7 +14,6 @@ libprofit
    getting.rst
    usage.rst
    coordinates.rst
-   structure.rst
    profiles.rst
    new_profile.rst
    bindings.rst
