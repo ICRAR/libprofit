@@ -6,33 +6,32 @@ To get a copy you can clone the repository::
 
  git clone https://github.com/rtobar/libprofit
 
-*libprofit*'s compilation system is still extremely simple.
-It uses ``make`` only to drive the compilation process,
-leaving the user with the responsibility of adjusting
-the ``CXX``, ``CXXFLAGS`` and ``LDFLAGS`` variables as needed.
-Compiling it then is as simple as::
 
- $> cd src/
+Compiling
+=========
+
+*libprofit* depends (optionally) on:
+
+* `GSL <https://www.gnu.org/software/gsl/>`_
+* `R <https://www.r-project.org/>`_
+
+Both dependencies satisfy the same requirements,
+so they are mutually exclusive.
+If both are present GSL takes precedence.
+If none is present,
+the ``sersic`` profile will not work.
+
+*libprofit*'s compilation system is based
+on `cmake <https://cmake.org/>`_.
+``cmake`` will check that you have a proper compiler
+(anything supporting some basic C++11 should do),
+and scan the system for dependencies.
+
+To compile *libprofit* run
+(assuming you are inside the ``libprofit`` directory already)::
+
+ $> mkdir build
+ $> cd build
+ $> cmake ..
  $> make
-
-*libprofit* currently understands the following pre-processing macros:
-
-* ``HAVE_GSL``: Indicates that the GSL is available in the system.
-  If given then GSL's implementation of a handful of statistic functions
-  like the beta and gamma functions is used in the code.
-  Note that if you pass down this option
-  then the corresponding linking options must be given as well
-  to link *libprofit* with the GSL library.
-* ``HAVE_R``: Indicates that the R library is available in the system.
-  If given then R's implementation of the functions mentioned avobe
-  is used instead.
-  Again, passing down this option means
-  that the corresponding linking option must be given as well.
-
-For example, if compiling *libprofit* with built-in support for the GSL
-then the following command will do::
-
- CXXFLAGS=-DHAVE_GSL LDFLAGS="-lgls -lgslcblas" make
-
-In the future we might support a more automatic compilation system
-like ``cmake`` or ``autotools``.
+ $> # optionally for system-wide installation: sudo make install
