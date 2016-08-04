@@ -431,7 +431,7 @@ int to_fits(Model &m, string fname) {
 
 	/* Append .fits if not in the name yet */
 	size_t fname_size = fname.size();
-	if( fname_size <= 5 || fname.rfind(".fits", fname_size - 5) != string::npos ) {
+	if( fname_size <= 5 || fname.rfind(".fits", fname_size - 6) != string::npos ) {
 		stringstream ss;
 		ss << fname << ".fits";
 		fname = ss.str();
