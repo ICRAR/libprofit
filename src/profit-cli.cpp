@@ -35,6 +35,8 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
+
 
 #include "profit.h"
 #include "psf.h"
@@ -379,24 +381,21 @@ double *read_image_from_fits_file(char *filename, unsigned int &width, unsigned 
 	return out;
 }
 
-int to_fits(Model &m, char *fits_output) {
+int to_fits(Model &m, string fname) {
 
 	FILE *f;
 	unsigned int i, j, pos, padding;
 	char hdr[80];
-	char *filename = fits_output;
 
 	/* Append .fits if not in the name yet */
-	if( strlen(fits_output) < 5 ||
-	    (strstr(fits_output, ".fits") != &fits_output[strlen(fits_output) - 5]) ) {
-		filename = (char *)malloc(strlen(fits_output) + 6);
-		sprintf(filename, "%s.fits", fits_output);
+	size_t fname_size = fname.size();
+	if( fname_size <= 5 || fname.rfind(".fits", fname_size - 5) != string::npos ) {
+		stringstream ss;
+		ss << fname << ".fits";
+		fname = ss.str();
 	}
 
-	f = fopen(filename, "w+");
-	if( filename != fits_output ) {
-		free(filename);
-	}
+	f = fopen(fname.c_str(), "w+");
 	if( !f ) {
 		return 1;
 	}
