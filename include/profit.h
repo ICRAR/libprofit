@@ -150,16 +150,16 @@ public:
 	unsigned int height;
 
 	/**
-	 * The horizontal resolution to use when generating the model
+	 * The horizontal scale used to convert pixel into image coordinates
 	 */
-	unsigned int res_x;
+	double scale_x;
 
 	/**
-	 * The vertical resolution to use when generating the model
+	 * The vertical scale used to convert pixel into image coordinates
 	 */
-	unsigned int res_y;
+	double scale_y;
 
-	/* These are calculated from the widht/height and res fields */
+	/* These are calculated from the widht/height and scale_* fields */
 	double xbin;
 	double ybin;
 

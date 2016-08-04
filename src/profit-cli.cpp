@@ -416,13 +416,13 @@ int to_fits(Model &m, char *fits_output) {
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CRPIX1  = 1");
 	fprintf(f, "%-80s", "CRVAL1  = 1");
-	sprintf(hdr, "CDELT1  = %f", (double)m.res_x/m.width);
+	sprintf(hdr, "CDELT1  = %f", m.scale_x);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE1  = ' '");
 	fprintf(f, "%-80s", "CUNIT1  = ' '");
 	fprintf(f, "%-80s", "CRPIX2  = 1");
 	fprintf(f, "%-80s", "CRVAL2  = 1");
-	sprintf(hdr, "CDELT2  = %f", (double)m.res_y/m.height);
+	sprintf(hdr, "CDELT2  = %f", m.scale_y);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE2  = ' '");
 	fprintf(f, "%-80s", "CUNIT2  = ' '");
@@ -473,9 +473,8 @@ int main(int argc, char *argv[]) {
 
 	int opt;
 	unsigned int width = 100, height = 100, iterations = 1;
-	unsigned int res_x = 100, res_y = 100;
 	long duration;
-	double magzero = 0;
+	double magzero = 0, scale_x = 1, scale_y = 1;
 	unsigned int i, j;
 	char *endptr, *fits_output = NULL;
 	output_t output = none;
@@ -528,11 +527,11 @@ int main(int argc, char *argv[]) {
 				break;
 
 			case 'x':
-				res_x = (unsigned int)atoi(optarg);
+				scale_x = atof(optarg);
 				break;
 
 			case 'y':
-				res_y = (unsigned int)atoi(optarg);
+				scale_y = atof(optarg);
 				break;
 
 			case 'm':
@@ -590,8 +589,8 @@ int main(int argc, char *argv[]) {
 
 	m.width   = width;
 	m.height  = height;
-	m.res_x   = res_x;
-	m.res_y   = res_y;
+	m.scale_x = scale_x;
+	m.scale_y = scale_y;
 	m.magzero = magzero;
 
 	/* This means that we evaluated the model once, but who cares */

@@ -14,8 +14,10 @@ that control these two different aspects of the image:
 
 * The ``width`` and ``height`` parameters indicate
   the width and height of the image in *numbers of pixels*.
-* The ``res_x`` and ``res_y`` parameters indicate
-  the horizontal and vertical size of the image.
+* The ``scale_x`` and ``scale_y`` parameters indicate
+  the horizontal and vertical scale to convert
+  the ``width`` and ``height`` parameters into
+  image coordinate sizes.
 
 This is shown in the following example:
 
@@ -28,7 +30,7 @@ which are indexed in red.
 This image's ``width`` is 4, and its ``height`` is also 4.
 Shown in blue on the other hand
 are the image coordinates.
-The image's ``res_x`` is 8 and its ``res_y`` is also 8.
+The image's ``scale_x`` is 2 and its ``scale_y`` is also 2.
 Finally a point is indicated in the image.
 Its image coordinates are ``(1.6, 0.6)``,
 and is contained within the ``(0,0)`` pixel.
