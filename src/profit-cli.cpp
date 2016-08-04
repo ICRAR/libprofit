@@ -277,8 +277,10 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -b        Output image as binary content on stdout\n");
 	fprintf(file,"  -f <file> Output image as fits file\n");
 	fprintf(file,"  -i <n>    Output performance information after evaluating the model n times\n");
-	fprintf(file,"  -w        Image width. Defaults to 100\n");
-	fprintf(file,"  -H        Image height. Defaults to 100\n");
+	fprintf(file,"  -x        Image width. Defaults to 100\n");
+	fprintf(file,"  -y        Image height. Defaults to 100\n");
+	fprintf(file,"  -w        Width in pixels. Defaults to 100\n");
+	fprintf(file,"  -H        Height in pixels. Defaults to 100\n");
 	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
 	fprintf(file,"  -P        PSF function (specified as w:h:val1,val2..., or as a FITS filename)\n");
 	fprintf(file,"  -h,-?     Show this help and exit\n");
@@ -469,6 +471,7 @@ int main(int argc, char *argv[]) {
 
 	int opt;
 	unsigned int width = 100, height = 100, iterations = 1;
+	unsigned int res_x = 100, res_y = 100;
 	long duration;
 	double magzero = 0;
 	unsigned int i, j;
@@ -483,7 +486,7 @@ int main(int argc, char *argv[]) {
 	free(fits_output); \
 	return code
 
-	while( (opt = getopt(argc, argv, "h?vP:p:w:H:m:tbf:i:")) != -1 ) {
+	while( (opt = getopt(argc, argv, "h?vP:p:w:H:x:y:m:tbf:i:")) != -1 ) {
 		switch(opt) {
 
 			case 'h':
@@ -521,6 +524,14 @@ int main(int argc, char *argv[]) {
 
 			case 'H':
 				height = (unsigned int)atoi(optarg);
+				break;
+
+			case 'x':
+				res_x = (unsigned int)atoi(optarg);
+				break;
+
+			case 'y':
+				res_y = (unsigned int)atoi(optarg);
 				break;
 
 			case 'm':
@@ -578,8 +589,8 @@ int main(int argc, char *argv[]) {
 
 	m->width      = width;
 	m->height     = height;
-	m->res_x      = width;
-	m->res_y      = height;
+	m->res_x      = res_x;
+	m->res_y      = res_y;
 	m->magzero    = magzero;
 
 	/* This means that we evaluated the model once, but who cares */
