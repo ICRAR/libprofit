@@ -26,17 +26,16 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <sstream>
-
 
 #include "profit.h"
 #include "psf.h"
@@ -46,37 +45,52 @@
 using namespace profit;
 using namespace std;
 
-char **_parse_profile_value(char *token) {
-	char **key_and_val;
-	char *equals = strchr(token, '=');
-	if( !equals ) {
-		fprintf(stderr, "Parameter %s doesn't give a value\n", token);
-		return NULL;
-	}
-	if( strlen(equals) == 1 ) {
-		fprintf(stderr, "Parameter %s gives an empty value\n", token);
-		return NULL;
+class invalid_cmdline : exception {
+public:
+	invalid_cmdline(const string& what) : m_what(what) {}
+	invalid_cmdline(const invalid_cmdline &e) : m_what(e.m_what) {}
+	~invalid_cmdline() throw() {}
+	const char *what() const throw() { return m_what.c_str(); }
+
+private:
+	std::string m_what;
+};
+
+/**
+ * Breaks down a string into substrings delimited by delims
+ *
+ * Taken from:
+ *  http://oopweb.com/CPP/Documents/CPPHOWTO/Volume/C++Programming-HOWTO-7.html
+ */
+void tokenize(const string &s, vector<string> &tokens, const string &delims) {
+
+	string::size_type lastPos = s.find_first_not_of(delims, 0);
+	string::size_type pos     = s.find_first_of(delims, lastPos);
+
+	while (string::npos != pos || string::npos != lastPos) {
+		tokens.push_back(s.substr(lastPos, pos - lastPos));
+		lastPos = s.find_first_not_of(delims, pos);
+		pos = s.find_first_of(delims, lastPos);
 	}
 
-	size_t equals_idx = (size_t)(equals - token);
-	key_and_val = (char **)malloc(sizeof(char *) * 2);
-	key_and_val[0] = strndup(token, equals_idx);
-	key_and_val[1] = strndup(equals + 1, strlen(token) - equals_idx);
-	return key_and_val;
+}
+
+void _parse_profile_value(const string &profile_name, const string &token, const vector<string> &name_and_value) {
 }
 
 #define _READ_DOUBLE_OR_FAIL(key, val, name, dst) \
 	do { \
 		char *endptr; \
 		double tmp; \
-		if ( !strcmp(key, name) ) { \
-			tmp = strtod(val, &endptr); \
+		if ( key == name ) { \
+			tmp = strtod(val.c_str(), &endptr); \
 			if( tmp == 0 && endptr == val ) { \
-				fprintf(stderr, "Invalid double value for %s: %s\n", key, val); \
-				return -1;\
+				ostringstream os; \
+				os << "Invalid double value for " << key << ": " << val; \
+				throw invalid_cmdline(os.str()); \
 			} \
 			dst = tmp;\
-			return 1; \
+			return true; \
 		} \
 	} while(0);
 
@@ -84,14 +98,15 @@ char **_parse_profile_value(char *token) {
 	do { \
 		char *endptr; \
 		long int tmp; \
-		if ( !strcmp(key, name) ) { \
-			tmp = strtol(val, &endptr, 10); \
+		if ( key == name ) { \
+			tmp = strtol(val.c_str(), &endptr, 10); \
 			if( tmp == 0 && endptr == val ) { \
-				fprintf(stderr, "Invalid integer value for %s: %s\n", key, val); \
-				return -1;\
+				ostringstream os; \
+				os << "Invalid integer value for " << key << ": " << val; \
+				throw invalid_cmdline(os.str()); \
 			} \
 			dst = (TYPE)tmp;\
-			return 1; \
+			return true; \
 		} \
 	} while(0);
 
@@ -99,7 +114,7 @@ char **_parse_profile_value(char *token) {
 #define _READ_UINT_OR_FAIL(key, val, name, dst) _READ_FROM_LONGINT_OR_FAIL(key, val, name, dst, unsigned int)
 
 
-short _keyval_to_sersic(Profile *p, char *key, char *val) {
+bool _keyval_to_sersic(Profile *p, const string &key, const string &val) {
 	SersicProfile *s = static_cast<SersicProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  s->xcen);
 	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  s->ycen);
@@ -121,150 +136,170 @@ short _keyval_to_sersic(Profile *p, char *key, char *val) {
 	_READ_BOOL_OR_FAIL(  key, val, "rescale_flux", s->rescale_flux);
 
 	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
-	return 0;
+	return false;
 }
 
-short _keyval_to_sky(Profile *p, char *key, char *val) {
+bool _keyval_to_sky(Profile *p, const string &key, const string &val) {
 	SkyProfile *s = static_cast<SkyProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "bg",  s->bg);
 	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
-	return 0;
+	return false;
 }
 
-short _keyval_to_psf(Profile *p, char *key, char *val) {
+bool _keyval_to_psf(Profile *p, const string &key, const string &val) {
 	PsfProfile *s = static_cast<PsfProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  s->xcen);
 	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  s->ycen);
 	_READ_DOUBLE_OR_FAIL(key, val, "mag",   s->mag);
-	return 0;
+	return false;
 }
 
-Profile *desc_to_profile(
+void desc_to_profile(
 	Model &model,
-	char *description,
+	string description,
 	const char* name,
-	unsigned short allow_empty_profile,
-	short (keyval_to_param)(Profile *, char *, char *)
+	bool (keyval_to_param)(Profile *, const string& name, const string &value)
 ) {
 
-	char *tok;
-	char **key_and_val;
-	short assigned;
+	string tok;
 	Profile *p;
-
-	if( !description && !allow_empty_profile ) {
-		fprintf(stderr, "Empty %s profile description\n", name);
-		return NULL;
-	}
+	bool assigned;
 
 	p = model.add_profile(name);
-	if( !description ) {
-		return p;
+	if( description.size() == 0 ) {
+		return;
 	}
 
-	while( (tok = strtok(description, ":")) ) {
+	vector<string> tokens;
+	tokenize(description, tokens, ":");
+	for(auto token: tokens) {
 
-		key_and_val = _parse_profile_value(tok);
-		if( !key_and_val ) {
-			fprintf(stderr, "Invalid token found in %s profile description: %s\n", name, description);
-			return NULL;
+		vector<string> name_and_value;
+		tokenize(token, name_and_value, "=");
+		if( name_and_value.size() != 2 ) {
+			ostringstream os;
+			os <<  "Parameter " << token << " of profile " << name << " doesn't obey the form name=value";
+			throw invalid_cmdline(os.str());
 		}
 
-		assigned = keyval_to_param(p, key_and_val[0], key_and_val[1]);
-		if( assigned == -1 ) {
-			return NULL;
-		}
+		assigned = keyval_to_param(p, name_and_value[0], name_and_value[1]);
 		if( !assigned ) {
-			fprintf(stderr, "Ignoring unknown %s profile parameter: %s\n", name, key_and_val[0]);
+			cerr << "Ignoring unknown " << name << " profile parameter: " << name_and_value[0] << endl;
 		}
-		free(key_and_val[0]);
-		free(key_and_val[1]);
-		free(key_and_val);
 
-		/* Otherwise we'll always start strtok from the beginning */
-		description = NULL;
 	}
-	return p;
 }
 
-Profile *parse_profile(Model &model, char *description) {
+void parse_profile(Model &model, const string &description) {
 
 	/* The description might be only a name */
-	char *subdesc = NULL;
-	size_t name_end = strlen(description);
-	char *colon = strchr(description, ':');
-	if( colon ) {
-		name_end = (size_t)(colon - description);
-		subdesc = colon + 1;
+	string subdesc;
+	string::size_type colon = description.find(':');
+	if( colon != string::npos ) {
+		subdesc = description.substr(colon + 1);
 	}
 
-	if( !strncmp(description, "sersic", name_end) ) {
-		return desc_to_profile(model, subdesc, "sersic", 0, &_keyval_to_sersic);
+	if( !description.compare(0, 6, "sersic") ) {
+		desc_to_profile(model, subdesc, "sersic", &_keyval_to_sersic);
 	}
-	else if( !strncmp(description, "sky", name_end) ) {
-		return desc_to_profile(model, subdesc, "sky", 0, &_keyval_to_sky);
+	else if( !description.compare(0, 3, "sky") ) {
+		desc_to_profile(model, subdesc, "sky", &_keyval_to_sky);
 	}
-	else if( !strncmp(description, "psf", name_end) ) {
-		return desc_to_profile(model, subdesc, "psf", 0, &_keyval_to_psf);
+	else if( !description.compare(0, 3, "psf") ) {
+		desc_to_profile(model, subdesc, "psf", &_keyval_to_psf);
 	}
-
-	fprintf(stderr, "Unknown profile name in profile description: %s\n", description);
-	return NULL;
-
+	else {
+		ostringstream os;
+		os << "Unknown profile name in profile description: " << description;
+		throw invalid_cmdline(os.str());
+	}
 }
 
-double *parse_psf(char *optarg, unsigned int &psf_width, unsigned int &psf_height) {
+double *parse_psf(string optarg,
+                  unsigned int &psf_width, unsigned int &psf_height,
+                  double &psf_scale_x, double &psf_scale_y) {
 
-	char *tok, *values, *endptr;
+	char *endptr;
+	const char *tok;
 	unsigned int size, i = 0;
 	double *psf;
+	bool read_scales = false;
 
-	/* format is w:h:val1,val2... */
-	tok = strtok(optarg, ":");
-	if( !tok ) {
-		fprintf(stderr, "Missing psf's width\n");
-		return NULL;
+	/* format is w:h:[optional scale_x:scale_y:]:val1,val2... */
+	vector<string> tokens;
+	tokenize(optarg, tokens, ":");
+	vector<string>::size_type ntokens = tokens.size();
+	if( ntokens < 1 ) {
+		throw invalid_cmdline("Missing psf's width");
 	}
+	else if( ntokens < 2 ) {
+		throw invalid_cmdline("Missing psf's height");
+	}
+	else if( ntokens != 3 && ntokens != 5 ) {
+		throw invalid_cmdline("Invalid psf format, see -h for help");
+	}
+	else if( ntokens == 5 ) {
+		read_scales = true;
+	}
+
+	vector<string>::iterator it = tokens.begin();
+	tok = (*it++).c_str();
 	psf_width = (unsigned int)strtoul(tok, &endptr, 10);
 	if( tok == endptr ) {
-		fprintf(stderr, "Invalid value for psf's width: %s\n", tok);
-		return NULL;
+		ostringstream os;
+		os << "Invalid value for psf's width: " << tok;
+		throw invalid_cmdline(os.str());
 	}
 
-	tok = strtok(NULL, ":");
-	if( !tok ) {
-		fprintf(stderr, "Missing psf's height\n");
-		return NULL;
-	}
+	tok = (*it++).c_str();
 	psf_height = (unsigned int)strtoul(tok, &endptr, 10);
 	if( tok == endptr ) {
-		fprintf(stderr, "Invalid value for psf's height: %s\n", tok);
-		return NULL;
+		ostringstream os;
+		os << "Invalid value for psf's height: " << tok;
+		throw invalid_cmdline(os.str());
 	}
 
-	values = strtok(NULL, ":");
-	if( !values ) {
-		fprintf(stderr, "Missing psf's values\n");
-		return NULL;
+	if( read_scales ) {
+		tok = (*it++).c_str();
+		psf_scale_x = strtod(tok, &endptr);
+		if( tok == endptr ) {
+			ostringstream os;
+			os << "Invalid value for psf's scale_x: " << tok;
+			throw invalid_cmdline(os.str());
+		}
+
+		tok = (*it++).c_str();
+		psf_scale_y = strtod(tok, &endptr);
+		if( tok == endptr ) {
+			ostringstream os;
+			os << "Invalid value for psf's scale_y: " << tok;
+			throw invalid_cmdline(os.str());
+		}
 	}
 
 	size = psf_width * psf_height;
 	psf = new double[size];
-	while( (tok = strtok(values, ",")) ) {
-		values = NULL;
-		psf[i] = strtod(tok, &endptr);
-		if( psf[i] == 0 && tok == endptr ) {
-			fprintf(stderr, "Invalid floating-point value for psf: %s\n", tok);
+
+	vector<string> values;
+	tokenize(*it, values, ",");
+	i = 0;
+	for(auto value: values) {
+		const char *v = value.c_str();
+		psf[i] = strtod(v, &endptr);
+		if( psf[i] == 0 && v == endptr ) {
 			delete [] psf;
-			return NULL;
+			ostringstream os;
+			os << "Invalid floating-point value for psf: " << value;
+			throw invalid_cmdline(os.str());
 		}
 		i++;
 	}
 
 	if( i != size ) {
-		fprintf(stderr, "Not enough values provided for PSF. Provided: %u, expected: %u\n", i, size);
 		delete [] psf;
-		return NULL;
+		ostringstream os;
+		os << "Not enough values provided for PSF. Provided: " << i << ", expected: " << size;
+		throw invalid_cmdline(os.str());
 	}
 
 	return psf;
@@ -324,7 +359,7 @@ double swap_bytes(double v) {
 
 #define FITS_BLOCK_SIZE (36*80)
 
-double *read_image_from_fits_file(char *filename, unsigned int &width, unsigned int &height, double &scale_x, double &scale_y) {
+double *read_image_from_fits_file(const string &filename, unsigned int &width, unsigned int &height, double &scale_x, double &scale_y) {
 
 	FILE *f;
 	unsigned int i, pos, padding;
@@ -333,7 +368,7 @@ double *read_image_from_fits_file(char *filename, unsigned int &width, unsigned 
 	width = height = 0;
 	scale_x = scale_y = 1;
 
-	f = fopen(filename, "rb");
+	f = fopen(filename.c_str(), "rb");
 	if( !f ) {
 		perror("Couldn't open file for reading");
 		return NULL;
@@ -459,9 +494,8 @@ int to_fits(Model &m, string fname) {
 
 	/* Pad with zeroes until we complete the current 36*80 block */
 	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * m.width * m.height) % FITS_BLOCK_SIZE);
-	void *zeros = calloc(padding, 1);
-	fwrite(zeros, 1, padding, f);
-	free(zeros);
+	string zeros(padding, 0);
+	fwrite(zeros.c_str(), 1, padding, f);
 	fclose(f);
 
 	return 0;
@@ -475,22 +509,17 @@ typedef enum _output_type {
 	performance = 4
 } output_t;
 
-int main(int argc, char *argv[]) {
-
+int parse_and_run(int argc, char *argv[]) {
 	int opt;
 	unsigned int width = 100, height = 100, iterations = 1;
 	long duration;
 	double magzero = 0, scale_x = 1, scale_y = 1;
 	unsigned int i, j;
-	char *endptr, *fits_output = NULL;
+	char *endptr = NULL;
+	string fits_output;
 	output_t output = none;
-	Profile *profile;
 	Model m;
 	struct stat stat_buf;
-
-#define CLEAN_AND_EXIT(code) \
-	free(fits_output); \
-	return code
 
 	while( (opt = getopt(argc, argv, "h?vP:p:w:H:x:y:X:Y:m:tbf:i:")) != -1 ) {
 		switch(opt) {
@@ -498,17 +527,14 @@ int main(int argc, char *argv[]) {
 			case 'h':
 			case '?':
 				usage(stdout, argv);
-				CLEAN_AND_EXIT(0);
+				return 0;
 
 			case 'v':
 				printf("libprofit version %s\n", PROFIT_VERSION);
-				CLEAN_AND_EXIT(0);
+				return 0;
 
 			case 'p':
-				profile = parse_profile(m, optarg);
-				if( profile == NULL ) {
-					CLEAN_AND_EXIT(1);
-				}
+				parse_profile(m, optarg);
 				break;
 
 			case 'P':
@@ -516,11 +542,11 @@ int main(int argc, char *argv[]) {
 					m.psf = read_image_from_fits_file(optarg, m.psf_width, m.psf_height, m.psf_scale_x, m.psf_scale_y);
 				}
 				else {
-					m.psf = parse_psf(optarg, m.psf_width, m.psf_height);
+					m.psf = parse_psf(optarg, m.psf_width, m.psf_height, m.psf_scale_x, m.psf_scale_y);
 				}
 				if( !m.psf ) {
 					usage(stderr, argv);
-					CLEAN_AND_EXIT(1);
+					return 1;
 				}
 				break;
 
@@ -543,30 +569,28 @@ int main(int argc, char *argv[]) {
 			case 'm':
 				magzero = strtod(optarg, &endptr);
 				if( magzero == 0 && endptr == optarg ) {
-					fprintf(stderr, "Invalid magzero value: %s\n", optarg);
-					CLEAN_AND_EXIT(1);
+					ostringstream os;
+					os << "Invalid magzero value: " << optarg;
+					throw invalid_cmdline(os.str());
 				}
 				break;
 
 			case 't':
 				if( output != none ) {
-					fprintf(stderr, "-t and -b cannot be used together\n");
-					CLEAN_AND_EXIT(1);
+					throw invalid_cmdline("-t and -b cannot be used together");
 				}
 				output = text;
 				break;
 
 			case 'b':
 				if( output != none ) {
-					fprintf(stderr, "-b and -t cannot be used together\n");
-					CLEAN_AND_EXIT(1);
+					throw invalid_cmdline("-b and -t cannot be used together");
 				}
 				output = binary;
 				break;
 
 			case 'f':
-				free(fits_output);
-				fits_output = strdup(optarg);
+				fits_output = optarg;
 				output = fits;
 				break;
 
@@ -577,7 +601,7 @@ int main(int argc, char *argv[]) {
 
 			default:
 				usage(stderr, argv);
-				CLEAN_AND_EXIT(1);
+				return 1;
 
 		}
 	}
@@ -585,7 +609,7 @@ int main(int argc, char *argv[]) {
 	/* No profiles given */
 	if( !m.profiles.size() ) {
 		usage(stderr, argv);
-		CLEAN_AND_EXIT(1);
+		return 1;
 	}
 
 	/* We default to text output */
@@ -602,14 +626,9 @@ int main(int argc, char *argv[]) {
 	/* This means that we evaluated the model once, but who cares */
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
-	try {
-		for(i=0; i!=iterations; i++) {
-			delete [] m.image;
-			m.evaluate();
-		}
-	} catch (invalid_parameter &e) {
-		cerr << "Error while calculating model: " << e.what() << endl;
-		CLEAN_AND_EXIT(1);
+	for(i=0; i!=iterations; i++) {
+		delete [] m.image;
+		m.evaluate();
 	}
 	gettimeofday(&end, NULL);
 	duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
@@ -632,7 +651,7 @@ int main(int argc, char *argv[]) {
 		case fits:
 			if( to_fits(m, fits_output) ) {
 				perror("Error while saving image to FITS file");
-				CLEAN_AND_EXIT(1);
+				return 1;
 			}
 			break;
 
@@ -641,9 +660,21 @@ int main(int argc, char *argv[]) {
 			break;
 
 		default:
-			fprintf(stderr, "Output not currently supported: %d\n", output);
+			cerr << "Output not currently supported: " << output << endl;
 	}
 
-	CLEAN_AND_EXIT(0);
+	return 0;
 
+}
+
+int main(int argc, char *argv[]) {
+	try {
+		return parse_and_run(argc, argv);
+	} catch (invalid_cmdline &e) {
+		cerr << "Error on command line: " << e.what() << endl;
+		return 1;
+	} catch (invalid_parameter &e) {
+		cerr << "Error while calculating model: " << e.what() << endl;
+		return 1;
+	}
 }
