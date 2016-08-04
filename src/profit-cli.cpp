@@ -357,8 +357,13 @@ double *read_image_from_fits_file(char *filename, unsigned int *width, unsigned 
 
 	unsigned int size = *width * *height;
 	double *out = (double *)malloc(sizeof(double) * size);
-	fread(out, size, sizeof(double), f);
+	size_t nitems = fread(out, sizeof(double), size, f);
 	fclose(f);
+	if( nitems != size ) {
+		perror("Error while reading file");
+		free(out);
+		return NULL;
+	}
 
 	/* data has to be big-endian */
 	if( is_little_endian() ) {
