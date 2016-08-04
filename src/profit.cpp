@@ -77,6 +77,7 @@ Model::Model() :
 	scale_x(1), scale_y(1),
 	magzero(0),
 	psf(NULL), psf_width(0), psf_height(0),
+	psf_scale_x(1), psf_scale_y(1),
 	calcmask(NULL), image(NULL),
 	profiles()
 {

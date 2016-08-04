@@ -324,13 +324,14 @@ double swap_bytes(double v) {
 
 #define FITS_BLOCK_SIZE (36*80)
 
-double *read_image_from_fits_file(char *filename, unsigned int &width, unsigned int &height) {
+double *read_image_from_fits_file(char *filename, unsigned int &width, unsigned int &height, double &scale_x, double &scale_y) {
 
 	FILE *f;
 	unsigned int i, pos, padding;
 	char hdr[80];
 
 	width = height = 0;
+	scale_x = scale_y = 1;
 
 	f = fopen(filename, "rb");
 	if( !f ) {
@@ -349,6 +350,12 @@ double *read_image_from_fits_file(char *filename, unsigned int &width, unsigned 
 		}
 		else if( !strncmp("NAXIS2", hdr, 6) ) {
 			sscanf(hdr, "NAXIS2 = %u", &height);
+		}
+		else if( !strncmp("CDELT1", hdr, 6) ) {
+			sscanf(hdr, "CDELT1 = %lf", &scale_x);
+		}
+		else if( !strncmp("CDELT2", hdr, 6) ) {
+			sscanf(hdr, "CDELT2 = %lf", &scale_y);
 		}
 		else if( !strncmp("END", hdr, 3) ) {
 			break;
@@ -485,7 +492,7 @@ int main(int argc, char *argv[]) {
 	free(fits_output); \
 	return code
 
-	while( (opt = getopt(argc, argv, "h?vP:p:w:H:x:y:m:tbf:i:")) != -1 ) {
+	while( (opt = getopt(argc, argv, "h?vP:p:w:H:x:y:X:Y:m:tbf:i:")) != -1 ) {
 		switch(opt) {
 
 			case 'h':
@@ -506,7 +513,7 @@ int main(int argc, char *argv[]) {
 
 			case 'P':
 				if( !stat(optarg, &stat_buf) ) {
-					m.psf = read_image_from_fits_file(optarg, m.psf_width, m.psf_height);
+					m.psf = read_image_from_fits_file(optarg, m.psf_width, m.psf_height, m.psf_scale_x, m.psf_scale_y);
 				}
 				else {
 					m.psf = parse_psf(optarg, m.psf_width, m.psf_height);

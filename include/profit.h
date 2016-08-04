@@ -150,12 +150,12 @@ public:
 	unsigned int height;
 
 	/**
-	 * The horizontal scale used to convert pixel into image coordinates
+	 * The horizontal scale used to convert pixels into image coordinates
 	 */
 	double scale_x;
 
 	/**
-	 * The vertical scale used to convert pixel into image coordinates
+	 * The vertical scale used to convert pixels into image coordinates
 	 */
 	double scale_y;
 
@@ -179,6 +179,16 @@ public:
 	 * The psf's height
 	 */
 	unsigned int psf_height;
+
+	/**
+	 * The horizontal scale used to convert psf pixels into image coordinates
+	 */
+	double psf_scale_x;
+
+	/**
+	 * The vertical scale used to convert psf pixels into image coordinates
+	 */
+	double psf_scale_y;
 
 	/*
 	 * Used to limit the profile calculation only to a given area
