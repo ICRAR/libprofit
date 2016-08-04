@@ -138,7 +138,7 @@ short _keyval_to_psf(Profile *p, char *key, char *val) {
 }
 
 Profile *desc_to_profile(
-	Model *model,
+	Model &model,
 	char *description,
 	const char* name,
 	unsigned short allow_empty_profile,
@@ -155,7 +155,7 @@ Profile *desc_to_profile(
 		return NULL;
 	}
 
-	p = model->add_profile(name);
+	p = model.add_profile(name);
 	if( !description ) {
 		return p;
 	}
@@ -185,7 +185,7 @@ Profile *desc_to_profile(
 	return p;
 }
 
-Profile *parse_profile(Model *model, char *description) {
+Profile *parse_profile(Model &model, char *description) {
 
 	/* The description might be only a name */
 	char *subdesc = NULL;
@@ -211,7 +211,7 @@ Profile *parse_profile(Model *model, char *description) {
 
 }
 
-double *parse_psf(char *optarg, unsigned int *psf_width, unsigned int *psf_height) {
+double *parse_psf(char *optarg, unsigned int &psf_width, unsigned int &psf_height) {
 
 	char *tok, *values, *endptr;
 	unsigned int size, i = 0;
@@ -223,7 +223,7 @@ double *parse_psf(char *optarg, unsigned int *psf_width, unsigned int *psf_heigh
 		fprintf(stderr, "Missing psf's width\n");
 		return NULL;
 	}
-	*psf_width = (unsigned int)strtoul(tok, &endptr, 10);
+	psf_width = (unsigned int)strtoul(tok, &endptr, 10);
 	if( tok == endptr ) {
 		fprintf(stderr, "Invalid value for psf's width: %s\n", tok);
 		return NULL;
@@ -234,7 +234,7 @@ double *parse_psf(char *optarg, unsigned int *psf_width, unsigned int *psf_heigh
 		fprintf(stderr, "Missing psf's height\n");
 		return NULL;
 	}
-	*psf_height = (unsigned int)strtoul(tok, &endptr, 10);
+	psf_height = (unsigned int)strtoul(tok, &endptr, 10);
 	if( tok == endptr ) {
 		fprintf(stderr, "Invalid value for psf's height: %s\n", tok);
 		return NULL;
@@ -246,14 +246,14 @@ double *parse_psf(char *optarg, unsigned int *psf_width, unsigned int *psf_heigh
 		return NULL;
 	}
 
-	size = *psf_width * *psf_height;
-	psf = (double *)malloc(sizeof(double) * size);
+	size = psf_width * psf_height;
+	psf = new double[size];
 	while( (tok = strtok(values, ",")) ) {
 		values = NULL;
 		psf[i] = strtod(tok, &endptr);
 		if( psf[i] == 0 && tok == endptr ) {
 			fprintf(stderr, "Invalid floating-point value for psf: %s\n", tok);
-			free(psf);
+			delete [] psf;
 			return NULL;
 		}
 		i++;
@@ -261,7 +261,7 @@ double *parse_psf(char *optarg, unsigned int *psf_width, unsigned int *psf_heigh
 
 	if( i != size ) {
 		fprintf(stderr, "Not enough values provided for PSF. Provided: %u, expected: %u\n", i, size);
-		free(psf);
+		delete [] psf;
 		return NULL;
 	}
 
@@ -322,13 +322,13 @@ double swap_bytes(double v) {
 
 #define FITS_BLOCK_SIZE (36*80)
 
-double *read_image_from_fits_file(char *filename, unsigned int *width, unsigned int *height) {
+double *read_image_from_fits_file(char *filename, unsigned int &width, unsigned int &height) {
 
 	FILE *f;
 	unsigned int i, pos, padding;
 	char hdr[80];
 
-	*width = *height = 0;
+	width = height = 0;
 
 	f = fopen(filename, "rb");
 	if( !f ) {
@@ -343,10 +343,10 @@ double *read_image_from_fits_file(char *filename, unsigned int *width, unsigned 
 	while( fread(hdr, 1, 80, f) ) {
 
 		if( !strncmp("NAXIS1", hdr, 6) ) {
-			sscanf(hdr, "NAXIS1 = %u", width);
+			sscanf(hdr, "NAXIS1 = %u", &width);
 		}
 		else if( !strncmp("NAXIS2", hdr, 6) ) {
-			sscanf(hdr, "NAXIS2 = %u", height);
+			sscanf(hdr, "NAXIS2 = %u", &height);
 		}
 		else if( !strncmp("END", hdr, 3) ) {
 			break;
@@ -357,13 +357,13 @@ double *read_image_from_fits_file(char *filename, unsigned int *width, unsigned 
 	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
 	fseek(f, padding, SEEK_CUR);
 
-	unsigned int size = *width * *height;
-	double *out = (double *)malloc(sizeof(double) * size);
+	unsigned int size = width * height;
+	double *out = new double[size];
 	size_t nitems = fread(out, sizeof(double), size, f);
 	fclose(f);
 	if( nitems != size ) {
 		perror("Error while reading file");
-		free(out);
+		delete [] out;
 		return NULL;
 	}
 
@@ -379,7 +379,7 @@ double *read_image_from_fits_file(char *filename, unsigned int *width, unsigned 
 	return out;
 }
 
-int to_fits(Model *m, char *fits_output) {
+int to_fits(Model &m, char *fits_output) {
 
 	FILE *f;
 	unsigned int i, j, pos, padding;
@@ -410,9 +410,9 @@ int to_fits(Model *m, char *fits_output) {
 	fprintf(f, "%-80s", "SIMPLE  =                    T / File conforms to FITS standard");
 	fprintf(f, "%-80s", "BITPIX  =                  -64 / Bits per pixel");
 	fprintf(f, "%-80s", "NAXIS   =                    2 / Number of axes");
-	sprintf(hdr, "NAXIS1  =           %10.0u / Width", m->width);
+	sprintf(hdr, "NAXIS1  =           %10.0u / Width", m.width);
 	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "NAXIS2  =           %10.0u / Height", m->height);
+	sprintf(hdr, "NAXIS2  =           %10.0u / Height", m.height);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CRPIX1  = 1");
 	fprintf(f, "%-80s", "CRVAL1  = 1");
@@ -434,23 +434,23 @@ int to_fits(Model *m, char *fits_output) {
 
 	/* data has to be big-endian */
 	if( is_little_endian() ) {
-		double *big_endian_image = (double *)malloc(sizeof(double) * m->width * m->height);
-		for(j=0; j!=m->height; j++) {
-			for(i=0; i!=m->width; i++) {
-				pos = i + j*m->width;
-				big_endian_image[pos] = swap_bytes(m->image[pos]);
+		double *big_endian_image = new double[m.width * m.height];
+		for(j=0; j!=m.height; j++) {
+			for(i=0; i!=m.width; i++) {
+				pos = i + j*m.width;
+				big_endian_image[pos] = swap_bytes(m.image[pos]);
 			}
 		}
 
 		/* Simply replace the model's image, nobody will use it but us */
-		free(m->image);
-		m->image = big_endian_image;
+		delete [] m.image;
+		m.image = big_endian_image;
 	}
 
-	fwrite(m->image, sizeof(double), m->width * m->height, f);
+	fwrite(m.image, sizeof(double), m.width * m.height, f);
 
 	/* Pad with zeroes until we complete the current 36*80 block */
-	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * m->width * m->height) % FITS_BLOCK_SIZE);
+	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * m.width * m.height) % FITS_BLOCK_SIZE);
 	void *zeros = calloc(padding, 1);
 	fwrite(zeros, 1, padding, f);
 	free(zeros);
@@ -478,11 +478,10 @@ int main(int argc, char *argv[]) {
 	char *endptr, *fits_output = NULL;
 	output_t output = none;
 	Profile *profile;
-	Model *m = new Model();
+	Model m;
 	struct stat stat_buf;
 
 #define CLEAN_AND_EXIT(code) \
-	delete m; \
 	free(fits_output); \
 	return code
 
@@ -507,12 +506,12 @@ int main(int argc, char *argv[]) {
 
 			case 'P':
 				if( !stat(optarg, &stat_buf) ) {
-					m->psf = read_image_from_fits_file(optarg, &m->psf_width, &m->psf_height);
+					m.psf = read_image_from_fits_file(optarg, m.psf_width, m.psf_height);
 				}
 				else {
-					m->psf = parse_psf(optarg, &m->psf_width, &m->psf_height);
+					m.psf = parse_psf(optarg, m.psf_width, m.psf_height);
 				}
-				if( !m->psf ) {
+				if( !m.psf ) {
 					usage(stderr, argv);
 					CLEAN_AND_EXIT(1);
 				}
@@ -577,7 +576,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* No profiles given */
-	if( !m->profiles.size() ) {
+	if( !m.profiles.size() ) {
 		usage(stderr, argv);
 		CLEAN_AND_EXIT(1);
 	}
@@ -587,19 +586,19 @@ int main(int argc, char *argv[]) {
 		output = text;
 	}
 
-	m->width      = width;
-	m->height     = height;
-	m->res_x      = res_x;
-	m->res_y      = res_y;
-	m->magzero    = magzero;
+	m.width   = width;
+	m.height  = height;
+	m.res_x   = res_x;
+	m.res_y   = res_y;
+	m.magzero = magzero;
 
 	/* This means that we evaluated the model once, but who cares */
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
 	try {
 		for(i=0; i!=iterations; i++) {
-			delete [] m->image;
-			m->evaluate();
+			delete [] m.image;
+			m.evaluate();
 		}
 	} catch (invalid_parameter &e) {
 		cerr << "Error while calculating model: " << e.what() << endl;
@@ -611,13 +610,13 @@ int main(int argc, char *argv[]) {
 	switch(output) {
 
 		case binary:
-			fwrite(m->image, sizeof(double), m->width * m->height, stdout);
+			fwrite(m.image, sizeof(double), m.width * m.height, stdout);
 			break;
 
 		case text:
-			for(j=0; j!=m->height; j++) {
-				for(i=0; i!=m->width; i++) {
-					printf("%g ", m->image[j*m->width + i]);
+			for(j=0; j!=m.height; j++) {
+				for(i=0; i!=m.width; i++) {
+					printf("%g ", m.image[j*m.width + i]);
 				}
 				printf("\n");
 			}
