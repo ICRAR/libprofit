@@ -416,12 +416,14 @@ int to_fits(Model &m, char *fits_output) {
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CRPIX1  = 1");
 	fprintf(f, "%-80s", "CRVAL1  = 1");
-	fprintf(f, "%-80s", "CDELT1  = 1");
+	sprintf(hdr, "CDELT1  = %f", (double)m.res_x/m.width);
+	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE1  = ' '");
 	fprintf(f, "%-80s", "CUNIT1  = ' '");
 	fprintf(f, "%-80s", "CRPIX2  = 1");
 	fprintf(f, "%-80s", "CRVAL2  = 1");
-	fprintf(f, "%-80s", "CDELT2  = 1");
+	sprintf(hdr, "CDELT2  = %f", (double)m.res_y/m.height);
+	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE2  = ' '");
 	fprintf(f, "%-80s", "CUNIT2  = ' '");
 	fprintf(f, "%-80s", "END");
