@@ -30,8 +30,6 @@
 #include "psf.h"
 #include "utils.h"
 
-using namespace std;
-
 namespace profit
 {
 
@@ -44,52 +42,20 @@ void PsfProfile::validate()  {
 
 }
 
-static inline
-void psf_apply(PsfProfile *psf, Model *model, double *image,
-               double *psf_img, unsigned int psf_w, unsigned int psf_h,
-               int target_x, int target_y) {
-
-	unsigned int i, j, img_x, img_y;
-
-	for(j=0; j!=psf_h; j++) {
-
-		/* Don't draw outside the boundaries of the full image */
-		if( (int)j+target_y < 0 ) {
-			continue;
-		}
-		img_y = j + (unsigned int)target_y;
-		if( img_y >= model->height ) {
-			break;
-		}
-
-		for(i=0; i!=psf_w; i++) {
-
-			/* Don't draw outside the boundaries of the full image */
-			if( (int)i+target_x < 0 ) {
-				continue;
-			}
-			img_x = i + (unsigned int)target_x;
-			if( img_x >= model->width ) {
-				break;
-			}
-
-			image[img_x + img_y*model->width] = psf_img[i + j*psf_w];
-		}
-	}
-
-}
-
 double * regrid_and_normalize(PsfProfile *psf_profile, Model *model,
                               unsigned int &psf_width,
                               unsigned int &psf_height) {
 
-	/* if pixels are the same size simply return the psf as is */
+	/*
+	 * if pixels are the same size simply return the psf with the same
+	 * pixel size, but normalized.
+	 */
 	if( model->scale_x == model->psf_scale_x &&
 	    model->scale_y == model->psf_scale_y ) {
 		psf_width  = model->psf_width;
 		psf_height = model->psf_height;
 		double *psf = new double[psf_width * psf_height];
-		copy(model->psf, model->psf + (psf_width * psf_height), psf);
+		std::copy(model->psf, model->psf + (psf_width * psf_height), psf);
 		normalize(psf, psf_width, psf_height);
 		return psf;
 	}
@@ -141,10 +107,11 @@ void PsfProfile::evaluate(double *image) {
 	    (floor(psf_origin_x) == psf_origin_x || ceil(psf_origin_x) == psf_origin_x) && \
 	    (floor(psf_origin_y) == psf_origin_y || ceil(psf_origin_y) == psf_origin_y) ) {
 
-		psf_apply(this, model, image,
-		          psf, psf_width, psf_height,
-		          (int)psf_origin_x, (int)psf_origin_y);
+		copy_to(image, model->width, model->height,
+		        psf, psf_width, psf_height,
+		        (int)psf_origin_x, (int)psf_origin_y);
 
+		delete [] psf;
 		return;
 	}
 
@@ -203,10 +170,11 @@ void PsfProfile::evaluate(double *image) {
 		}
 	}
 
-	psf_apply(this, model, image,
-	          new_psf, new_psf_w, new_psf_h,
-	          (int)floor(psf_origin_x), (int)floor(psf_origin_y));
+	copy_to(image, model->width, model->height,
+	        new_psf, new_psf_w, new_psf_h,
+	        (int)floor(psf_origin_x), (int)floor(psf_origin_y));
 
+	delete [] psf;
 	delete [] new_psf;
 
 }
