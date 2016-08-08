@@ -220,4 +220,4 @@ PsfProfile::PsfProfile() :
 	// no-op
 }
 
-} /* namespace rofit */
+} /* namespace profit */
