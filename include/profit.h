@@ -159,10 +159,7 @@ public:
 	 */
 	double scale_y;
 
-	/* These are calculated from the widht/height and scale_* fields */
-	double xbin;
-	double ybin;
-
+	/* The base magnitude applied to all models */
 	double magzero;
 
 	/**

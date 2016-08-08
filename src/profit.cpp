@@ -145,8 +145,6 @@ void Model::evaluate() {
 		}
 	}
 
-	this->xbin = this->width * this->scale_x;
-	this->ybin = this->height * this->scale_y;
 	this->image = new double[this->width * this->height];
 	memset(this->image, 0, sizeof(double) * this->width * this->height);
 
