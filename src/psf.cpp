@@ -24,9 +24,13 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <cmath>
 
 #include "psf.h"
+#include "utils.h"
+
+using namespace std;
 
 namespace profit
 {
@@ -41,20 +45,12 @@ void PsfProfile::validate()  {
 }
 
 static inline
-void psf_normalize_and_apply(PsfProfile *psf, Model *model, double *image,
-                             double *psf_img, unsigned int psf_w, unsigned int psf_h,
-                             int target_x, int target_y) {
+void psf_apply(PsfProfile *psf, Model *model, double *image,
+               double *psf_img, unsigned int psf_w, unsigned int psf_h,
+               int target_x, int target_y) {
 
 	unsigned int i, j, img_x, img_y;
 
-	double total = 0;
-	for(j=0; j!=psf_h; j++) {
-		for(i=0; i!=psf_w; i++) {
-			total += psf_img[i + j*psf_w];
-		}
-	}
-
-	double scale = psf->scale / total;
 	for(j=0; j!=psf_h; j++) {
 
 		/* Don't draw outside the boundaries of the full image */
@@ -77,21 +73,56 @@ void psf_normalize_and_apply(PsfProfile *psf, Model *model, double *image,
 				break;
 			}
 
-			image[img_x + img_y*model->width] = psf_img[i + j*psf_w] * scale;
+			image[img_x + img_y*model->width] = psf_img[i + j*psf_w];
 		}
 	}
 
 }
 
+double * regrid_and_normalize(PsfProfile *psf_profile, Model *model,
+                              unsigned int &psf_width,
+                              unsigned int &psf_height) {
+
+	/* if pixels are the same size simply return the psf as is */
+	if( model->scale_x == model->psf_scale_x &&
+	    model->scale_y == model->psf_scale_y ) {
+		psf_width  = model->psf_width;
+		psf_height = model->psf_height;
+		double *psf = new double[psf_width * psf_height];
+		copy(model->psf, model->psf + (psf_width * psf_height), psf);
+		normalize(psf, psf_width, psf_height);
+		return psf;
+	}
+
+	/* Otherwise re-grid the psf in model-pixel units */
+	unsigned int w = psf_width = (unsigned int)ceil(model->psf_width  / model->scale_x);
+	unsigned int h = psf_height = (unsigned int)ceil(model->psf_height / model->scale_y);
+	double *regridded_psf = new double[w*h];
+
+	for(unsigned j=0; j!=h; j++) {
+		for(unsigned i=0; i!=w; i++) {
+
+			// each pixel borrows a bit from the original image
+			double value = 1;
+			regridded_psf[i + j*w] = value;
+		}
+	}
+
+	normalize(regridded_psf, w, h);
+	return regridded_psf;
+}
+
 void PsfProfile::evaluate(double *image) {
 
-	/*
-	 * TODO: This method still doesn't take into account the image xbin/ybin
-	 *       It also doesn't obey the model's calcregion mask
-	 */
-
 	unsigned int i, j;
-	Model *model = this->model;
+
+	/*
+	 * First of all, translate the PSF from its own
+	 * pixel sizes to the image's pixel sizes; otherwise the two
+	 * are not comparable.
+	 */
+	unsigned int psf_width, psf_height;
+	double *psf = regrid_and_normalize(this, model, psf_width, psf_height);
 
 	/*
 	 * The PSF is not simply put "as is" in the nearest position of the desired
@@ -104,15 +135,15 @@ void PsfProfile::evaluate(double *image) {
 	 * corresponds exactly to one pixel on the target image, allowing us to have
 	 * a direct copy of values.
 	 */
-	double psf_origin_x = this->xcen - model->psf_width/2.;
-	double psf_origin_y = this->ycen - model->psf_height/2.;
-	if( (model->psf_width % 2 == 0 && model->psf_height % 2 == 0) && \
+	double psf_origin_x = (this->xcen - psf_width/2.) / model->scale_x;
+	double psf_origin_y = (this->ycen - psf_height/2.)/ model->scale_y;
+	if( (psf_width % 2 == 0 && psf_height % 2 == 0) && \
 	    (floor(psf_origin_x) == psf_origin_x || ceil(psf_origin_x) == psf_origin_x) && \
 	    (floor(psf_origin_y) == psf_origin_y || ceil(psf_origin_y) == psf_origin_y) ) {
 
-		psf_normalize_and_apply(this, model, image,
-		                        model->psf, model->psf_width, model->psf_height,
-		                        (int)psf_origin_x, (int)psf_origin_y);
+		psf_apply(this, model, image,
+		          psf, psf_width, psf_height,
+		          (int)psf_origin_x, (int)psf_origin_y);
 
 		return;
 	}
@@ -146,8 +177,8 @@ void PsfProfile::evaluate(double *image) {
 	double a3 = xd1 * yd2;
 	double a4 = xd2 * yd2;
 
-	unsigned int new_psf_w = model->psf_width + 1;
-	unsigned int new_psf_h = model->psf_height + 1;
+	unsigned int new_psf_w = psf_width + 1;
+	unsigned int new_psf_h = psf_height + 1;
 	double *new_psf = new double[new_psf_w * new_psf_h];
 
 	for(j=0; j!=new_psf_h; j++) {
@@ -156,25 +187,25 @@ void PsfProfile::evaluate(double *image) {
 			/* The borders of the target image area use less psf pixels */
 			double psf_val = 0;
 			if( i != 0 && j != 0 ) {
-				psf_val += model->psf[i-1 + (j-1)*model->psf_width] * a1;
+				psf_val += psf[i-1 + (j-1)*psf_width] * a1;
 			}
 			if( i != 0 && j != (new_psf_h - 1) ) {
-				psf_val += model->psf[i-1 + j*model->psf_width] * a3;
+				psf_val += psf[i-1 + j*psf_width] * a3;
 			}
 			if( i != (new_psf_w - 1) && j != 0 ) {
-				psf_val += model->psf[i + (j-1)*model->psf_width] * a2;
+				psf_val += psf[i + (j-1)*psf_width] * a2;
 			}
 			if( i != (new_psf_w - 1) && j != (new_psf_h - 1) ) {
-				psf_val += model->psf[i + j*model->psf_width] * a4;
+				psf_val += psf[i + j*psf_width] * a4;
 			}
 
 			new_psf[i + j*new_psf_w] = psf_val;
 		}
 	}
 
-	psf_normalize_and_apply(this, model, image,
-	                        new_psf, new_psf_w, new_psf_h,
-	                        (int)floor(psf_origin_x), (int)floor(psf_origin_y));
+	psf_apply(this, model, image,
+	          new_psf, new_psf_w, new_psf_h,
+	          (int)floor(psf_origin_x), (int)floor(psf_origin_y));
 
 	delete [] new_psf;
 
