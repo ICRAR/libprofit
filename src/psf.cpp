@@ -38,144 +38,113 @@ void PsfProfile::validate()  {
 	if( !this->model->psf ) {
 		throw invalid_parameter("No psf present in the model, cannot produce a psf profile");
 	}
-	this->scale = pow(10, -0.4*(this->mag - this->model->magzero));
 
 }
 
-double * regrid_and_normalize(PsfProfile *psf_profile, Model *model,
-                              unsigned int &psf_width,
-                              unsigned int &psf_height) {
-
-	/*
-	 * if pixels are the same size simply return the psf with the same
-	 * pixel size, but normalized.
-	 */
-	if( model->scale_x == model->psf_scale_x &&
-	    model->scale_y == model->psf_scale_y ) {
-		psf_width  = model->psf_width;
-		psf_height = model->psf_height;
-		double *psf = new double[psf_width * psf_height];
-		std::copy(model->psf, model->psf + (psf_width * psf_height), psf);
-		normalize(psf, psf_width, psf_height);
-		return psf;
+unsigned int bind(double value, unsigned int max) {
+	int intval = static_cast<int>(floor(value));
+	if( intval < 0 ) {
+		return 0;
 	}
-
-	/* Otherwise re-grid the psf in model-pixel units */
-	unsigned int w = psf_width = (unsigned int)ceil(model->psf_width  / model->scale_x);
-	unsigned int h = psf_height = (unsigned int)ceil(model->psf_height / model->scale_y);
-	double *regridded_psf = new double[w*h];
-
-	for(unsigned j=0; j!=h; j++) {
-		for(unsigned i=0; i!=w; i++) {
-
-			// each pixel borrows a bit from the original image
-			double value = 1;
-			regridded_psf[i + j*w] = value;
-		}
-	}
-
-	normalize(regridded_psf, w, h);
-	return regridded_psf;
+	unsigned int uintval = static_cast<unsigned int>(intval);
+	return std::min(uintval, max);
 }
 
 void PsfProfile::evaluate(double *image) {
 
-	unsigned int i, j;
+	int psf_pix_x, psf_pix_y;
+	unsigned int i, pix_x, pix_y;
+	double x, y, psf_x, psf_y;
+	double total = 0;
+	double scale = pow(10, -0.4*(this->mag - this->model->magzero));
+
+	/* Making the code more readable */
+	double scale_x = model->scale_x;
+	double scale_y = model->scale_y;
+	double psf_scale_x = model->psf_scale_x;
+	double psf_scale_y = model->psf_scale_y;
+	unsigned int width = model->width;
+	unsigned int height = model->height;
+	unsigned int psf_width = model->psf_width;
+	unsigned int psf_height = model->psf_height;
+
+	/* Where we start/end applying the psf into the target image */
+	double origin_x = this->xcen - psf_width*psf_scale_x/2.;
+	double end_x    = this->xcen + psf_width*psf_scale_x/2.;
+	double origin_y = this->ycen - psf_height*psf_scale_y/2.;
+	double end_y    = this->ycen + psf_height*psf_scale_y/2.;
 
 	/*
-	 * First of all, translate the PSF from its own
-	 * pixel sizes to the image's pixel sizes; otherwise the two
-	 * are not comparable.
+	 * We first loop over the pixels of the image, making sure we don't go
+	 * outside the image
 	 */
-	unsigned int psf_width, psf_height;
-	double *psf = regrid_and_normalize(this, model, psf_width, psf_height);
+	unsigned int x0 = bind(origin_x/scale_x, width - 1);
+	unsigned int y0 = bind(origin_y/scale_y, height - 1);
+	unsigned int x1 = bind(end_x/scale_x, width - 1);
+	unsigned int y1 = bind(end_y/scale_y, height - 1);
 
-	/*
-	 * The PSF is not simply put "as is" in the nearest position of the desired
-	 * center. Its values are interpolated instead to take into account the
-	 * sub-pixel distance needed to reach the center.
-	 *
-	 * We avoid this extra calculation only if the target position of the psf's
-	 * origin is located exactly on a pixel crossing, and if the psf's
-	 * dimensions are both even. This would ensure that each pixel of the PSF
-	 * corresponds exactly to one pixel on the target image, allowing us to have
-	 * a direct copy of values.
-	 */
-	double psf_origin_x = (this->xcen - psf_width/2.) / model->scale_x;
-	double psf_origin_y = (this->ycen - psf_height/2.)/ model->scale_y;
-	if( (psf_width % 2 == 0 && psf_height % 2 == 0) && \
-	    (floor(psf_origin_x) == psf_origin_x || ceil(psf_origin_x) == psf_origin_x) && \
-	    (floor(psf_origin_y) == psf_origin_y || ceil(psf_origin_y) == psf_origin_y) ) {
+	for(pix_y=y0; pix_y <= y1; pix_y++) {
 
-		copy_to(image, model->width, model->height,
-		        psf, psf_width, psf_height,
-		        (int)psf_origin_x, (int)psf_origin_y);
+		y = pix_y * scale_y;
 
-		delete [] psf;
-		return;
-	}
+		for(pix_x=x0; pix_x <= x1; pix_x++) {
 
-	/*
-	 * Each image pixel is now divided into four regions because of its
-	 * intersection with the PSF pixels:
-	 *
-	 *             |
-	 *    ---------|------
-	 *    |        |      |
-	 *    |   a3   |  a4  |  yd2
-	 *  ___________|________
-	 *    |        |      |
-	 *    |        |      |
-	 *    |   a1   |  a2  |  yd1
-	 *    |        |      |
-	 *    ---------|-------
-	 *        xd1  |  xd2
-	 *
-	 * We average the four areas to obtain the value of the pixel. The areas are
-	 * all the same on each image pixel so we calculate them once.
-	 */
+			x = pix_x * scale_x;
 
-	double xd1 = psf_origin_x - floor(psf_origin_x);
-	double xd2 = 1 - xd1;
-	double yd1 = psf_origin_y - floor(psf_origin_y);
-	double yd2 = 1 - yd1;
-	double a1 = xd1 * yd1;
-	double a2 = xd2 * yd1;
-	double a3 = xd1 * yd2;
-	double a4 = xd2 * yd2;
+			/*
+			 * Image pixel (pix_x,pix_y) covers [x:x+scale_x; y:y+scale_y]
+			 * We now find out the range of psf pixels that cover the same space
+			 */
+			int psf_pix_x0 = bind(floor((x - origin_x) / psf_scale_x), psf_width - 1);
+			int psf_pix_x1 = bind(floor((x - origin_x + scale_x) / psf_scale_x), psf_height - 1);
+			int psf_pix_y0 = bind(floor((y - origin_y) / psf_scale_y), psf_width - 1);
+			int psf_pix_y1 = bind(floor((y - origin_y + scale_y) / psf_scale_y), psf_height - 1);
 
-	unsigned int new_psf_w = psf_width + 1;
-	unsigned int new_psf_h = psf_height + 1;
-	double *new_psf = new double[new_psf_w * new_psf_h];
+			/* Accumulate the proportional values from the PSF */
+			double val = 0;
+			for(psf_pix_y = psf_pix_y0; psf_pix_y <= psf_pix_y1; psf_pix_y++) {
 
-	for(j=0; j!=new_psf_h; j++) {
-		for(i=0; i!=new_psf_w; i++) {
+				psf_y = psf_pix_y * psf_scale_y + origin_y;
 
-			/* The borders of the target image area use less psf pixels */
-			double psf_val = 0;
-			if( i != 0 && j != 0 ) {
-				psf_val += psf[i-1 + (j-1)*psf_width] * a1;
-			}
-			if( i != 0 && j != (new_psf_h - 1) ) {
-				psf_val += psf[i-1 + j*psf_width] * a3;
-			}
-			if( i != (new_psf_w - 1) && j != 0 ) {
-				psf_val += psf[i + (j-1)*psf_width] * a2;
-			}
-			if( i != (new_psf_w - 1) && j != (new_psf_h - 1) ) {
-				psf_val += psf[i + j*psf_width] * a4;
+				for(psf_pix_x = psf_pix_x0; psf_pix_x <= psf_pix_x1; psf_pix_x++) {
+
+					psf_x = psf_pix_x * psf_scale_x + origin_x;
+
+					/*
+					 * PSF pixel (psf_pix_x,psf_pix_y) covers [psf_x:psf_x+psf_scale_x; psf_y:psf_y+psf_scale_y]
+					 *
+					 * Now we find the intersection of this PSF pixel area with the
+					 * area covered by the image pixel and add its contribution to
+					 * the final value of the image pixel.
+					 *
+					 * On the X coordinate psf_x will always be <= x+scale_x,
+					 * and psf_x+psf_scale_x will always be >= x; likewise for the Y
+					 * coordinate.
+					 *
+					 * The contribution will then be given by:
+					 */
+					double intersect_x = std::min(x + scale_x, psf_x + psf_scale_x) - std::max(x, psf_x);
+					double intersect_y = std::min(y + scale_y, psf_y + psf_scale_y) - std::max(y, psf_y);
+					val += model->psf[psf_pix_x + psf_pix_y*psf_width] * (intersect_x * intersect_y)/(psf_scale_x * psf_scale_y);
+
+				}
 			}
 
-			new_psf[i + j*new_psf_w] = psf_val;
+			/* Finally, write down the final value into our pixel */
+			image[pix_x + pix_y*width] = val;
+			total += val;
 		}
 	}
 
-	copy_to(image, model->width, model->height,
-	        new_psf, new_psf_w, new_psf_h,
-	        (int)floor(psf_origin_x), (int)floor(psf_origin_y));
-
-	delete [] psf;
-	delete [] new_psf;
+	/* We're done applying the ps, now normalize and scale */
+	double multiplier = scale;
+	if( total != 0 ) {
+		multiplier = scale / total;
+	}
+	double *img_ptr = image;
+	for(i=0; i!=height * height; i++, img_ptr++) {
+		*img_ptr *= multiplier;
+	}
 
 }
 
