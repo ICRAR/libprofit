@@ -118,10 +118,10 @@ void Model::evaluate() {
 		throw invalid_parameter("Model's height is 0");
 	}
 	else if( this->scale_x <= 0 ) {
-		throw invalid_parameter("Model's scale_x cannot be negative");
+		throw invalid_parameter("Model's scale_x cannot be negative or zero");
 	}
 	else if( this->scale_y <= 0 ) {
-		throw invalid_parameter("Model's scale_y cannot be negative");
+		throw invalid_parameter("Model's scale_y cannot be negative or zero");
 	}
 
 	/*
