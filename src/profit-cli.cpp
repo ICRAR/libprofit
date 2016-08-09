@@ -456,13 +456,15 @@ int to_fits(Model &m, string fname) {
 	sprintf(hdr, "NAXIS2  =           %10.0u / Height", m.height);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CRPIX1  = 1");
-	fprintf(f, "%-80s", "CRVAL1  = 1");
+	sprintf(hdr, "CRVAL1  = %f", 0.5*m.scale_x);
+	fprintf(f, "%-80s", hdr);
 	sprintf(hdr, "CDELT1  = %f", m.scale_x);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE1  = ' '");
 	fprintf(f, "%-80s", "CUNIT1  = ' '");
 	fprintf(f, "%-80s", "CRPIX2  = 1");
-	fprintf(f, "%-80s", "CRVAL2  = 1");
+	sprintf(hdr, "CRVAL2  = %f", 0.5*m.scale_y);
+	fprintf(f, "%-80s", hdr);
 	sprintf(hdr, "CDELT2  = %f", m.scale_y);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE2  = ' '");
