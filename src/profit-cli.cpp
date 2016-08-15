@@ -37,6 +37,7 @@
 #include <string>
 #include <sstream>
 
+#include "moffat.h"
 #include "profit.h"
 #include "psf.h"
 #include "sersic.h"
@@ -139,6 +140,29 @@ bool _keyval_to_sersic(Profile *p, const string &key, const string &val) {
 	return false;
 }
 
+bool _keyval_to_moffat(Profile *p, const string &key, const string &val) {
+	MoffatProfile *m = static_cast<MoffatProfile *>(p);
+	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  m->xcen);
+	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  m->ycen);
+	_READ_DOUBLE_OR_FAIL(key, val, "mag",   m->mag);
+	_READ_DOUBLE_OR_FAIL(key, val, "fwhm",  m->fwhm);
+	_READ_DOUBLE_OR_FAIL(key, val, "con",   m->con);
+	_READ_DOUBLE_OR_FAIL(key, val, "ang",   m->ang);
+	_READ_DOUBLE_OR_FAIL(key, val, "axrat", m->axrat);
+	_READ_DOUBLE_OR_FAIL(key, val, "box",   m->box);
+
+	_READ_BOOL_OR_FAIL(  key, val, "rough",          m->rough);
+	_READ_DOUBLE_OR_FAIL(key, val, "acc",            m->acc);
+	_READ_DOUBLE_OR_FAIL(key, val, "re_switch",      m->re_switch);
+	_READ_UINT_OR_FAIL(  key, val, "resolution",     m->resolution);
+	_READ_UINT_OR_FAIL(  key, val, "max_recursions", m->max_recursions);
+	_READ_BOOL_OR_FAIL(  key, val, "adjust",         m->adjust);
+
+	_READ_DOUBLE_OR_FAIL(key, val, "re_max",       m->re_max);
+
+	return false;
+}
+
 bool _keyval_to_sky(Profile *p, const string &key, const string &val) {
 	SkyProfile *s = static_cast<SkyProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "bg",  s->bg);
@@ -166,6 +190,11 @@ void desc_to_profile(
 	bool assigned;
 
 	p = model.add_profile(name);
+	if( p == NULL ) {
+		ostringstream os;
+		os << "No profile found for profile name: " << name;
+		throw invalid_cmdline(os.str());
+	}
 	if( description.size() == 0 ) {
 		return;
 	}
@@ -201,6 +230,9 @@ void parse_profile(Model &model, const string &description) {
 
 	if( !description.compare(0, 6, "sersic") ) {
 		desc_to_profile(model, subdesc, "sersic", &_keyval_to_sersic);
+	}
+	if( !description.compare(0, 6, "moffat") ) {
+		desc_to_profile(model, subdesc, "moffat", &_keyval_to_moffat);
 	}
 	else if( !description.compare(0, 3, "sky") ) {
 		desc_to_profile(model, subdesc, "sky", &_keyval_to_sky);
