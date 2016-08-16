@@ -26,6 +26,11 @@
 #ifndef _SERSIC_LIKE_H_
 #define _SERSIC_LIKE_H_
 
+#ifdef PROFIT_DEBUG
+#include <map>
+#endif
+
+
 #include "profit.h"
 
 namespace profit
@@ -94,6 +99,11 @@ public:
 
 	/* Used to avoid outer regions */
 	double re_max;
+
+#ifdef PROFIT_DEBUG
+	/* record of how many subintegrations we've done */
+	std::map<int,int> n_integrations;
+#endif
 
 };
 
