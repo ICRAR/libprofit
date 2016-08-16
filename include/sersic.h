@@ -62,12 +62,6 @@ public:
 	double re_max;
 	bool rescale_flux;
 
-	/* Gamma function and distribution to use */
-	double (*_qgamma)(double p, double shape);
-	double (*_pgamma)(double q, double shape);
-	double (*_gammafn)(double);
-	double (*_beta)(double, double);
-
 	/* These are internally calculated profile init */
 	double _ie;
 	double _bn;

@@ -52,6 +52,26 @@ void copy_to(double *tgt_img, unsigned int tgt_w, unsigned int tgt_h,
  */
 void normalize(double *image, unsigned int img_width, unsigned int img_height);
 
+/**
+ * Computes the quantile of the gamma distribution for ``p`` and ``shape``
+ */
+double qgamma(double p, double shape);
+
+/**
+ * Computes the probability of the gamma distribution for ``q`` and ``shape``
+ */
+double pgamma(double q, double shape);
+
+/**
+ * Computes the gamma function for ``x``
+ */
+double gammafn(double x);
+
+/**
+ * Computes the beta function for ``a`` and ``b``
+ */
+double beta(double a, double b);
+
 } /* namespace profit */
 
 #endif /* _UTILS_H_ */

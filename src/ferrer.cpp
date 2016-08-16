@@ -27,20 +27,8 @@
 #include <cmath>
 #include <algorithm>
 
-/*
- * We use either GSL or Rmath to provide the low-level
- * beta, gamma and qgamma_inv functions needed by the ferrer profile.
- * If neither is given, the user will have to feed the profiles with
- * the appropriate function pointers after creating them.
- */
-#if defined(HAVE_GSL)
-#include <gsl/gsl_sf_gamma.h>
-#elif defined(HAVE_R)
-#define R_NO_REMAP
-#include <Rmath.h>
-#endif
-
 #include "ferrer.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -171,9 +159,9 @@ void ferrer_initial_calculations(FerrerProfile *sp, Model *model) {
 	 * Further scaling by 2*pi*rout^2 required.
 	 * Further scaling by axrat and Rbox.
 	 */
-	double Rbox = M_PI * box / (4*sp->_beta(1/box, 1 + 1/box));
-	double lumtot = pow(rout, 2) * M_PI * (sp->_gammafn(a+1)*sp->_gammafn((4-b)/(2-b))/
-	                (sp->_gammafn(sp->a+2/(2-b)+1))) * axrat/Rbox;
+	double Rbox = M_PI * box / (4*beta(1/box, 1 + 1/box));
+	double lumtot = pow(rout, 2) * M_PI * (gammafn(a+1)*gammafn((4-b)/(2-b))/
+	                (gammafn(sp->a+2/(2-b)+1))) * axrat/Rbox;
 	sp->_ie = pow(10, -0.4*(mag - magzero))/lumtot;
 
 	/*
@@ -232,11 +220,7 @@ void ferrer_initial_calculations(FerrerProfile *sp, Model *model) {
  * The ferrer validation function
  */
 void FerrerProfile::validate() {
-
-if( !this->_beta ) {
-		throw invalid_parameter("Missing beta function on ferrer profile");
-	}
-
+	// no-op
 }
 
 /**
@@ -339,21 +323,6 @@ FerrerProfile::FerrerProfile() :
 	p->adjust = true;
 
 	p->re_max = 0;
-
-	/*
-	 * Point to the corresponding implementation, or leave as NULL if not
-	 * possible. In that case the user will have to provide their own functions.
-	 */
-#if defined(HAVE_GSL)
-	p->_gammafn = &gsl_sf_gamma;
-	p->_beta    = &gsl_sf_beta;
-#elif defined(HAVE_R)
-	p->_gammafn = &Rf_gammafn;
-	p->_beta    = &Rf_beta;
-#else
-	p->_gammafn = NULL;
-	p->_beta = NULL;
-#endif
 
 }
 

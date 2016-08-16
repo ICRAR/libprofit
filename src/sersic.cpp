@@ -27,21 +27,8 @@
 #include <cmath>
 #include <algorithm>
 
-/*
- * We use either GSL or Rmath to provide the low-level
- * beta, gamma and qgamma_inv functions needed by the sersic profile.
- * If neither is given, the user will have to feed the profiles with
- * the appropriate function pointers after creating them.
- */
-#if defined(HAVE_GSL)
-#include <gsl/gsl_cdf.h>
-#include <gsl/gsl_sf_gamma.h>
-#elif defined(HAVE_R)
-#define R_NO_REMAP
-#include <Rmath.h>
-#endif
-
 #include "sersic.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -299,7 +286,7 @@ double _sersic_sumpix(SersicProfile *sp,
 
 static inline
 double sersic_fluxfrac(SersicProfile *sp, double fraction) {
-	double ratio = sp->_qgamma(fraction, 2*sp->nser) / sp->_bn;
+	double ratio = qgamma(fraction, 2*sp->nser) / sp->_bn;
 	return sp->re * pow(ratio, sp->nser);
 }
 
@@ -319,9 +306,9 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 	 * later to calculate the exact contribution of each pixel.
 	 * We save bn back into the profile because it's needed later.
 	 */
-	sp->_bn = bn = sp->_qgamma(0.5, 2*nser);
-	double Rbox = M_PI * box / (4*sp->_beta(1/box, 1 + 1/box));
-	double gamma = sp->_gammafn(2*nser);
+	sp->_bn = bn = qgamma(0.5, 2*nser);
+	double Rbox = M_PI * box / (4*beta(1/box, 1 + 1/box));
+	double gamma = gammafn(2*nser);
 	double lumtot = pow(re, 2) * 2 * M_PI * nser * gamma * axrat/Rbox * exp(bn)/pow(bn, 2*nser);
 	sp->_ie = pow(10, -0.4*(mag - magzero))/lumtot;
 
@@ -367,7 +354,7 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 		if( sp->rescale_flux ) {
 			double flux_r;
 			flux_r = bn * pow(sp->re_max/re, 1/nser);
-			flux_r = sp->_pgamma(flux_r, 2*nser);
+			flux_r = pgamma(flux_r, 2*nser);
 			sp->_rescale_factor = 1/flux_r;
 		}
 
@@ -401,20 +388,7 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
  * The sersic validation function
  */
 void SersicProfile::validate() {
-
-	if( !this->_pgamma ) {
-		throw invalid_parameter("Missing pgamma function on sersic profile");
-	}
-	if( !this->_qgamma ) {
-		throw invalid_parameter("Missing qgamma function on sersic profile");
-	}
-	if( !this->_gammafn ) {
-		throw invalid_parameter("Missing gamma function on sersic profile");
-	}
-	if( !this->_beta ) {
-		throw invalid_parameter("Missing beta function on sersic profile");
-	}
-
+	// no-op
 }
 
 /**
@@ -517,22 +491,6 @@ void SersicProfile::evaluate(double *image) {
 	}
 }
 
-#if defined(HAVE_GSL)
-double _gsl_qgamma_wrapper(double p, double shape) {
-	return gsl_cdf_gamma_Pinv(p, shape, 1);
-}
-double _gsl_pgamma_wrapper(double q, double shape) {
-	return gsl_cdf_gamma_P(q, shape, 1);
-}
-#elif defined(HAVE_R)
-double _Rf_qgamma_wrapper(double p, double shape) {
-	return Rf_qgamma(p, shape, 1, 1, 0);
-}
-double _Rf_pgamma_wrapper(double q, double shape) {
-	return Rf_pgamma(q, shape, 1, 1, 0);
-}
-#endif
-
 /**
  * The sersic creation function
  */
@@ -561,28 +519,6 @@ SersicProfile::SersicProfile() :
 
 	p->re_max = 0;
 	p->rescale_flux = false;
-
-	/*
-	 * Point to the corresponding implementation, or leave as NULL if not
-	 * possible. In that case the user will have to provide their own functions.
-	 */
-#if defined(HAVE_GSL)
-	p->_qgamma  = &_gsl_qgamma_wrapper;
-	p->_pgamma  = &_gsl_pgamma_wrapper;
-	p->_gammafn = &gsl_sf_gamma;
-	p->_beta    = &gsl_sf_beta;
-#elif defined(HAVE_R)
-	p->_qgamma  = &_Rf_qgamma_wrapper;
-	p->_pgamma  = &_Rf_pgamma_wrapper;
-	p->_gammafn = &Rf_gammafn;
-	p->_beta    = &Rf_beta;
-#else
-	p->_qgamma = NULL;
-	p->_pgamma = NULL;
-	p->_gammafn = NULL;
-	p->_beta = NULL;
-#endif
-
 }
 
 } /* namespace profit */

@@ -27,20 +27,8 @@
 #include <cmath>
 #include <algorithm>
 
-/*
- * We use either GSL or Rmath to provide the low-level
- * beta, gamma and qgamma_inv functions needed by the moffat profile.
- * If neither is given, the user will have to feed the profiles with
- * the appropriate function pointers after creating them.
- */
-#if defined(HAVE_GSL)
-#include <gsl/gsl_sf_gamma.h>
-#elif defined(HAVE_R)
-#define R_NO_REMAP
-#include <Rmath.h>
-#endif
-
 #include "moffat.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -152,7 +140,7 @@ void moffat_initial_calculations(MoffatProfile *sp, Model *model) {
 	 * later to calculate the exact contribution of each pixel.
 	 * We save bn back into the profile because it's needed later.
 	 */
-	double Rbox = M_PI * box / (4*sp->_beta(1/box, 1 + 1/box));
+	double Rbox = M_PI * box / (4*beta(1/box, 1 + 1/box));
 	double re = sp->_re = fwhm/(2*sqrt(pow(2,(1/con))-1));
 	double lumtot = pow(re, 2) * M_PI * axrat/(con-1)/Rbox;
 	sp->_ie = pow(10, -0.4*(mag - magzero))/lumtot;
@@ -224,11 +212,7 @@ void moffat_initial_calculations(MoffatProfile *sp, Model *model) {
  * The moffat validation function
  */
 void MoffatProfile::validate() {
-
-if( !this->_beta ) {
-		throw invalid_parameter("Missing beta function on moffat profile");
-	}
-
+	// no-op
 }
 
 /**
@@ -333,18 +317,6 @@ MoffatProfile::MoffatProfile() :
 	p->adjust = true;
 
 	p->re_max = 0;
-
-	/*
-	 * Point to the corresponding implementation, or leave as NULL if not
-	 * possible. In that case the user will have to provide their own functions.
-	 */
-#if defined(HAVE_GSL)
-	p->_beta    = &gsl_sf_beta;
-#elif defined(HAVE_R)
-	p->_beta    = &Rf_beta;
-#else
-	p->_beta = NULL;
-#endif
 
 }
 
