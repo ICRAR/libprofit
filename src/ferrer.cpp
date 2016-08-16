@@ -52,31 +52,37 @@ namespace profit
  *
  * The ferrer profile has this form:
  *
- * (1-r_factor^(2-b))^(a)
+ * (1-r_factor)^(a)
  *
- * where r_factor = (r/re)
- *              r = (x^{2+b} + y^{2+b})^{1/(2+b)}
- *              b = box parameter
- *
- * Reducing:
- *  r_factor = ((x/re)^{2+b} + (y/re)^{2+b})^{1/(2+b)}
+ * where r_factor = (r/re)^(2-b)
+ *              r = (x^{2+B} + y^{2+B})^{1/(2+B)}
+ *              B = box parameter
  */
 
 
 /*
  * The main ferrer evaluation function for a given X/Y coordinate
  */
-inline
+static inline
 double _ferrer_for_xy_r(FerrerProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
 
-	double r_factor = (sp->box == 0) ?
-	                  sqrt(x*x + y*y)/sp->rout :
-	                  (pow(pow(abs(x),2.+sp->box)+pow(abs(y),2.+sp->box),1./(2.+sp->box)) ) / sp->rout;
+	double r_factor;
+	if( reuse_r && sp->box == 0 ) {
+		r_factor = r;
+	}
+	else if( sp->box == 0 ) {
+		r_factor = sqrt(x*x + y*y);
+	}
+	else {
+		double box = sp->box + 2.;
+		r_factor = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
+	}
 
+	r_factor /= sp->rout;
 	if( r_factor < 1 ) {
-		return pow(1-pow(r_factor,2-sp->b),sp->a);
+		return pow(1 - pow(r_factor, 2 - sp->b), sp->a);
 	}
 	else {
 		return 0;
