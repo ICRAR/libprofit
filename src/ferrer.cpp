@@ -125,7 +125,8 @@ double _ferrer_sumpix(FerrerProfile *sp,
 			subval = _ferrer_for_xy_r(sp, x_ser, y_ser, 0, false);
 
 			if( recurse ) {
-				testval = _ferrer_for_xy_r(sp, x_ser, abs(y_ser) + abs(ybin*sp->_cos_ang/sp->axrat), 0, false);
+				double delta_y_ser = (-xbin*sp->_sin_ang + ybin*sp->_cos_ang)/sp->axrat;
+				testval = _ferrer_for_xy_r(sp, abs(x_ser), abs(y_ser) + abs(delta_y_ser), 0, false);
 				if( abs(testval/subval - 1.0) > sp->acc ) {
 					subval = _ferrer_sumpix(sp,
 					                        x - half_xbin, x + half_xbin,
