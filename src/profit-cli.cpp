@@ -256,10 +256,10 @@ void parse_profile(Model &model, const string &description) {
 	if( !description.compare(0, 6, "sersic") ) {
 		desc_to_profile(model, subdesc, "sersic", &_keyval_to_sersic);
 	}
-	if( !description.compare(0, 6, "moffat") ) {
+	else if( !description.compare(0, 6, "moffat") ) {
 		desc_to_profile(model, subdesc, "moffat", &_keyval_to_moffat);
 	}
-	if( !description.compare(0, 6, "ferrer") ) {
+	else if( !description.compare(0, 6, "ferrer") ) {
 		desc_to_profile(model, subdesc, "ferrer", &_keyval_to_ferrer);
 	}
 	else if( !description.compare(0, 3, "sky") ) {
