@@ -37,6 +37,7 @@
 #include <string>
 #include <sstream>
 
+#include "ferrer.h"
 #include "moffat.h"
 #include "profit.h"
 #include "psf.h"
@@ -163,6 +164,30 @@ bool _keyval_to_moffat(Profile *p, const string &key, const string &val) {
 	return false;
 }
 
+bool _keyval_to_ferrer(Profile *p, const string &key, const string &val) {
+	FerrerProfile *f = static_cast<FerrerProfile *>(p);
+	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  f->xcen);
+	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  f->ycen);
+	_READ_DOUBLE_OR_FAIL(key, val, "mag",   f->mag);
+	_READ_DOUBLE_OR_FAIL(key, val, "rout",  f->rout);
+	_READ_DOUBLE_OR_FAIL(key, val, "a",     f->a);
+	_READ_DOUBLE_OR_FAIL(key, val, "b",     f->b);
+	_READ_DOUBLE_OR_FAIL(key, val, "ang",   f->ang);
+	_READ_DOUBLE_OR_FAIL(key, val, "axrat", f->axrat);
+	_READ_DOUBLE_OR_FAIL(key, val, "box",   f->box);
+
+	_READ_BOOL_OR_FAIL(  key, val, "rough",          f->rough);
+	_READ_DOUBLE_OR_FAIL(key, val, "acc",            f->acc);
+	_READ_DOUBLE_OR_FAIL(key, val, "re_switch",      f->re_switch);
+	_READ_UINT_OR_FAIL(  key, val, "resolution",     f->resolution);
+	_READ_UINT_OR_FAIL(  key, val, "max_recursions", f->max_recursions);
+	_READ_BOOL_OR_FAIL(  key, val, "adjust",         f->adjust);
+
+	_READ_DOUBLE_OR_FAIL(key, val, "re_max",         f->re_max);
+
+	return false;
+}
+
 bool _keyval_to_sky(Profile *p, const string &key, const string &val) {
 	SkyProfile *s = static_cast<SkyProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "bg",  s->bg);
@@ -233,6 +258,9 @@ void parse_profile(Model &model, const string &description) {
 	}
 	if( !description.compare(0, 6, "moffat") ) {
 		desc_to_profile(model, subdesc, "moffat", &_keyval_to_moffat);
+	}
+	if( !description.compare(0, 6, "ferrer") ) {
+		desc_to_profile(model, subdesc, "ferrer", &_keyval_to_ferrer);
 	}
 	else if( !description.compare(0, 3, "sky") ) {
 		desc_to_profile(model, subdesc, "sky", &_keyval_to_sky);

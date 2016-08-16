@@ -53,6 +53,7 @@ include_directories(include)
 # The shared library
 set(PROFIT_SRC
    src/convolve.cpp
+   src/ferrer.cpp
    src/moffat.cpp
    src/profit.cpp
    src/psf.cpp
