@@ -35,7 +35,6 @@
  * the appropriate function pointers after creating them.
  */
 #if defined(HAVE_GSL)
-#include <gsl/gsl_cdf.h>
 #include <gsl/gsl_sf_gamma.h>
 #elif defined(HAVE_R)
 #define R_NO_REMAP
@@ -54,31 +53,14 @@ namespace profit
  *
  * The moffat profile has this form:
  *
- * e^{-bn * (r_factor - 1)}
- 
- * where r_factor = (r/Re)^{1/con}
+ * (1+r_factor^2)^(-c)
+ *
+ * where r_factor = (r/re)
  *              r = (x^{2+b} + y^{2+b})^{1/(2+b)}
  *              b = box parameter
  *
  * Reducing:
- *  r_factor = ((x/re)^{2+b} + (y/re)^{2+b})^{1/(nser*(2+b)}
- *
- * Although this reduced form has only three powers instead of 4
- * in the original form, it still doesn't mean that it's the fastest
- * way of computing r_factor. Depending on the libc/libm being used
- * using a combination of sqrt, cbrt and pow will yield better or
- * worse performances (within certain limits).
- *
- * Also, in particular for b = 0:
- *  r_factor = ((x*x + y*y/(re*re))^{1/(2*nser}
- *
- * In our code we thus logically decompose r_factor (for both cases) as such:
- *
- * r_factor = base^(1/invexp)
- *
- * We then use specialized code templates to get the proper base, the proper
- * invexp, and finally to check whether some calls to pow() can be avoided or
- * not.
+ *  r_factor = ((x/re)^{2+b} + (y/re)^{2+b})^{1/(2+b)}
  */
 
 /*
@@ -105,6 +87,7 @@ void _image_to_moffat_coordinates(MoffatProfile *sp, double x, double y, double 
 	*y_ser /= sp->axrat;
 }
 
+static inline
 double _moffat_sumpix(MoffatProfile *sp,
                       double x0, double x1, double y0, double y1,
                       unsigned int recur_level, unsigned int max_recursions,
@@ -135,7 +118,7 @@ double _moffat_sumpix(MoffatProfile *sp,
 				testval = _moffat_for_xy_r(sp, x_ser, abs(y_ser) + abs(ybin*sp->_cos_ang/sp->axrat), 0, false);
 				if( abs(testval/subval - 1.0) > sp->acc ) {
 					subval = _moffat_sumpix(sp,
-                                            x - half_xbin, x + half_xbin,
+					                        x - half_xbin, x + half_xbin,
 					                        y - half_ybin, y + half_ybin,
 					                        recur_level + 1, max_recursions,
 					                        resolution);
@@ -151,11 +134,6 @@ double _moffat_sumpix(MoffatProfile *sp,
 
 	/* Average and return */
 	return total / (resolution * resolution);
-}
-
-static inline
-double moffat_fluxfrac(MoffatProfile *sp, double fraction) {
-    return 1;
 }
 
 static inline
@@ -175,8 +153,8 @@ void moffat_initial_calculations(MoffatProfile *sp, Model *model) {
 	 * We save bn back into the profile because it's needed later.
 	 */
 	double Rbox = M_PI * box / (4*sp->_beta(1/box, 1 + 1/box));
-    double re = sp->_re = fwhm/(2*sqrt(pow(2,(1/con))-1));
-    double lumtot = pow(re, 2) * 2 * M_PI * axrat/(con-1)/Rbox;
+	double re = sp->_re = fwhm/(2*sqrt(pow(2,(1/con))-1));
+	double lumtot = pow(re, 2) * M_PI * axrat/(con-1)/Rbox;
 	sp->_ie = pow(10, -0.4*(mag - magzero))/lumtot;
 
 	/*
@@ -195,7 +173,7 @@ void moffat_initial_calculations(MoffatProfile *sp, Model *model) {
 		 * but don't let it become less than 1 pixel (means we do no worse than
 		 * GALFIT anywhere)
 		 */
-		re_switch = ceil(moffat_fluxfrac(sp, 1. - con*con/2e3));
+		re_switch = sp->fwhm*4;
 		re_switch = max(min(re_switch, 20.), 2.);
 
 		/*
@@ -215,13 +193,11 @@ void moffat_initial_calculations(MoffatProfile *sp, Model *model) {
 		 * %99.99 of the flux
 		 */
 		if( sp->re_max == 0 ) {
-			sp->re_max = ceil(moffat_fluxfrac(sp, 0.9999));
+			sp->re_max = sp->fwhm*8;
 		}
 
 		/* Adjust the accuracy we'll use for sub-pixel integration */
-		double acc = 0.4 / con;
-		acc = max(0.1, acc) / axrat;
-		sp->acc = acc;
+		sp->acc = 0.1/axrat;
 
 	}
 
@@ -266,11 +242,11 @@ void MoffatProfile::evaluate(double *image) {
 	double half_xbin = model->scale_x/2.;
 	double half_ybin = model->scale_x/2.;
 	double pixel_area = model->scale_x * model->scale_y;
-	
+
 	MoffatProfile *sp = this;
 
-    /* We never convolve */
-    this->convolve = false;
+	/* We never convolve */
+	this->convolve = false;
 
 	/*
 	 * All the pre-calculations needed by the moffat profile (Ie, cos/sin ang, etc)
