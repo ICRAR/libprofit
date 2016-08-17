@@ -58,11 +58,17 @@ double _moffat_for_xy_r(SersicLikeProfile *sp,
                         double r, bool reuse_r) {
 
 	MoffatProfile *mp = static_cast<MoffatProfile *>(sp);
-	double r_factor = (mp->box == 0) ?
-	                  sqrt(x*x + y*y)/mp->_re :
-	                  (pow(pow(abs(x),2.+mp->box)+pow(abs(y),2.+mp->box),1./(2.+mp->box)) ) / mp->_re;
+	double r_factor;
+	if( mp->box == 0 ) {
+		r_factor = sqrt(x*x + y*y);
+	}
+	else {
+		double box = 2 + mp->box;
+		r_factor = pow( pow(abs(x), box) + pow(abs(y), box), 1./(box));
+	}
 
-	return 1/(pow(1+pow(r_factor,2), mp->con));
+	r_factor /= mp->_re;
+	return pow(1 + r_factor*r_factor, -mp->con);
 }
 
 eval_function_t MoffatProfile::get_evaluation_function() {
