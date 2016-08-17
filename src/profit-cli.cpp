@@ -387,11 +387,13 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"The following profiles (and parameters) are currently accepted:\n\n");
 	fprintf(file," * psf: xcen, ycen, mag\n");
 	fprintf(file," * sky: bg\n");
+	fprintf(file," * sersic: re, nser, rescale_flux\n");
+	fprintf(file," * moffat: fwhm, con\n");
+	fprintf(file," * ferrer: a, b, rout\n");
 	fprintf(file,"\
- * sersic: xcen, ycen, mag, re, nser, box, ang, axrat,\n\
-           rough, re_switch, max_recursions, resolution, acc,\n\
-           re_max, rescale_flux,\n\
-           adjust\n\n");
+ * sersic, moffat, ferrer: xcen, ycen, mag, box, ang, axrat,\n\
+                           rough, re_switch, max_recursions,\n\
+                           resolution, acc, re_max, adjust\n\n");
 	fprintf(file,"For more information visit https://libprofit.readthedocs.io.\n\n");
 }
 
