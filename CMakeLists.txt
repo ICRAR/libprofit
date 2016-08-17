@@ -69,3 +69,8 @@ target_compile_features(profit PUBLIC cxx_auto_type cxx_range_for)
 # The executable
 add_executable(profit-cli src/profit-cli.cpp)
 target_link_libraries(profit-cli profit)
+
+# Installing stuff
+install(TARGETS profit profit-cli
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)
