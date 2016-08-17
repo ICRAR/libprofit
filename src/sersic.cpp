@@ -273,7 +273,7 @@ double SersicProfile::adjust_re_max() {
 }
 
 double SersicProfile::adjust_acc() {
-	double acc = 0.4 / this->nser;
+	double acc = 0.2 / this->nser;
 	return max(0.1, acc) / this->axrat;
 }
 
@@ -321,6 +321,21 @@ double SersicProfile::get_pixel_scale() {
 
 double SersicProfile::get_re() {
 	return this->re;
+}
+
+void SersicProfile::subsampling_params(double x, double y,
+                                       unsigned int &resolution,
+                                       unsigned int &max_recursions) {
+
+	SersicLikeProfile::subsampling_params(x, y, resolution, max_recursions);
+
+	/* Higher subsampling params for central pixel if nser < 1 */
+	bool center_pixel = abs(x - this->xcen) < this->model->scale_x && abs(y - this->ycen) < this->model->scale_y;
+	if( center_pixel && this->nser < 1 ) {
+		resolution = 8;
+		max_recursions = 10;
+	}
+
 }
 
 /**

@@ -39,6 +39,7 @@ class SersicLikeProfile : public Profile {
 protected:
 
 	void initial_calculations();
+	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec);
 	double get_pixel_scale();
 	double adjust_acc();
 	virtual double get_lumtot(double r_box) = 0;

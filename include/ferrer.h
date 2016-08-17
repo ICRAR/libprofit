@@ -38,6 +38,7 @@ protected:
 	double get_re();
 	double adjust_re_switch();
 	double adjust_re_max();
+	double adjust_acc();
 	eval_function_t get_evaluation_function();
 
 public:

@@ -35,6 +35,7 @@ class SersicProfile : public SersicLikeProfile {
 
 protected:
 	void initial_calculations();
+	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec);
 	double get_pixel_scale();
 	double get_re();
 	double get_lumtot(double r_box);

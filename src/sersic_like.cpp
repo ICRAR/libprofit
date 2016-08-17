@@ -131,7 +131,7 @@ void SersicLikeProfile::initial_calculations() {
 		unsigned int resolution;
 		resolution = (unsigned int)ceil(160 / this->re_switch);
 		resolution += resolution % 2;
-		resolution = max(4, min(16, resolution));
+		resolution = max(4, min(16, (int)resolution));
 		this->resolution = resolution;
 
 		/*
@@ -173,6 +173,13 @@ void SersicLikeProfile::validate() {
 double SersicLikeProfile::get_pixel_scale() {
 	double pixel_area = this->model->scale_x * this->model->scale_y;
 	return pixel_area * this->_ie;
+}
+
+void SersicLikeProfile::subsampling_params(double x, double y,
+                                           unsigned int &resolution,
+                                           unsigned int &max_recursions) {
+	resolution = this->resolution;
+	max_recursions = this->max_recursions;
 }
 
 /**
@@ -227,9 +234,9 @@ void SersicLikeProfile::evaluate(double *image) {
 			}
 			else {
 
-				bool center = abs(x - this->xcen) < 1. && abs(y - this->ycen) < 1.;
-				unsigned int resolution = center ? 8 : this->resolution;
-				unsigned int max_recursions = center ? 10 : this->max_recursions;
+				unsigned int resolution;
+				unsigned int max_recursions;
+				this->subsampling_params(x, y, resolution, max_recursions);
 
 				/* Subsample and integrate */
 				pixel_val =  this->subsample_pixel(x - half_xbin, x + half_xbin,

@@ -101,6 +101,10 @@ double FerrerProfile::get_re() {
 	return this->rout;
 }
 
+double FerrerProfile::adjust_acc() {
+	return this->acc;
+}
+
 /**
  * Constructor with sane defaults
  */
@@ -108,7 +112,8 @@ FerrerProfile::FerrerProfile() :
 	SersicLikeProfile(),
 	rout(3), a(1), b(1)
 {
-	// no-op
+	// this profile defaults to a different accuracy
+	this->acc = 1;
 }
 
 } /* namespace profit */
