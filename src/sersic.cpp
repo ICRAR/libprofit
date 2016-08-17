@@ -359,7 +359,7 @@ void sersic_initial_calculations(SersicProfile *sp, Model *model) {
 		}
 
 		/* Adjust the accuracy we'll use for sub-pixel integration */
-		double acc = 0.4 / nser;
+		double acc = 0.2 / nser;
 		acc = max(0.1, acc) / axrat;
 		sp->acc = acc;
 

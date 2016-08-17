@@ -192,9 +192,7 @@ void ferrer_initial_calculations(FerrerProfile *sp, Model *model) {
 			sp->re_max = sp->rout;
 		}
 
-		/* Adjust the accuracy we'll use for sub-pixel integration */
-		sp->acc = 0.1/axrat;
-
+		/* no accurracy adjustment like in the other profiles */
 	}
 
 	/*
@@ -316,7 +314,7 @@ FerrerProfile::FerrerProfile() :
 	p->axrat = 1.;
 	p->rough = false;
 
-	p->acc = 0.1;
+	p->acc = 1;
 	p->re_switch = 1.;
 	p->resolution = 9;
 	p->max_recursions = 2;
