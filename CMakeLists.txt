@@ -58,6 +58,7 @@ set(PROFIT_SRC
    src/profit.cpp
    src/psf.cpp
    src/sersic.cpp
+   src/sersic_like.cpp
    src/sky.cpp
    src/utils.cpp
 )

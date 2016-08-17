@@ -26,47 +26,36 @@
 #ifndef _SERSIC_H_
 #define _SERSIC_H_
 
-#include "profit.h"
+#include "sersic_like.h"
 
 namespace profit
 {
 
-class SersicProfile : public Profile {
+class SersicProfile : public SersicLikeProfile {
+
+protected:
+	void initial_calculations();
+	double get_pixel_scale();
+	double get_re();
+	double get_lumtot(double r_box);
+	double adjust_re_switch();
+	double adjust_re_max();
+	double adjust_acc();
+	eval_function_t get_evaluation_function();
 
 public:
 
 	SersicProfile();
 
-	void validate();
-	void evaluate(double *image);
-
 	/* General parameters */
-	double xcen;
-	double ycen;
-	double mag;
 	double re;
 	double nser;
-	double ang;
-	double axrat;
-	double box;
 
-	/* Used to control the subsampling */
-	bool rough;
-	double acc;
-	double re_switch;
-	unsigned int resolution;
-	unsigned int max_recursions;
-	bool adjust;
-
-	/* Used to avoid outer regions */
-	double re_max;
+	/* Rescale flux or not */
 	bool rescale_flux;
 
 	/* These are internally calculated profile init */
-	double _ie;
 	double _bn;
-	double _cos_ang;
-	double _sin_ang;
 	double _rescale_factor;
 
 };

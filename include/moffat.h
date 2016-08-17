@@ -26,48 +26,27 @@
 #ifndef _MOFFAT_H_
 #define _MOFFAT_H_
 
-#include "profit.h"
+#include "sersic_like.h"
 
 namespace profit
 {
 
-class MoffatProfile : public Profile {
+class MoffatProfile : public SersicLikeProfile {
+
+protected:
+	double get_lumtot(double r_box);
+	double get_re();
+	double adjust_re_switch();
+	double adjust_re_max();
+	eval_function_t get_evaluation_function();
 
 public:
 
 	MoffatProfile();
 
-	void validate();
-	void evaluate(double *image);
-
 	/* General parameters */
-	double xcen;
-	double ycen;
-	double mag;
 	double fwhm;
 	double con;
-	double ang;
-	double axrat;
-	double box;
-
-	/* Used to control the subsampling */
-	bool rough;
-	double acc;
-	double re_switch;
-	unsigned int resolution;
-	unsigned int max_recursions;
-	bool adjust;
-
-	/* Used to avoid outer regions */
-	double re_max;
-
-    /* These are internally calculated profile init */
-    double _ie;
-    double _cos_ang;
-    double _sin_ang;
-
-    /* re used to evaluate the profile */
-    double _re;
 
 };
 
