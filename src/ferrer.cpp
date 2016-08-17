@@ -274,10 +274,6 @@ void FerrerProfile::evaluate(double *image) {
 			}
 			else {
 
-				bool center = abs(x - sp->xcen) < 1. && abs(y - sp->ycen) < 1.;
-				unsigned int resolution = center ? 8 : sp->resolution;
-				unsigned int max_recursions = center ? 10 : sp->max_recursions;
-
 				/* Subsample and integrate */
 				pixel_val =  _ferrer_sumpix(sp,
 				                           x - half_xbin, x + half_xbin,

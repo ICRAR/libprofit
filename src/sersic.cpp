@@ -446,9 +446,14 @@ void _evaluate(SersicProfile *sp, Model *model, double *image) {
 			}
 			else {
 
+				unsigned int resolution = sp->resolution;
+				unsigned int max_recursions = sp->max_recursions;
+
 				bool center = abs(x - sp->xcen) < 1. && abs(y - sp->ycen) < 1.;
-				unsigned int resolution = center ? 8 : sp->resolution;
-				unsigned int max_recursions = center ? 10 : sp->max_recursions;
+				if( center && sp->nser < 1 ) {
+					resolution = 8;
+					max_recursions = 10;
+				}
 
 				/* Subsample and integrate */
 				pixel_val =  _sersic_sumpix<boxy, t>(sp,
