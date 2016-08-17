@@ -129,13 +129,13 @@ bool _keyval_to_sersic(Profile *p, const string &key, const string &val) {
 
 	_READ_BOOL_OR_FAIL(  key, val, "rough",          s->rough);
 	_READ_DOUBLE_OR_FAIL(key, val, "acc",            s->acc);
-	_READ_DOUBLE_OR_FAIL(key, val, "re_switch",      s->re_switch);
+	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  s->rscale_switch);
 	_READ_UINT_OR_FAIL(  key, val, "resolution",     s->resolution);
 	_READ_UINT_OR_FAIL(  key, val, "max_recursions", s->max_recursions);
 	_READ_BOOL_OR_FAIL(  key, val, "adjust",         s->adjust);
 
-	_READ_DOUBLE_OR_FAIL(key, val, "re_max",       s->re_max);
-	_READ_BOOL_OR_FAIL(  key, val, "rescale_flux", s->rescale_flux);
+	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     s->rscale_max);
+	_READ_BOOL_OR_FAIL(  key, val, "rescale_flux",   s->rescale_flux);
 
 	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
 	return false;
@@ -154,12 +154,12 @@ bool _keyval_to_moffat(Profile *p, const string &key, const string &val) {
 
 	_READ_BOOL_OR_FAIL(  key, val, "rough",          m->rough);
 	_READ_DOUBLE_OR_FAIL(key, val, "acc",            m->acc);
-	_READ_DOUBLE_OR_FAIL(key, val, "re_switch",      m->re_switch);
+	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  m->rscale_switch);
 	_READ_UINT_OR_FAIL(  key, val, "resolution",     m->resolution);
 	_READ_UINT_OR_FAIL(  key, val, "max_recursions", m->max_recursions);
 	_READ_BOOL_OR_FAIL(  key, val, "adjust",         m->adjust);
 
-	_READ_DOUBLE_OR_FAIL(key, val, "re_max",       m->re_max);
+	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     m->rscale_max);
 
 	return false;
 }
@@ -178,12 +178,12 @@ bool _keyval_to_ferrer(Profile *p, const string &key, const string &val) {
 
 	_READ_BOOL_OR_FAIL(  key, val, "rough",          f->rough);
 	_READ_DOUBLE_OR_FAIL(key, val, "acc",            f->acc);
-	_READ_DOUBLE_OR_FAIL(key, val, "re_switch",      f->re_switch);
+	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  f->rscale_switch);
 	_READ_UINT_OR_FAIL(  key, val, "resolution",     f->resolution);
 	_READ_UINT_OR_FAIL(  key, val, "max_recursions", f->max_recursions);
 	_READ_BOOL_OR_FAIL(  key, val, "adjust",         f->adjust);
 
-	_READ_DOUBLE_OR_FAIL(key, val, "re_max",         f->re_max);
+	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     f->rscale_max);
 
 	return false;
 }
@@ -392,8 +392,8 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file," * ferrer: a, b, rout\n");
 	fprintf(file,"\
  * sersic, moffat, ferrer: xcen, ycen, mag, box, ang, axrat,\n\
-                           rough, re_switch, max_recursions,\n\
-                           resolution, acc, re_max, adjust\n\n");
+                           rough, rscale_switch, max_recursions,\n\
+                           resolution, acc, rscale_max, adjust\n\n");
 	fprintf(file,"For more information visit https://libprofit.readthedocs.io.\n\n");
 }
 

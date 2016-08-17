@@ -107,11 +107,11 @@ double SersicLikeProfile::adjust_acc() {
 void SersicLikeProfile::initial_calculations() {
 
 	/*
-	 * get_re() is implemented by subclasses. It provides the translation from
-	 * profile-specific parameters into the common "Re" concept used in this
-	 * common class.
+	 * get_rscale() is implemented by subclasses. It provides the translation
+	 * from profile-specific parameters into the common rscale concept used in
+	 * this common class.
 	 */
-	this->_re = this->get_re();
+	this->rscale = this->get_rscale();
 
 	/*
 	 * Calculate the total luminosity used by this profile, used
@@ -123,33 +123,32 @@ void SersicLikeProfile::initial_calculations() {
 	this->_ie = pow(10, -0.4*(this->mag - this->model->magzero))/lumtot;
 
 	/*
-	 * Optionally adjust the user-given re_switch (totally) and resolution
-	 * (partially) parameters to more sensible values that will result in faster
-	 * profile calculations.
+	 * Optionally adjust the user-given rscale_switch and resolution parameters
+	 * to more sensible values that will result in faster profile calculations.
 	 */
 	if( this->adjust ) {
 
 		/*
-		 * Automatially adjust the re_switch.
+		 * Automatially adjust the rscale_switch.
 		 * Different profiles do it in different ways
 		 */
-		this->re_switch = this->adjust_re_switch();
+		this->rscale_switch = this->adjust_rscale_switch();
 
 		/*
 		 * Calculate a bound, adaptive upscale
 		 */
 		unsigned int resolution;
-		resolution = (unsigned int)ceil(160 / this->re_switch);
+		resolution = (unsigned int)ceil(160 / this->rscale_switch);
 		resolution += resolution % 2;
 		resolution = max(4, min(16, (int)resolution));
 		this->resolution = resolution;
 
 		/*
-		 * If the user didn't give a re_max we calculate one that covers
+		 * If the user didn't give a rscale_max we calculate one that covers
 		 * %99.99 of the flux
 		 */
-		if( this->re_max == 0 ) {
-			this->re_max = this->adjust_re_max();
+		if( this->rscale_max == 0 ) {
+			this->rscale_max = this->adjust_rscale_max();
 		}
 
 		/* Adjust the accuracy we'll use for sub-pixel integration */
@@ -236,10 +235,10 @@ void SersicLikeProfile::evaluate(double *image) {
 			 * TODO: the radius calculation doesn't take into account boxing
 			 */
 			r_ser = sqrt(x_ser*x_ser + y_ser*y_ser);
-			if( this->re_max > 0 && r_ser/this->_re > this->re_max ) {
+			if( this->rscale_max > 0 && r_ser/this->rscale > this->rscale_max ) {
 				pixel_val = 0.;
 			}
-			else if( this->rough || r_ser/this->_re > this->re_switch ) {
+			else if( this->rough || r_ser/this->rscale > this->rscale_switch ) {
 				pixel_val = this->_eval_function(this, x_ser, y_ser, r_ser, true);
 			}
 			else {
@@ -271,9 +270,9 @@ SersicLikeProfile::SersicLikeProfile() :
 	mag(15), box(0),
 	ang(0), axrat(1),
 	rough(false), acc(0.1),
-	re_switch(1), resolution(9),
+	rscale_switch(1), resolution(9),
 	max_recursions(2), adjust(true),
-	re_max(0)
+	rscale_max(0)
 {
 	// no-op
 }

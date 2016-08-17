@@ -48,9 +48,9 @@ protected:
 	double get_pixel_scale();
 	double adjust_acc();
 	virtual double get_lumtot(double r_box) = 0;
-	virtual double get_re() = 0;
-	virtual double adjust_re_switch() = 0;
-	virtual double adjust_re_max() = 0;
+	virtual double get_rscale() = 0;
+	virtual double adjust_rscale_switch() = 0;
+	virtual double adjust_rscale_max() = 0;
 	virtual eval_function_t get_evaluation_function() = 0;
 
 	/* These are internally calculated at profile evaluation time */
@@ -84,21 +84,21 @@ public:
 	double box;
 
 	/*
-	 * Common "Re" concept, profiles provide it in different ways
-	 * via get_re()
+	 * radius scale, profiles provide it in different ways
+	 * via get_rscale()
 	 */
-	double _re;
+	double rscale;
 
 	/* Used to control the subsampling */
 	bool rough;
 	double acc;
-	double re_switch;
+	double rscale_switch;
 	unsigned int resolution;
 	unsigned int max_recursions;
 	bool adjust;
 
 	/* Used to avoid outer regions */
-	double re_max;
+	double rscale_max;
 
 #ifdef PROFIT_DEBUG
 	/* record of how many subintegrations we've done */

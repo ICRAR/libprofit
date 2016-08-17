@@ -35,9 +35,9 @@ class MoffatProfile : public SersicLikeProfile {
 
 protected:
 	double get_lumtot(double r_box);
-	double get_re();
-	double adjust_re_switch();
-	double adjust_re_max();
+	double get_rscale();
+	double adjust_rscale_switch();
+	double adjust_rscale_max();
 	eval_function_t get_evaluation_function();
 
 public:

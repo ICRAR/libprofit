@@ -37,10 +37,10 @@ protected:
 	void initial_calculations();
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec);
 	double get_pixel_scale();
-	double get_re();
+	double get_rscale();
 	double get_lumtot(double r_box);
-	double adjust_re_switch();
-	double adjust_re_max();
+	double adjust_rscale_switch();
+	double adjust_rscale_max();
 	double adjust_acc();
 	eval_function_t get_evaluation_function();
 

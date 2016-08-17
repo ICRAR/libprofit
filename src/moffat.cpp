@@ -42,12 +42,12 @@ namespace profit
  *
  * (1+r_factor^2)^(-c)
  *
- * where r_factor = (r/re)
+ * where r_factor = (r/rscale)
  *              r = (x^{2+b} + y^{2+b})^{1/(2+b)}
  *              b = box parameter
  *
  * Reducing:
- *  r_factor = ((x/re)^{2+b} + (y/re)^{2+b})^{1/(2+b)}
+ *  r_factor = ((x/rscale)^{2+b} + (y/rscale)^{2+b})^{1/(2+b)}
  */
 
 /*
@@ -67,7 +67,7 @@ double _moffat_for_xy_r(SersicLikeProfile *sp,
 		r_factor = pow( pow(abs(x), box) + pow(abs(y), box), 1./(box));
 	}
 
-	r_factor /= mp->_re;
+	r_factor /= mp->rscale;
 	return pow(1 + r_factor*r_factor, -mp->con);
 }
 
@@ -78,20 +78,20 @@ eval_function_t MoffatProfile::get_evaluation_function() {
 double MoffatProfile::get_lumtot(double r_box) {
 	double fwhm = this->fwhm;
 	double con = this->con;
-	return pow(this->_re, 2) * M_PI * axrat/(con-1)/r_box;
+	return pow(this->rscale, 2) * M_PI * axrat/(con-1)/r_box;
 }
 
-double MoffatProfile::get_re() {
+double MoffatProfile::get_rscale() {
 	return fwhm/(2*sqrt(pow(2,(1/con))-1));
 }
 
-double MoffatProfile::adjust_re_switch() {
-	double re_switch = this->fwhm*4;
-	re_switch = max(min(re_switch, 20.), 2.);
-	return re_switch / this->_re;
+double MoffatProfile::adjust_rscale_switch() {
+	double rscale_switch = this->fwhm*4;
+	rscale_switch = max(min(rscale_switch, 20.), 2.);
+	return rscale_switch / this->rscale;
 }
 
-double MoffatProfile::adjust_re_max() {
+double MoffatProfile::adjust_rscale_max() {
 	return this->fwhm*8;
 }
 

@@ -42,7 +42,7 @@ namespace profit
  *
  * (1-r_factor)^(a)
  *
- * where r_factor = (r/re)^(2-b)
+ * where r_factor = (r/rscale)^(2-b)
  *              r = (x^{2+B} + y^{2+B})^{1/(2+B)}
  *              B = box parameter
  */
@@ -69,7 +69,7 @@ double _ferrer_for_xy_r(SersicLikeProfile *sp,
 		r_factor = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
 	}
 
-	r_factor /= fp->rout;
+	r_factor /= fp->rscale;
 	if( r_factor < 1 ) {
 		return pow(1 - pow(r_factor, 2 - fp->b), fp->a);
 	}
@@ -89,15 +89,15 @@ double FerrerProfile::get_lumtot(double r_box) {
 	return pow(rout, 2) * M_PI * g_factor * axrat/r_box;
 }
 
-double FerrerProfile::adjust_re_switch() {
+double FerrerProfile::adjust_rscale_switch() {
 	return this->rout;
 }
 
-double FerrerProfile::adjust_re_max() {
+double FerrerProfile::adjust_rscale_max() {
 	return this->rout;
 }
 
-double FerrerProfile::get_re() {
+double FerrerProfile::get_rscale() {
 	return this->rout;
 }
 

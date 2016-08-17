@@ -255,7 +255,7 @@ double sersic_fluxfrac(SersicProfile *sp, double fraction) {
 	return sp->re * pow(ratio, sp->nser);
 }
 
-double SersicProfile::adjust_re_switch() {
+double SersicProfile::adjust_rscale_switch() {
 	/*
 	 * Find the point at which we capture most of the flux (sensible place
 	 * for upscaling). We make sure upscaling doesn't go beyond 20 pixels,
@@ -263,12 +263,12 @@ double SersicProfile::adjust_re_switch() {
 	 * GALFIT anywhere)
 	 */
 	double nser = this->nser;
-	double re_switch = ceil(sersic_fluxfrac(this, 1. - nser*nser/2e3));
-	re_switch = max(min(re_switch, 20.), 2.);
-	return re_switch / this->re;
+	double rscale_switch = ceil(sersic_fluxfrac(this, 1. - nser*nser/2e3));
+	rscale_switch = max(min(rscale_switch, 20.), 2.);
+	return rscale_switch / this->re;
 }
 
-double SersicProfile::adjust_re_max() {
+double SersicProfile::adjust_rscale_max() {
 	return ceil(sersic_fluxfrac(this, 0.9999));
 }
 
@@ -299,7 +299,7 @@ void SersicProfile::initial_calculations() {
 		this->_rescale_factor = 1;
 		if( this->rescale_flux ) {
 			double flux_r;
-			flux_r = this->_bn * pow(this->re_max/this->re, 1/this->nser);
+			flux_r = this->_bn * pow(this->rscale_max/this->re, 1/this->nser);
 			flux_r = pgamma(flux_r, 2*this->nser);
 			this->_rescale_factor = 1/flux_r;
 		}
@@ -319,7 +319,7 @@ double SersicProfile::get_pixel_scale() {
 	return scale;
 }
 
-double SersicProfile::get_re() {
+double SersicProfile::get_rscale() {
 	return this->re;
 }
 
