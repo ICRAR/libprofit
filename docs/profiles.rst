@@ -38,7 +38,7 @@ in areas closer to the profile center.
 This sub-sampling can be controller by the following additional parameters:
 
 * **rough**: Don't perform any sub-sampling, ignore the rest of the parameters.
-* **re_switch**: Effective radius fraction within which sub-sampling is performed.
+* **rscale_switch**: Radius scale fraction within which sub-sampling is performed.
   Pixels outside this radius are not sub-sampled.
 * **max_recursions**: The maximum levels of recursions allowed.
 * **resolution**: Resolution (both horizontal and vertical) to be used
@@ -50,7 +50,7 @@ quickly zeroing pixels that are too far away
 from the profile center.
 This filtering can be controller by the following parameters:
 
-* **re_max**: Maximum *re*-based distance to consider for filtering.
+* **rscale_max**: Maximum *re*-based distance to consider for filtering.
 * **rescale_flux**: Whether the calculated profile flux should be scaled
   to take into account the filtering performed by **re_max**.
 
@@ -59,6 +59,30 @@ whether adjustments of most of the parameters described
 above should be done automatically depending on the profile parameters.
 *libprofit* makes a reasonable compromise between speed and accuracy,
 and therefore this option is turned on by default.
+
+``moffat``
+----------
+
+The moffat profile works in exactly the same way as the sersic profile.
+It also supports sub-pixel sampling using the same parameters.
+Because of the nature of the profile
+the ``re`` and ``nser`` parameters from the ``sersic`` profiles
+are not present, and instead the following new parameters appear:
+
+* **fwhm**: Full-width at half maximum of the profile
+  across the major-axis of the intensity profile.
+* **con**: Profile concentration.
+
+``ferrer``
+----------
+
+Again, the ferrer profile works in exactly the same way as the sersic profile.
+It replaces the ``re`` and ``nser`` parameters from the ``sersic`` profile
+with:
+
+* **rout**: The outer truncation radius.
+* **a**: The global power-law slope to the profile center
+* **b**: The strength of truncation as the radius approaches **rout**.
 
 ``sky``
 -------
