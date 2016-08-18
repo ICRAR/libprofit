@@ -100,10 +100,6 @@ double AnalyticProfile::subsample_pixel(double x0, double x1, double y0, double 
 	return total / (resolution * resolution);
 }
 
-double AnalyticProfile::adjust_acc() {
-	return 0.1/axrat;
-}
-
 void AnalyticProfile::initial_calculations() {
 
 	/*

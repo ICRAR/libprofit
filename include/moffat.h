@@ -36,6 +36,7 @@ class MoffatProfile : public AnalyticProfile {
 protected:
 	double get_lumtot(double r_box);
 	double get_rscale();
+	double adjust_acc();
 	double adjust_rscale_switch();
 	double adjust_rscale_max();
 	eval_function_t get_evaluation_function();

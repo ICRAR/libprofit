@@ -46,9 +46,10 @@ protected:
 	void initial_calculations();
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec);
 	double get_pixel_scale();
-	double adjust_acc();
+
 	virtual double get_lumtot(double r_box) = 0;
 	virtual double get_rscale() = 0;
+	virtual double adjust_acc() = 0;
 	virtual double adjust_rscale_switch() = 0;
 	virtual double adjust_rscale_max() = 0;
 	virtual eval_function_t get_evaluation_function() = 0;
