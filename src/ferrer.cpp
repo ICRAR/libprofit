@@ -52,7 +52,7 @@ namespace profit
  * The main ferrer evaluation function for a given X/Y coordinate
  */
 static inline
-double _ferrer_for_xy_r(SersicLikeProfile *sp,
+double _ferrer_for_xy_r(AnalyticProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
 
@@ -109,7 +109,7 @@ double FerrerProfile::adjust_acc() {
  * Constructor with sane defaults
  */
 FerrerProfile::FerrerProfile() :
-	SersicLikeProfile(),
+	AnalyticProfile(),
 	rout(3), a(1), b(1)
 {
 	// this profile defaults to a different accuracy

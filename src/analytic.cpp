@@ -27,7 +27,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "sersic_like.h"
+#include "analytic.h"
 #include "utils.h"
 
 using namespace std;
@@ -35,7 +35,7 @@ using namespace std;
 namespace profit
 {
 
-void SersicLikeProfile::_image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof) {
+void AnalyticProfile::_image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof) {
 	x -= this->xcen;
 	y -= this->ycen;
 	x_prof =  x * this->_cos_ang + y * this->_sin_ang;
@@ -43,9 +43,9 @@ void SersicLikeProfile::_image_to_profile_coordinates(double x, double y, double
 	y_prof /= this->axrat;
 }
 
-double SersicLikeProfile::subsample_pixel(double x0, double x1, double y0, double y1,
-                                          unsigned int recur_level, unsigned int max_recursions,
-                                          unsigned int resolution) {
+double AnalyticProfile::subsample_pixel(double x0, double x1, double y0, double y1,
+                                        unsigned int recur_level, unsigned int max_recursions,
+                                        unsigned int resolution) {
 
 	double xbin = (x1-x0) / resolution;
 	double ybin = (y1-y0) / resolution;
@@ -100,11 +100,11 @@ double SersicLikeProfile::subsample_pixel(double x0, double x1, double y0, doubl
 	return total / (resolution * resolution);
 }
 
-double SersicLikeProfile::adjust_acc() {
+double AnalyticProfile::adjust_acc() {
 	return 0.1/axrat;
 }
 
-void SersicLikeProfile::initial_calculations() {
+void AnalyticProfile::initial_calculations() {
 
 	/*
 	 * get_rscale() is implemented by subclasses. It provides the translation
@@ -172,21 +172,21 @@ void SersicLikeProfile::initial_calculations() {
 /**
  * The sersic validation function
  */
-void SersicLikeProfile::validate() {
+void AnalyticProfile::validate() {
 	// no-op
 }
 
 /**
  * The scale by which each image pixel value is multiplied
  */
-double SersicLikeProfile::get_pixel_scale() {
+double AnalyticProfile::get_pixel_scale() {
 	double pixel_area = this->model->scale_x * this->model->scale_y;
 	return pixel_area * this->_ie;
 }
 
-void SersicLikeProfile::subsampling_params(double x, double y,
-                                           unsigned int &resolution,
-                                           unsigned int &max_recursions) {
+void AnalyticProfile::subsampling_params(double x, double y,
+                                         unsigned int &resolution,
+                                         unsigned int &max_recursions) {
 	resolution = this->resolution;
 	max_recursions = this->max_recursions;
 }
@@ -194,7 +194,7 @@ void SersicLikeProfile::subsampling_params(double x, double y,
 /**
  * The main sersic evaluation function
  */
-void SersicLikeProfile::evaluate(double *image) {
+void AnalyticProfile::evaluate(double *image) {
 
 	unsigned int i, j;
 	double x, y, pixel_val;
@@ -264,7 +264,7 @@ void SersicLikeProfile::evaluate(double *image) {
 /**
  * Constructor with sane defaults
  */
-SersicLikeProfile::SersicLikeProfile() :
+AnalyticProfile::AnalyticProfile() :
 	Profile(),
 	xcen(0), ycen(0),
 	mag(15), box(0),

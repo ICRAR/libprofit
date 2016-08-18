@@ -26,12 +26,12 @@
 #ifndef _SERSIC_H_
 #define _SERSIC_H_
 
-#include "sersic_like.h"
+#include "analytic.h"
 
 namespace profit
 {
 
-class SersicProfile : public SersicLikeProfile {
+class SersicProfile : public AnalyticProfile {
 
 protected:
 	void initial_calculations();

@@ -23,8 +23,8 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _SERSIC_LIKE_H_
-#define _SERSIC_LIKE_H_
+#ifndef _ANALYTIC_H_
+#define _ANALYTIC_H_
 
 #ifdef PROFIT_DEBUG
 #include <map>
@@ -36,10 +36,10 @@
 namespace profit
 {
 
-class SersicLikeProfile;
-typedef double (*eval_function_t)(SersicLikeProfile *, double, double, double, bool);
+class AnalyticProfile;
+typedef double (*eval_function_t)(AnalyticProfile *, double, double, double, bool);
 
-class SersicLikeProfile : public Profile {
+class AnalyticProfile : public Profile {
 
 protected:
 
@@ -71,7 +71,7 @@ private:
 
 public:
 
-	SersicLikeProfile();
+	AnalyticProfile();
 	void validate();
 	void evaluate(double *image);
 
@@ -109,4 +109,4 @@ public:
 
 } /* namespace profit */
 
-#endif /* _SERSIC_LIKE_H_ */
+#endif /* _ANALYTIC_H_ */

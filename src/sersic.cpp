@@ -206,7 +206,7 @@ inline double _invexp<false>(const double nser, const double exponent)
  * The main sersic evaluation function for a given X/Y coordinate
  */
 template <bool boxy, nser_t t>
-double _sersic_for_xy_r(SersicLikeProfile *slp,
+double _sersic_for_xy_r(AnalyticProfile *slp,
                         double x, double y,
                         double r, bool reuse_r) {
 
@@ -292,7 +292,7 @@ void SersicProfile::initial_calculations() {
 	this->_bn = qgamma(0.5, 2*this->nser);
 
 	/* Common calculations first */
-	SersicLikeProfile::initial_calculations();
+	AnalyticProfile::initial_calculations();
 
 	/* Just some additional adjustments on rescale_factor */
 	if( this->adjust ) {
@@ -312,7 +312,7 @@ void SersicProfile::initial_calculations() {
  * The sersic profile supports a rescale factor that is applied here.
  */
 double SersicProfile::get_pixel_scale() {
-	double scale = SersicLikeProfile::get_pixel_scale();
+	double scale = AnalyticProfile::get_pixel_scale();
 	if( this->rescale_flux ) {
 		scale *= this->_rescale_factor;
 	}
@@ -327,7 +327,7 @@ void SersicProfile::subsampling_params(double x, double y,
                                        unsigned int &resolution,
                                        unsigned int &max_recursions) {
 
-	SersicLikeProfile::subsampling_params(x, y, resolution, max_recursions);
+	AnalyticProfile::subsampling_params(x, y, resolution, max_recursions);
 
 	/* Higher subsampling params for central pixel if nser < 1 */
 	bool center_pixel = abs(x - this->xcen) < this->model->scale_x && abs(y - this->ycen) < this->model->scale_y;
@@ -342,7 +342,7 @@ void SersicProfile::subsampling_params(double x, double y,
  * The sersic creation function
  */
 SersicProfile::SersicProfile() :
-	SersicLikeProfile(),
+	AnalyticProfile(),
 	re(1), nser(1),
 	rescale_flux(false)
 {

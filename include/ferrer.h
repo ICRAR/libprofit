@@ -26,12 +26,12 @@
 #ifndef _FERRER_H_
 #define _FERRER_H_
 
-#include "sersic_like.h"
+#include "analytic.h"
 
 namespace profit
 {
 
-class FerrerProfile : public SersicLikeProfile {
+class FerrerProfile : public AnalyticProfile {
 
 protected:
 	double get_lumtot(double r_box);

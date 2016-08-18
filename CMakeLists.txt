@@ -52,13 +52,13 @@ include_directories(include)
 
 # The shared library
 set(PROFIT_SRC
+   src/analytic.cpp
    src/convolve.cpp
    src/ferrer.cpp
    src/moffat.cpp
    src/profit.cpp
    src/psf.cpp
    src/sersic.cpp
-   src/sersic_like.cpp
    src/sky.cpp
    src/utils.cpp
 )

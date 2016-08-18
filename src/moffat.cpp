@@ -53,7 +53,7 @@ namespace profit
 /*
  * The main moffat evaluation function for a given X/Y coordinate
  */
-double _moffat_for_xy_r(SersicLikeProfile *sp,
+double _moffat_for_xy_r(AnalyticProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
 
@@ -99,7 +99,7 @@ double MoffatProfile::adjust_rscale_max() {
  * Constructor with sane defaults
  */
 MoffatProfile::MoffatProfile() :
-	SersicLikeProfile(),
+	AnalyticProfile(),
 	fwhm(3), con(2)
 {
 	// no-op

@@ -26,12 +26,12 @@
 #ifndef _MOFFAT_H_
 #define _MOFFAT_H_
 
-#include "sersic_like.h"
+#include "analytic.h"
 
 namespace profit
 {
 
-class MoffatProfile : public SersicLikeProfile {
+class MoffatProfile : public AnalyticProfile {
 
 protected:
 	double get_lumtot(double r_box);
