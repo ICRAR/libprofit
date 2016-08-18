@@ -1,5 +1,5 @@
 /**
- * Sersic-like profile implementations
+ * Analytical profile implementations
  *
  * ICRAR - International Centre for Radio Astronomy Research
  * (c) UWA - The University of Western Australia, 2016
@@ -52,7 +52,7 @@ double AnalyticProfile::subsample_pixel(double x0, double x1, double y0, double 
 	double half_xbin = xbin/2.;
 	double half_ybin = ybin/2.;
 	double total = 0, subval, testval;
-	double x , y, x_ser, y_ser;
+	double x , y, x_prof, y_prof;
 	unsigned int i, j;
 
 	bool recurse = resolution > 1 && recur_level < max_recursions;
@@ -75,12 +75,12 @@ double AnalyticProfile::subsample_pixel(double x0, double x1, double y0, double 
 		for(j=0; j < resolution; j++) {
 			y += half_ybin;
 
-			this->_image_to_profile_coordinates(x, y, x_ser, y_ser);
-			subval = this->_eval_function(this, x_ser, y_ser, 0, false);
+			this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
+			subval = this->_eval_function(this, x_prof, y_prof, 0, false);
 
 			if( recurse ) {
-				double delta_y_ser = (-xbin*this->_sin_ang + ybin*this->_cos_ang)/this->axrat;
-				testval = this->_eval_function(this, abs(x_ser), abs(y_ser) + abs(delta_y_ser), 0, false);
+				double delta_y_prof = (-xbin*this->_sin_ang + ybin*this->_cos_ang)/this->axrat;
+				testval = this->_eval_function(this, abs(x_prof), abs(y_prof) + abs(delta_y_prof), 0, false);
 				if( abs(testval/subval - 1.0) > this->acc ) {
 					subval = this->subsample_pixel(x - half_xbin, x + half_xbin,
 					                               y - half_ybin, y + half_ybin,
@@ -159,7 +159,7 @@ void AnalyticProfile::initial_calculations() {
 	/*
 	 * Get the rotation angle in radians and calculate the coefficients
 	 * that will fill the rotation matrix we'll use later to transform
-	 * from image coordinates into sersic coordinates.
+	 * from image coordinates into profile coordinates.
 	 *
 	 * In galfit the angle started from the Y image axis.
 	 */
@@ -170,7 +170,7 @@ void AnalyticProfile::initial_calculations() {
 }
 
 /**
- * The sersic validation function
+ * The profile validation function
  */
 void AnalyticProfile::validate() {
 	// no-op
@@ -192,20 +192,21 @@ void AnalyticProfile::subsampling_params(double x, double y,
 }
 
 /**
- * The main sersic evaluation function
+ * The main profile evaluation function
  */
 void AnalyticProfile::evaluate(double *image) {
 
 	unsigned int i, j;
 	double x, y, pixel_val;
-	double x_ser, y_ser, r_ser;
+	double x_prof, y_prof, r_prof;
 	double half_xbin = model->scale_x/2.;
 	double half_ybin = model->scale_x/2.;
 
 	this->_eval_function = this->get_evaluation_function();
 
 	/*
-	 * All the pre-calculations needed by the sersic-like profiles (Ie, cos/sin ang, etc)
+	 * Perform all the pre-calculations needed by the analytical profiles
+	 * (e.g., Ie, cos/sin ang, etc).
 	 * We store these profile-global results in the profile object itself
 	 * (it contains extra members to store these values) to avoid passing a long
 	 * list of values around every method call.
@@ -228,18 +229,18 @@ void AnalyticProfile::evaluate(double *image) {
 				continue;
 			}
 
-			this->_image_to_profile_coordinates(x, y, x_ser, y_ser);
+			this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
 
 			/*
 			 * Check whether we need further refinement.
 			 * TODO: the radius calculation doesn't take into account boxing
 			 */
-			r_ser = sqrt(x_ser*x_ser + y_ser*y_ser);
-			if( this->rscale_max > 0 && r_ser/this->rscale > this->rscale_max ) {
+			r_prof = sqrt(x_prof*x_prof + y_prof*y_prof);
+			if( this->rscale_max > 0 && r_prof/this->rscale > this->rscale_max ) {
 				pixel_val = 0.;
 			}
-			else if( this->rough || r_ser/this->rscale > this->rscale_switch ) {
-				pixel_val = this->_eval_function(this, x_ser, y_ser, r_ser, true);
+			else if( this->rough || r_prof/this->rscale > this->rscale_switch ) {
+				pixel_val = this->_eval_function(this, x_prof, y_prof, r_prof, true);
 			}
 			else {
 

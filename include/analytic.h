@@ -1,5 +1,5 @@
 /**
- * Header file for sersic-like profile implementations
+ * Header file for analytical profile implementations
  *
  * ICRAR - International Centre for Radio Astronomy Research
  * (c) UWA - The University of Western Australia, 2016
