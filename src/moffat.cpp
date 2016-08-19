@@ -76,7 +76,6 @@ eval_function_t MoffatProfile::get_evaluation_function() {
 }
 
 double MoffatProfile::get_lumtot(double r_box) {
-	double fwhm = this->fwhm;
 	double con = this->con;
 	return pow(this->rscale, 2) * M_PI * axrat/(con-1)/r_box;
 }

@@ -264,8 +264,8 @@ void AnalyticProfile::evaluate(double *image) {
 AnalyticProfile::AnalyticProfile() :
 	Profile(),
 	xcen(0), ycen(0),
-	mag(15), box(0),
-	ang(0), axrat(1),
+	mag(15), ang(0),
+	axrat(0), box(1),
 	rough(false), acc(0.1),
 	rscale_switch(1), resolution(9),
 	max_recursions(2), adjust(true),
