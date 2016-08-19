@@ -1,5 +1,5 @@
 /**
- * Header file for analytical profile implementations
+ * Header file for the base radial profile implementation
  *
  * ICRAR - International Centre for Radio Astronomy Research
  * (c) UWA - The University of Western Australia, 2016
@@ -23,8 +23,8 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _ANALYTIC_H_
-#define _ANALYTIC_H_
+#ifndef _RADIAL_H_
+#define _RADIAL_H_
 
 #ifdef PROFIT_DEBUG
 #include <map>
@@ -36,13 +36,13 @@
 namespace profit
 {
 
-class AnalyticProfile;
-typedef double (*eval_function_t)(AnalyticProfile *, double, double, double, bool);
+class RadialProfile;
+typedef double (*eval_function_t)(RadialProfile *, double, double, double, bool);
 
 /**
- * The case class for analytical profiles.
+ * The case class for radial profiles.
  *
- * This class implements the common aspects of all analytical profiles, namely:
+ * This class implements the common aspects of all radial profiles, namely:
  *  * High-level evaluation logic
  *  * Region masking
  *  * Translation, rotation, axis ratio and boxing
@@ -53,7 +53,7 @@ typedef double (*eval_function_t)(AnalyticProfile *, double, double, double, boo
  * x/y profile coordinate and the calculation of the total luminosity of the
  * profile, among others.
  */
-class AnalyticProfile : public Profile {
+class RadialProfile : public Profile {
 
 protected:
 
@@ -93,7 +93,7 @@ protected:
 	virtual double get_lumtot(double r_box) = 0;
 
 	/**
-	 * Returns the value used as ``rscale`` by the analytic profile.
+	 * Returns the value used as ``rscale`` by the radial profile.
 	 */
 	virtual double get_rscale() = 0;
 
@@ -144,7 +144,7 @@ private:
 
 public:
 
-	AnalyticProfile();
+	RadialProfile();
 	void validate();
 	void evaluate(double *image);
 
@@ -182,4 +182,4 @@ public:
 
 } /* namespace profit */
 
-#endif /* _ANALYTIC_H_ */
+#endif /* _RADIAL_H_ */

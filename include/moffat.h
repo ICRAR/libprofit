@@ -26,7 +26,7 @@
 #ifndef _MOFFAT_H_
 #define _MOFFAT_H_
 
-#include "analytic.h"
+#include "radial.h"
 
 namespace profit
 {
@@ -46,10 +46,10 @@ namespace profit
  *          r = (x^{2+b} + y^{2+b})^{1/(2+b)}
  *          b = box parameter
  */
-class MoffatProfile : public AnalyticProfile {
+class MoffatProfile : public RadialProfile {
 
 protected:
-	/* All these are inherited from AnalyticProfile */
+	/* All these are inherited from RadialProfile */
 	double get_lumtot(double r_box);
 	double get_rscale();
 	double adjust_acc();

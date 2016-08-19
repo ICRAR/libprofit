@@ -26,7 +26,7 @@
 #ifndef _FERRER_H_
 #define _FERRER_H_
 
-#include "analytic.h"
+#include "radial.h"
 
 namespace profit
 {
@@ -45,11 +45,11 @@ namespace profit
  *           r = (x^{2+B} + y^{2+B})^{1/(2+B)}
  *           B = box parameter
  */
-class FerrerProfile : public AnalyticProfile {
+class FerrerProfile : public RadialProfile {
 
 protected:
 
-	/* All these are inherited from AnalyticProfile */
+	/* All these are inherited from RadialProfile */
 	double get_lumtot(double r_box);
 	double get_rscale();
 	double adjust_acc();

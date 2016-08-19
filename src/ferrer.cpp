@@ -47,7 +47,7 @@ namespace profit
  *              B = box parameter
  */
 static
-double _ferrer_for_xy_r(AnalyticProfile *sp,
+double _ferrer_for_xy_r(RadialProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
 
@@ -101,7 +101,7 @@ double FerrerProfile::adjust_acc() {
 }
 
 FerrerProfile::FerrerProfile() :
-	AnalyticProfile(),
+	RadialProfile(),
 	rout(3), a(1), b(1)
 {
 	// this profile defaults to a different accuracy

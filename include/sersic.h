@@ -26,7 +26,7 @@
 #ifndef _SERSIC_H_
 #define _SERSIC_H_
 
-#include "analytic.h"
+#include "radial.h"
 
 namespace profit
 {
@@ -45,11 +45,11 @@ namespace profit
  *         b = box parameter
  *        bn = qgamma(0.5, 2*nser)
  */
-class SersicProfile : public AnalyticProfile {
+class SersicProfile : public RadialProfile {
 
 protected:
 
-	/* All these are inherited from AnalyticProfile */
+	/* All these are inherited from RadialProfile */
 	void initial_calculations();
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec);
 	double get_pixel_scale();

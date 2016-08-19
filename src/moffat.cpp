@@ -28,7 +28,6 @@
 #include <algorithm>
 
 #include "moffat.h"
-#include "utils.h"
 
 using namespace std;
 
@@ -50,7 +49,7 @@ namespace profit
  *  r_factor = ((x/rscale)^{2+b} + (y/rscale)^{2+b})^{1/(2+b)}
  */
 static
-double _moffat_for_xy_r(AnalyticProfile *sp,
+double _moffat_for_xy_r(RadialProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
 
@@ -97,7 +96,7 @@ double MoffatProfile::adjust_acc() {
 
 
 MoffatProfile::MoffatProfile() :
-	AnalyticProfile(),
+	RadialProfile(),
 	fwhm(3), con(2)
 {
 	// no-op

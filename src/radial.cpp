@@ -1,5 +1,5 @@
 /**
- * Analytical profile implementations
+ * Radial profile base implementation
  *
  * ICRAR - International Centre for Radio Astronomy Research
  * (c) UWA - The University of Western Australia, 2016
@@ -27,7 +27,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "analytic.h"
+#include "radial.h"
 #include "utils.h"
 
 using namespace std;
@@ -35,7 +35,7 @@ using namespace std;
 namespace profit
 {
 
-void AnalyticProfile::_image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof) {
+void RadialProfile::_image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof) {
 	x -= this->xcen;
 	y -= this->ycen;
 	x_prof =  x * this->_cos_ang + y * this->_sin_ang;
@@ -43,9 +43,9 @@ void AnalyticProfile::_image_to_profile_coordinates(double x, double y, double &
 	y_prof /= this->axrat;
 }
 
-double AnalyticProfile::subsample_pixel(double x0, double x1, double y0, double y1,
-                                        unsigned int recur_level, unsigned int max_recursions,
-                                        unsigned int resolution) {
+double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1,
+                                      unsigned int recur_level, unsigned int max_recursions,
+                                      unsigned int resolution) {
 
 	double xbin = (x1-x0) / resolution;
 	double ybin = (y1-y0) / resolution;
@@ -100,7 +100,7 @@ double AnalyticProfile::subsample_pixel(double x0, double x1, double y0, double 
 	return total / (resolution * resolution);
 }
 
-void AnalyticProfile::initial_calculations() {
+void RadialProfile::initial_calculations() {
 
 	/*
 	 * get_rscale() is implemented by subclasses. It provides the translation
@@ -168,21 +168,21 @@ void AnalyticProfile::initial_calculations() {
 /**
  * The profile validation function
  */
-void AnalyticProfile::validate() {
+void RadialProfile::validate() {
 	// no-op
 }
 
 /**
  * The scale by which each image pixel value is multiplied
  */
-double AnalyticProfile::get_pixel_scale() {
+double RadialProfile::get_pixel_scale() {
 	double pixel_area = this->model->scale_x * this->model->scale_y;
 	return pixel_area * this->_ie;
 }
 
-void AnalyticProfile::subsampling_params(double x, double y,
-                                         unsigned int &resolution,
-                                         unsigned int &max_recursions) {
+void RadialProfile::subsampling_params(double x, double y,
+                                       unsigned int &resolution,
+                                       unsigned int &max_recursions) {
 	resolution = this->resolution;
 	max_recursions = this->max_recursions;
 }
@@ -190,7 +190,7 @@ void AnalyticProfile::subsampling_params(double x, double y,
 /**
  * The main profile evaluation function
  */
-void AnalyticProfile::evaluate(double *image) {
+void RadialProfile::evaluate(double *image) {
 
 	unsigned int i, j;
 	double x, y, pixel_val;
@@ -201,7 +201,7 @@ void AnalyticProfile::evaluate(double *image) {
 	this->_eval_function = this->get_evaluation_function();
 
 	/*
-	 * Perform all the pre-calculations needed by the analytical profiles
+	 * Perform all the pre-calculations needed by the radial profiles
 	 * (e.g., Ie, cos/sin ang, etc).
 	 * We store these profile-global results in the profile object itself
 	 * (it contains extra members to store these values) to avoid passing a long
@@ -261,7 +261,7 @@ void AnalyticProfile::evaluate(double *image) {
 /**
  * Constructor with sane defaults
  */
-AnalyticProfile::AnalyticProfile() :
+RadialProfile::RadialProfile() :
 	Profile(),
 	xcen(0), ycen(0),
 	mag(15), ang(0),
