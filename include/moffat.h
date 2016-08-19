@@ -6,7 +6,7 @@
  * Copyright by UWA (in the framework of the ICRAR)
  * All rights reserved
  *
- * Contributed by Aaron Robotham
+ * Contributed by Aaron Robotham and Rodrigo Tobar
  *
  * This file is part of libprofit.
  *
@@ -31,9 +31,25 @@
 namespace profit
 {
 
+/**
+ * A Moffat profile
+ *
+ * The moffat profile has parameters ``fwhm`` and ``con``, and is calculated as
+ * follows for coordinates x/y::
+ *
+ *   (1+r_factor)^(-c)
+ *
+ * with::
+ *
+ *   r_factor = (r/rscale)^2
+ *     rscale = fwhm/(2*sqrt( 2^(1/con) - 1))
+ *          r = (x^{2+b} + y^{2+b})^{1/(2+b)}
+ *          b = box parameter
+ */
 class MoffatProfile : public AnalyticProfile {
 
 protected:
+	/* All these are inherited from AnalyticProfile */
 	double get_lumtot(double r_box);
 	double get_rscale();
 	double adjust_acc();
@@ -43,10 +59,26 @@ protected:
 
 public:
 
+	/**
+	 * Constructor
+	 */
 	MoffatProfile();
 
-	/* General parameters */
+	/*
+	 * -------------------------
+	 * Profile parameters follow
+	 * -------------------------
+	 */
+
+	/**
+	 * Full-width at half maximum of the profiles across the major axis of the
+	 * intensity profile.
+	 */
 	double fwhm;
+
+	/**
+	 * Profile concentration
+	 */
 	double con;
 
 };

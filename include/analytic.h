@@ -39,19 +39,91 @@ namespace profit
 class AnalyticProfile;
 typedef double (*eval_function_t)(AnalyticProfile *, double, double, double, bool);
 
+/**
+ * The case class for analytical profiles.
+ *
+ * This class implements the common aspects of all analytical profiles, namely:
+ *  * High-level evaluation logic
+ *  * Region masking
+ *  * Translation, rotation, axis ratio and boxing
+ *  * Pixel subsampling
+ *
+ * Subclasses are expected to implement a handfull of methods that convey
+ * profile-specific information, such as the evaluation function for an given
+ * x/y profile coordinate and the calculation of the total luminosity of the
+ * profile, among others.
+ */
 class AnalyticProfile : public Profile {
 
 protected:
 
+	/**
+	 * Performs the initial calculations needed by this profile during the
+	 * evaluation phase. Subclasses might want to override this method to add
+	 * their own initialization steps.
+	 */
 	void initial_calculations();
+
+	/**
+	 * Calculates the ``res`` and ``max_rec`` subsampling parameters used for
+	 * the first subsampling level of image pixel ``x``/``y``.
+	 * Subclasses might want to override this method to provide different
+	 * initial subsampling logic.
+	 */
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec);
+
+	/**
+	 * Returns the factor by which each resulting image pixel value must be
+	 * multiplied to yield the final pixel value. The default implementation
+	 * returns the pixel area multiplied by Ie, but subclasses might need to
+	 * rescale this.
+	 */
 	double get_pixel_scale();
 
+	/*
+	 * ------------------------------------------
+	 *  Mandatory subclasses methods follow
+	 * ------------------------------------------
+	 */
+
+	/**
+	 * Returns the total luminosity of this profile for the given ``r_box``
+	 * factor.
+	 */
 	virtual double get_lumtot(double r_box) = 0;
+
+	/**
+	 * Returns the value used as ``rscale`` by the analytic profile.
+	 */
 	virtual double get_rscale() = 0;
+
+	/**
+	 * Returns an automatically adjusted value for the subsampling accuracy,
+	 * which will replace the default or user-given value if users decide to
+	 * let the code self-adjust.
+	 */
 	virtual double adjust_acc() = 0;
+
+	/**
+	 * Returns an automatically adjusted value for the rscale_switch flag,
+	 * which will replace the default or user-given value if users decide to
+	 * let the code self-adjust.
+	 */
 	virtual double adjust_rscale_switch() = 0;
+
+	/**
+	 * Returns an automatically adjusted value for the rscale_max flag,
+	 * which will replace the default or user-given value if users decide to
+	 * let the code self-adjust.
+	 */
 	virtual double adjust_rscale_max() = 0;
+
+	/**
+	 * Returns a pointer to the evaluation function, specific to each profile.
+	 * The evaluation function takes as input a X/Y coordinate in profile space
+	 * and returns a profile value. It receives a pre-computed radius as well
+	 * (assuming box == 0) which can be reused to avoid some extra computations.
+	 */
 	virtual eval_function_t get_evaluation_function() = 0;
 
 	/* These are internally calculated at profile evaluation time */

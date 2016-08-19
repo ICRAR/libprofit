@@ -35,7 +35,7 @@ using namespace std;
 namespace profit
 {
 
-/*
+/**
  * The evaluation of the ferrer profile at ferrer coordinates (x,y).
  *
  * The ferrer profile has this form:
@@ -46,12 +46,7 @@ namespace profit
  *              r = (x^{2+B} + y^{2+B})^{1/(2+B)}
  *              B = box parameter
  */
-
-
-/*
- * The main ferrer evaluation function for a given X/Y coordinate
- */
-static inline
+static
 double _ferrer_for_xy_r(AnalyticProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
@@ -105,9 +100,6 @@ double FerrerProfile::adjust_acc() {
 	return this->acc;
 }
 
-/**
- * Constructor with sane defaults
- */
 FerrerProfile::FerrerProfile() :
 	AnalyticProfile(),
 	rout(3), a(1), b(1)

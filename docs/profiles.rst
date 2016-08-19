@@ -20,7 +20,7 @@ The sersic profile accepts the following parameters:
 * **mag**: Total magnitude of the Sersic profile.
   Converted to flux using ``flux = 10^(-0.4*(mag - magzero))``, where
   ``magzero`` is that of the containing model.
-* **re**: Effective ratio
+* **re**: Effective radius
 * **nser**: Sersic index of the Sersic profile.
 * **ang**: The orientation of the major axis of the Sersic profile, in degrees.
   The starting point is the positive Y image axis and grows counter-clockwise.

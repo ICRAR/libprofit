@@ -6,7 +6,7 @@
  * Copyright by UWA (in the framework of the ICRAR)
  * All rights reserved
  *
- * Contributed by Aaron Robotham
+ * Contributed by Aaron Robotham and Rodrigo Tobar
  *
  * This file is part of libprofit.
  *
@@ -31,9 +31,25 @@
 namespace profit
 {
 
+/**
+ * A Ferrer profile
+ *
+ * The ferrer profile has parameters ``rout``, ``a`` and ``b`` and is
+ * calculated as follows for coordinates x/y::
+ *
+ *    (1-r_factor)^(a)
+ *
+ * with::
+ *
+ *    r_factor = (r/rout)^(2-b)
+ *           r = (x^{2+B} + y^{2+B})^{1/(2+B)}
+ *           B = box parameter
+ */
 class FerrerProfile : public AnalyticProfile {
 
 protected:
+
+	/* All these are inherited from AnalyticProfile */
 	double get_lumtot(double r_box);
 	double get_rscale();
 	double adjust_acc();
@@ -43,12 +59,30 @@ protected:
 
 public:
 
+	/**
+	 * Constructor
+	 */
 	FerrerProfile();
 
+	/*
+	 * -------------------------
+	 * Profile parameters follow
+	 * -------------------------
+	 */
 
-	/* General parameters */
+	/**
+	 * The outer truncation radius
+	 */
 	double rout;
+
+	/**
+	 * The global power-law slope to the profile center
+	 */
 	double a;
+
+	/**
+	 * The strength of the truncation as the radius approaches ``rout``.
+	 */
 	double b;
 
 };

@@ -31,9 +31,25 @@
 namespace profit
 {
 
+/**
+ * A Sersic profile
+ *
+ * The ferrer profile has parameters ``nser`` and ``re`` and is calculated as
+ * follows for coordinates x/y::
+ *
+ *   e^{-bn * (r_factor - 1)}
+ *
+ * with::
+ *  r_factor = (r/re)^{1/nser}
+ *         r = (x^{2+b} + y^{2+b})^{1/(2+b)}
+ *         b = box parameter
+ *        bn = qgamma(0.5, 2*nser)
+ */
 class SersicProfile : public AnalyticProfile {
 
 protected:
+
+	/* All these are inherited from AnalyticProfile */
 	void initial_calculations();
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec);
 	double get_pixel_scale();
@@ -47,13 +63,30 @@ protected:
 
 public:
 
+	/**
+	 * Constructor
+	 */
 	SersicProfile();
 
-	/* General parameters */
+	/*
+	 * -------------------------
+	 * Profile parameters follow
+	 * -------------------------
+	 */
+
+	/**
+	 * The effective radius
+	 */
 	double re;
+
+	/**
+	 * The sersic index
+	 */
 	double nser;
 
-	/* Rescale flux or not */
+	/**
+	 * Rescale flux up to rscale_max or not
+	 */
 	bool rescale_flux;
 
 	/* These are internally calculated profile init */

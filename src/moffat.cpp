@@ -49,10 +49,7 @@ namespace profit
  * Reducing:
  *  r_factor = ((x/rscale)^{2+b} + (y/rscale)^{2+b})^{1/(2+b)}
  */
-
-/*
- * The main moffat evaluation function for a given X/Y coordinate
- */
+static
 double _moffat_for_xy_r(AnalyticProfile *sp,
                         double x, double y,
                         double r, bool reuse_r) {
@@ -99,9 +96,6 @@ double MoffatProfile::adjust_acc() {
 }
 
 
-/**
- * Constructor with sane defaults
- */
 MoffatProfile::MoffatProfile() :
 	AnalyticProfile(),
 	fwhm(3), con(2)
