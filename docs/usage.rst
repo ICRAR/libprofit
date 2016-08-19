@@ -34,6 +34,17 @@ are appended to the model, which is then evaluated.
 
 The basic usage pattern then is as follows:
 
+#. Add the necessary includes::
+
+	 /* Mandatory */
+	 #include <profit/profit.h>
+	 /* Depending on which profiles you will use... */
+	 #include <profit/sersic.h>
+	 #include <profit/ferrer.h>
+	 #include <profit/moffat.h>
+	 #include <profit/sky.h>
+	 #include <profit/psf.h>
+
 #. First obtain a model instance::
 
 	 Model *model = new Model();
