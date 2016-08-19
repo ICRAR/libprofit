@@ -27,8 +27,8 @@
 #include <cmath>
 #include <algorithm>
 
-#include "radial.h"
-#include "utils.h"
+#include "profit/radial.h"
+#include "profit/utils.h"
 
 using namespace std;
 

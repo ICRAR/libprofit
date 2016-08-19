@@ -27,7 +27,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "moffat.h"
+#include "profit/moffat.h"
 
 using namespace std;
 

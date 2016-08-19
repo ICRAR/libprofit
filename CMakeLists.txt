@@ -48,7 +48,7 @@ endif( GSL_FOUND )
 
 # Common definitions for the shared lib and the binary
 add_definitions(-DPROFIT_VERSION="${PROFIT_VERSION}")
-include_directories(include)
+include_directories(${CMAKE_SOURCE_DIR})
 
 # The shared library
 set(PROFIT_SRC

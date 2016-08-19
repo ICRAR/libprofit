@@ -27,8 +27,8 @@
 #include <cmath>
 #include <algorithm>
 
-#include "ferrer.h"
-#include "utils.h"
+#include "profit/ferrer.h"
+#include "profit/utils.h"
 
 using namespace std;
 

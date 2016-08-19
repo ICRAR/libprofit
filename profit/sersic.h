@@ -26,7 +26,7 @@
 #ifndef _SERSIC_H_
 #define _SERSIC_H_
 
-#include "radial.h"
+#include "profit/radial.h"
 
 namespace profit
 {

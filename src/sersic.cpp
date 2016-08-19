@@ -27,8 +27,8 @@
 #include <cmath>
 #include <algorithm>
 
-#include "sersic.h"
-#include "utils.h"
+#include "profit/sersic.h"
+#include "profit/utils.h"
 
 using namespace std;
 

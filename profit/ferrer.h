@@ -26,7 +26,7 @@
 #ifndef _FERRER_H_
 #define _FERRER_H_
 
-#include "radial.h"
+#include "profit/radial.h"
 
 namespace profit
 {
