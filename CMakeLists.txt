@@ -74,3 +74,4 @@ target_link_libraries(profit-cli profit)
 install(TARGETS profit profit-cli
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/profit DESTINATION include)
