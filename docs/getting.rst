@@ -35,3 +35,14 @@ To compile *libprofit* run
  $> cmake ..
  $> make
  $> # optionally for system-wide installation: sudo make install
+
+With ``cmake`` you can also specify additional compilation flags.
+If you want to generate the fastest possible code try this::
+
+ $> CXXFLAGS="-O3 -march=native" cmake ..
+
+You can also specify a different installation directory like this::
+
+ $> cmake -DCMAKE_INSTALL_PREFIX=~/my/installation/directory
+
+Please refer to the ``cmake`` for further options.
