@@ -38,8 +38,8 @@ void ExampleProfile::evaluate(double *image) {
 	Model *model = this->model;
 	double x, y;
 	unsigned int i, j;
-	double half_xbin = model->xbin/2.;
-	double half_ybin = model->ybin/2.;
+	double half_xbin = model->scale_x/2.;
+	double half_ybin = model->scale_y/2.;
 
 	x = 0;
 	for (i=0; i < model->width; i++) {

@@ -155,8 +155,8 @@ An implementation of this would then look like this:
      Model *model = this->model;
      double x, y;
      unsigned int i, j;
-     double half_xbin = this->model->xbin/2.;
-     double half_ybin = this->model->ybin/2.;
+     double half_xbin = this->model->scale_x/2.;
+     double half_ybin = this->model->scale_y/2.;
 
      x = 0;
      for (i=0; i < model->width; i++) {

@@ -37,14 +37,14 @@ and is contained within the ``(0,0)`` pixel.
 
 Profiles use image coordinate to perform their calculations
 but still need to store only one value per pixel.
-For this purpose the quantities ``xbin`` and ``ybin``
-are calculated by *libprofit* and stored at the model level,
+For this purpose the quantities ``scale_x`` and ``scale_y``
+are stored by *libprofit* at the model level,
 making them available to all profiles to use.
 They indicate the width and height of each pixel
 in image coordinates.
 In most cases profiles evaluate a pixel's value
 using the pixel's center point in image coordinates;
-that is, evaluating at ``x = i*xbin + xbin/2``,
+that is, evaluating at ``x = i*scale_x + scale_x/2``,
 where ``i`` is the horizontal pixel index,
 and likewise for the vertical coordinate.
 In other cases, like in the ``sersic`` profile,
