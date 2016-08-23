@@ -106,16 +106,15 @@ Model class
    If there was any error when evaluating the model
    this field will remain unset.
 
-.. member:: unsigned int res_x
+.. member:: unsigned int scale_x
 
-   The span of the horizontal coordinate of the image that profit will generate
-   for this model.
+   The width of a single pixel in image coordinates.
    It must be greater than 0.
    See :doc:`coordinates` for more details.
 
 .. member:: unsigned int res_y
 
-   The span of the vertical image coordinate.
+   The height of a single pixel in image coordinates.
    It must be greater than 0.
    See :doc:`coordinates` for more details.
 
