@@ -68,7 +68,7 @@ class Profile {
 
 public:
 
-	Profile();
+	Profile(const Model &);
 	virtual ~Profile() = 0;
 
 	/**
@@ -90,9 +90,9 @@ public:
 	virtual void evaluate(double *image) = 0;
 
 	/**
-	 * A pointer to the model this profile belongs to
+	 * A (constant) reference to the model this profile belongs to
 	 */
-	Model *model;
+	const Model &model;
 
 	/**
 	 * Whether the resulting image of this profile should be convolved or not.

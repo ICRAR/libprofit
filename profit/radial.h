@@ -144,7 +144,7 @@ private:
 
 public:
 
-	RadialProfile();
+	RadialProfile(const Model &);
 	void validate();
 	void evaluate(double *image);
 

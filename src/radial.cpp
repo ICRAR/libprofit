@@ -116,7 +116,7 @@ void RadialProfile::initial_calculations() {
 	double box = this->box + 2;
 	double r_box = M_PI * box / (4*beta(1/box, 1 + 1/box));
 	double lumtot = this->get_lumtot(r_box);
-	this->_ie = pow(10, -0.4*(this->mag - this->model->magzero))/lumtot;
+	this->_ie = pow(10, -0.4*(this->mag - this->model.magzero))/lumtot;
 
 	/*
 	 * Optionally adjust the user-given rscale_switch and resolution parameters
@@ -176,7 +176,7 @@ void RadialProfile::validate() {
  * The scale by which each image pixel value is multiplied
  */
 double RadialProfile::get_pixel_scale() {
-	double pixel_area = this->model->scale_x * this->model->scale_y;
+	double pixel_area = this->model.scale_x * this->model.scale_y;
 	return pixel_area * this->_ie;
 }
 
@@ -195,8 +195,8 @@ void RadialProfile::evaluate(double *image) {
 	unsigned int i, j;
 	double x, y, pixel_val;
 	double x_prof, y_prof, r_prof;
-	double half_xbin = model->scale_x/2.;
-	double half_ybin = model->scale_x/2.;
+	double half_xbin = model.scale_x/2.;
+	double half_ybin = model.scale_x/2.;
 
 	this->_eval_function = this->get_evaluation_function();
 
@@ -213,14 +213,14 @@ void RadialProfile::evaluate(double *image) {
 
 	/* The middle X/Y value is used for each pixel */
 	y = 0;
-	for(j=0; j < model->height; j++) {
+	for(j=0; j < model.height; j++) {
 		y += half_ybin;
 		x = 0;
-		for(i=0; i < model->width; i++) {
+		for(i=0; i < model.width; i++) {
 			x += half_xbin;
 
 			/* We were instructed to ignore this pixel */
-			if( model->calcmask && !model->calcmask[i + j*model->width] ) {
+			if( model.calcmask && !model.calcmask[i + j*model.width] ) {
 				x += half_xbin;
 				continue;
 			}
@@ -250,7 +250,7 @@ void RadialProfile::evaluate(double *image) {
 				                                   0, max_recursions, resolution);
 			}
 
-			image[i + j*model->width] = scale * pixel_val;
+			image[i + j*model.width] = scale * pixel_val;
 			x += half_xbin;
 		}
 		y += half_ybin;
@@ -261,8 +261,8 @@ void RadialProfile::evaluate(double *image) {
 /**
  * Constructor with sane defaults
  */
-RadialProfile::RadialProfile() :
-	Profile(),
+RadialProfile::RadialProfile(const Model &model) :
+	Profile(model),
 	xcen(0), ycen(0),
 	mag(15), ang(0),
 	axrat(1), box(0),

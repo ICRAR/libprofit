@@ -35,7 +35,7 @@ namespace profit
 class SkyProfile : public Profile {
 
 public:
-	SkyProfile();
+	SkyProfile(const Model &model);
 	void validate();
 	void evaluate(double *image);
 	double bg;

@@ -95,8 +95,8 @@ double MoffatProfile::adjust_acc() {
 }
 
 
-MoffatProfile::MoffatProfile() :
-	RadialProfile(),
+MoffatProfile::MoffatProfile(const Model &model) :
+	RadialProfile(model),
 	fwhm(3), con(2)
 {
 	// no-op

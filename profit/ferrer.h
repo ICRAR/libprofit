@@ -62,7 +62,7 @@ public:
 	/**
 	 * Constructor
 	 */
-	FerrerProfile();
+	FerrerProfile(const Model &);
 
 	/*
 	 * -------------------------

@@ -63,7 +63,8 @@ const char *invalid_parameter::what() const throw() {
 	return m_what.c_str();
 }
 
-Profile::Profile() :
+Profile::Profile(const Model &model) :
+	model(model),
 	convolve(false)
 {
 	// no-op
@@ -90,26 +91,25 @@ Profile* Model::add_profile(string profile_name) {
 
 	Profile *profile = NULL;
 	if( profile_name == "sky" ) {
-		profile = static_cast<Profile *>(new SkyProfile());
+		profile = static_cast<Profile *>(new SkyProfile(*this));
 	}
 	else if ( profile_name == "sersic" ) {
-		profile = static_cast<Profile *>(new SersicProfile());
+		profile = static_cast<Profile *>(new SersicProfile(*this));
 	}
 	else if ( profile_name == "moffat" ) {
-		profile = static_cast<Profile *>(new MoffatProfile());
+		profile = static_cast<Profile *>(new MoffatProfile(*this));
 	}
 	else if ( profile_name == "ferrer" ) {
-		profile = static_cast<Profile *>(new FerrerProfile());
+		profile = static_cast<Profile *>(new FerrerProfile(*this));
 	}
 	else if ( profile_name == "psf" ) {
-		profile = static_cast<Profile *>(new PsfProfile());
+		profile = static_cast<Profile *>(new PsfProfile(*this));
 	}
 
 	if( profile == NULL ) {
 		return NULL;
 	}
 
-	profile->model = this;
 	profile->name = profile_name;
 	this->profiles.push_back(profile);
 	return profile;

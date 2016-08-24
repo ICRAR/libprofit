@@ -66,7 +66,7 @@ public:
 	/**
 	 * Constructor
 	 */
-	SersicProfile();
+	SersicProfile(const Model &);
 
 	/*
 	 * -------------------------

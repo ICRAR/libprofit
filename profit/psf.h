@@ -34,7 +34,8 @@ namespace profit
 class PsfProfile : public Profile {
 
 public:
-	PsfProfile();
+
+	PsfProfile(const Model &);
 	void validate();
 	void evaluate(double *image);
 	double xcen;
