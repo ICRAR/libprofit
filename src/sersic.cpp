@@ -205,7 +205,7 @@ inline double _invexp<false>(const double nser, const double exponent)
 /*
  * The main sersic evaluation function for a given X/Y coordinate
  */
-template <bool boxy, nser_t t>
+template <bool boxy, nser_t t> static
 double _sersic_for_xy_r(const RadialProfile &slp,
                         double x, double y,
                         double r, bool reuse_r) {

@@ -41,6 +41,7 @@ void PsfProfile::validate()  {
 
 }
 
+static inline
 unsigned int bind(double value, unsigned int max) {
 	int intval = static_cast<int>(floor(value));
 	if( intval < 0 ) {
