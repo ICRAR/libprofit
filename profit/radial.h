@@ -37,7 +37,7 @@ namespace profit
 {
 
 class RadialProfile;
-typedef double (*eval_function_t)(RadialProfile *, double, double, double, bool);
+typedef double (*eval_function_t)(const RadialProfile &, double, double, double, bool);
 
 /**
  * The case class for radial profiles.
