@@ -68,7 +68,16 @@ class Profile {
 
 public:
 
-	Profile(const Model &);
+	/**
+	 * Constructor
+	 *
+	 * \param model The model this profile belongs to
+	 */
+	Profile(const Model & model);
+
+	/**
+	 * Destructor
+	 */
 	virtual ~Profile() = 0;
 
 	/**
@@ -121,6 +130,7 @@ public:
 
 	/**
 	 * Constructor
+	 *
 	 * It creates a new model to which profiles can be added, and that can be
 	 * used to calculate an image.
 	 */
@@ -128,6 +138,7 @@ public:
 
 	/**
 	 * Destructor.
+	 *
 	 * It frees all the resources used by the given model, after which it cannot
 	 * be used anymore.
 	 */
@@ -162,16 +173,18 @@ public:
 	unsigned int height;
 
 	/**
-	 * The horizontal scale used to convert pixels into image coordinates
+	 * The X scale; that is, the width of a single pixel in image coordinates
 	 */
 	double scale_x;
 
 	/**
-	 * The vertical scale used to convert pixels into image coordinates
+	 * The Y scale; that is, the height of a single pixel in image coordinates
 	 */
 	double scale_y;
 
-	/* The base magnitude applied to all models */
+	/**
+	 * The base magnitude applied to all models
+	 */
 	double magzero;
 
 	/**
@@ -190,17 +203,21 @@ public:
 	unsigned int psf_height;
 
 	/**
-	 * The horizontal scale used to convert psf pixels into image coordinates
+	 * The PSF's X scale; that is, the width of a single PSF pixel in image
+	 * coordinates
 	 */
 	double psf_scale_x;
 
 	/**
-	 * The vertical scale used to convert psf pixels into image coordinates
+	 * The PSF's Y scale; that is, the height of a single PSF pixel in image
+	 * coordinates
 	 */
 	double psf_scale_y;
 
-	/*
-	 * Used to limit the profile calculation only to a given area
+	/**
+	 * The calculation mask. If given it must be the same size of the expected
+	 * output image, and its values are used to limit the profile calculation
+	 * only to a given area (i.e., those cells where the value is ``true``).
 	 */
 	bool *calcmask;
 

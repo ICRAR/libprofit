@@ -31,6 +31,12 @@
 namespace profit
 {
 
+/**
+ * A PSF profile.
+ *
+ * PSF profiles simply add the normalized PSF image (for a given magnitude)
+ * in a given position onto the model's image.
+ */
 class PsfProfile : public Profile {
 
 public:
@@ -38,12 +44,21 @@ public:
 	PsfProfile(const Model &);
 	void validate();
 	void evaluate(double *image);
-	double xcen;
-	double ycen;
-	double mag;
 
-	/* This is calculated from mag */
-	double scale;
+	/**
+	 * The X center of this profile
+	 */
+	double xcen;
+
+	/**
+	 * The Y center of this profile
+	 */
+	double ycen;
+
+	/**
+	 * The magnitude of this profile, based on the model's magnitude
+	 */
+	double mag;
 };
 
 } /* namespace profit */
