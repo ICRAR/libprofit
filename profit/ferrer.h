@@ -61,8 +61,10 @@ public:
 
 	/**
 	 * Constructor
+	 *
+	 * @param model The model this profile belongs to
 	 */
-	FerrerProfile(const Model &);
+	FerrerProfile(const Model & model);
 
 	/*
 	 * -------------------------

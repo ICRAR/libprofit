@@ -71,7 +71,7 @@ public:
 	/**
 	 * Constructor
 	 *
-	 * \param model The model this profile belongs to
+	 * @param model The model this profile belongs to
 	 */
 	Profile(const Model & model);
 

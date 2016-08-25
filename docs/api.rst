@@ -18,16 +18,32 @@ Exceptions
 .. doxygenclass:: profit::invalid_parameter
    :project: libprofit
 
-Profile class
--------------
-
-.. doxygenclass:: profit::Profile
-   :project: libprofit
-   :members:
-
 Model class
 -----------
 
 .. doxygenclass:: profit::Model
-   :project: libprofit
+   :members:
+
+Profile classes
+---------------
+
+.. doxygenclass:: profit::Profile
+   :members:
+
+.. doxygenclass:: profit::RadialProfile
+   :members:
+
+.. doxygenclass:: profit::SersicProfile
+   :members:
+
+.. doxygenclass:: profit::MoffatProfile
+   :members:
+
+.. doxygenclass:: profit::FerrerProfile
+   :members:
+
+.. doxygenclass:: profit::PsfProfile
+   :members:
+
+.. doxygenclass:: profit::SkyProfile
    :members:

@@ -61,6 +61,8 @@ public:
 
 	/**
 	 * Constructor
+	 *
+	 * @param model The model this profile belongs to
 	 */
 	MoffatProfile(const Model &);
 

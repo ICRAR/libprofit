@@ -41,9 +41,26 @@ class PsfProfile : public Profile {
 
 public:
 
+	/**
+	 * Constructor
+	 *
+	 * @param model The model this profile belongs to
+	 */
 	PsfProfile(const Model &);
+
+	/*
+	 * ---------------------------------------------
+	 * Pure virtual functions implementations follow
+	 * ---------------------------------------------
+	 */
 	void validate();
 	void evaluate(double *image);
+
+	/*
+	 * -------------------------
+	 * Profile parameters follow
+	 * -------------------------
+	 */
 
 	/**
 	 * The X center of this profile
@@ -59,6 +76,7 @@ public:
 	 * The magnitude of this profile, based on the model's magnitude
 	 */
 	double mag;
+
 };
 
 } /* namespace profit */

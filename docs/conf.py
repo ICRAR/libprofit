@@ -39,6 +39,7 @@ extensions = ['breathe']
 breathe_projects = {
     'libprofit': 'doxygen-output/xml'
 }
+breathe_default_project = 'libprofit'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
