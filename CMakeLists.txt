@@ -53,6 +53,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 # The shared library
 set(PROFIT_SRC
    src/convolve.cpp
+   src/coresersic.cpp
    src/ferrer.cpp
    src/moffat.cpp
    src/profit.cpp

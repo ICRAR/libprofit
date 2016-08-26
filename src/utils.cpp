@@ -24,6 +24,8 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "profit/utils.h"
+
 /*
  * We use either GSL or R to provide the low-level
  * beta, gamma and pgamma and qgamma functions needed by some profiles.
@@ -32,9 +34,13 @@
 #if defined(HAVE_GSL)
 	#include <gsl/gsl_cdf.h>
 	#include <gsl/gsl_sf_gamma.h>
+	#include <gsl/gsl_integration.h>
 #elif defined(HAVE_R)
 	#define R_NO_REMAP
+	#include <R.h>
 	#include <Rmath.h>
+	#include <R_ext/Applic.h>
+
 #else
 	#error("No high-level library (GSL or R) provided")
 #endif
@@ -123,6 +129,22 @@ double beta(double a, double b) {
 	return gsl_sf_beta(a, b);
 }
 
+double integrate_qagi(integration_func_t f, double a, void *params) {
+
+	size_t limit = 100;
+	gsl_integration_workspace *w = gsl_integration_workspace_alloc (limit);
+	gsl_function F;
+	F.function = f;
+	F.params = params;
+	double epsabs = 1e-4, epsrel = 1e-4;
+	double result, abserr;
+
+	gsl_integration_qagiu(&F, a, epsabs, epsrel, limit, w, &result, &abserr);
+	gsl_integration_workspace_free (w);
+
+	return result;
+}
+
 /* R-based functions -- get rid of simple R-exported names first */
 #elif defined(HAVE_R)
 #undef qgamma
@@ -144,6 +166,41 @@ double gammafn(double x) {
 
 double beta(double a, double b) {
 	return ::Rf_beta(a, b);
+}
+
+struct __r_integrator_args {
+	integration_func_t f;
+	void *params;
+};
+
+static
+void __r_integrator(double *x, int n, void *ex) {
+	struct __r_integrator_args *int_args = (struct __r_integrator_args *)ex;
+	for(auto i=0; i<n; i++) {
+		x[i] = int_args->f(x[i], int_args->params);
+	}
+}
+
+double integrate_qagi(integration_func_t f, double a, void *params) {
+
+	int neval, ier, last, inf = 1;
+	int limit = 100;
+	int lenw = 4 * limit;
+	int *iwork = new int[limit];
+	double *work = new double[lenw];
+	double result, abserr;
+	double epsabs = 1e-4, epsrel = 1e-4;
+	struct __r_integrator_args int_args = {f, params};
+
+	::Rdqagi(&__r_integrator, &int_args, &a, &inf,
+	         &epsabs, &epsrel, &result, &abserr, &neval, &ier,
+	         &limit, &lenw, &last,
+	         iwork, work);
+
+	delete [] iwork;
+	delete [] work;
+
+	return result;
 }
 
 #endif
