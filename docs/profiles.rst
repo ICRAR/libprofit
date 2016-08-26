@@ -84,6 +84,28 @@ with:
 * **a**: The global power-law slope to the profile center
 * **b**: The strength of truncation as the radius approaches **rout**.
 
+``coresersic``
+--------------
+
+The coresersic profile works in exactly the same way as the sersic profile.
+In addition to the ``re`` and ``nser`` parameters from the ``sersic`` profile
+it also adds:
+
+* **rb**: The transition radius of the sersic profile.
+* **a**: The strength of the transition from inner core to outer sersic
+* **b**: The inner power-law of the core sersic.
+
+``king``
+--------
+
+The king profile works in exactly the same way as the sersic profile.
+It replaces the ``re`` and ``nser`` parameters from the ``sersic`` profile
+with:
+
+* **rc**: The effective radius of the sersic component.
+* **rt**: The transition radius of the sersic profile
+* **a**: The power-law of the King.
+
 ``sky``
 -------
 

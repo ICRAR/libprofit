@@ -42,6 +42,12 @@ Profile classes
 .. doxygenclass:: profit::FerrerProfile
    :members:
 
+.. doxygenclass:: profit::CoreSersicProfile
+   :members:
+
+.. doxygenclass:: profit::KingProfile
+   :members:
+
 .. doxygenclass:: profit::PsfProfile
    :members:
 
