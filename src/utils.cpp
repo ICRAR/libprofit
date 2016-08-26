@@ -36,8 +36,6 @@
 	#include <gsl/gsl_sf_gamma.h>
 	#include <gsl/gsl_integration.h>
 #elif defined(HAVE_R)
-	#define R_NO_REMAP
-	#include <R.h>
 	#include <Rmath.h>
 	#include <R_ext/Applic.h>
 
@@ -145,27 +143,23 @@ double integrate_qagi(integration_func_t f, double a, void *params) {
 	return result;
 }
 
-/* R-based functions -- get rid of simple R-exported names first */
+/* Rmath-based functions -- get rid of simple R-exported names first */
 #elif defined(HAVE_R)
-#undef qgamma
-#undef pgamma
-#undef gammafn
-#undef beta
 
 double qgamma(double p, double shape) {
-	return ::Rf_qgamma(p, shape, 1, 1, 0);
+	return ::qgamma(p, shape, 1, 1, 0);
 }
 
 double pgamma(double q, double shape) {
-	return ::Rf_pgamma(q, shape, 1, 1, 0);
+	return ::pgamma(q, shape, 1, 1, 0);
 }
 
 double gammafn(double x) {
-	return ::Rf_gammafn(x);
+	return ::gammafn(x);
 }
 
 double beta(double a, double b) {
-	return ::Rf_beta(a, b);
+	return ::beta(a, b);
 }
 
 struct __r_integrator_args {
