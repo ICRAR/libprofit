@@ -29,6 +29,8 @@
 #include "profit/coresersic.h"
 #include "profit/utils.h"
 
+using namespace std;
+
 namespace profit
 {
 
