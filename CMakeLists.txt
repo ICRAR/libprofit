@@ -59,6 +59,7 @@ set(PROFIT_SRC
    src/convolve.cpp
    src/coresersic.cpp
    src/ferrer.cpp
+   src/king.cpp
    src/moffat.cpp
    src/profit.cpp
    src/psf.cpp

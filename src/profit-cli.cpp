@@ -39,6 +39,7 @@
 
 #include "profit/coresersic.h"
 #include "profit/ferrer.h"
+#include "profit/king.h"
 #include "profit/moffat.h"
 #include "profit/profit.h"
 #include "profit/psf.h"
@@ -216,6 +217,31 @@ bool _keyval_to_coresersic(Profile *p, const string &key, const string &val) {
 	return false;
 }
 
+bool _keyval_to_king(Profile *p, const string &key, const string &val) {
+	KingProfile *cs = static_cast<KingProfile *>(p);
+	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  cs->xcen);
+	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  cs->ycen);
+	_READ_DOUBLE_OR_FAIL(key, val, "mag",   cs->mag);
+	_READ_DOUBLE_OR_FAIL(key, val, "rt",    cs->rt);
+	_READ_DOUBLE_OR_FAIL(key, val, "rc",    cs->rc);
+	_READ_DOUBLE_OR_FAIL(key, val, "a",     cs->a);
+	_READ_DOUBLE_OR_FAIL(key, val, "ang",   cs->ang);
+	_READ_DOUBLE_OR_FAIL(key, val, "axrat", cs->axrat);
+	_READ_DOUBLE_OR_FAIL(key, val, "box",   cs->box);
+
+	_READ_BOOL_OR_FAIL(  key, val, "rough",          cs->rough);
+	_READ_DOUBLE_OR_FAIL(key, val, "acc",            cs->acc);
+	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  cs->rscale_switch);
+	_READ_UINT_OR_FAIL(  key, val, "resolution",     cs->resolution);
+	_READ_UINT_OR_FAIL(  key, val, "max_recursions", cs->max_recursions);
+	_READ_BOOL_OR_FAIL(  key, val, "adjust",         cs->adjust);
+
+	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     cs->rscale_max);
+
+	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
+	return false;
+}
+
 bool _keyval_to_sky(Profile *p, const string &key, const string &val) {
 	SkyProfile *s = static_cast<SkyProfile *>(p);
 	_READ_DOUBLE_OR_FAIL(key, val, "bg",  s->bg);
@@ -292,6 +318,9 @@ void parse_profile(Model &model, const string &description) {
 	}
 	else if( !description.compare(0, 10, "coresersic") ) {
 		desc_to_profile(model, subdesc, "coresersic", &_keyval_to_coresersic);
+	}
+	else if( !description.compare(0, 4, "king") ) {
+		desc_to_profile(model, subdesc, "king", &_keyval_to_king);
 	}
 	else if( !description.compare(0, 3, "sky") ) {
 		desc_to_profile(model, subdesc, "sky", &_keyval_to_sky);
@@ -422,8 +451,9 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file," * moffat: fwhm, con\n");
 	fprintf(file," * ferrer: a, b, rout\n");
 	fprintf(file," * coresersic: re, nser, rb, a, b\n");
+	fprintf(file," * king: rc, rt, a\n");
 	fprintf(file,"\
- * sersic, moffat, ferrer, coresersic: xcen, ycen, mag, box, ang, axrat,\n\
+ * sersic, moffat, ferrer, coresersic, king: xcen, ycen, mag, box, ang, axrat,\n\
                            rough, rscale_switch, max_recursions,\n\
                            resolution, acc, rscale_max, adjust\n\n");
 	fprintf(file,"For more information visit https://libprofit.readthedocs.io.\n\n");

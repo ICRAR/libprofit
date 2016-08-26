@@ -92,6 +92,18 @@ typedef double (*integration_func_t)(double x, void *params);
  */
 double integrate_qagi(integration_func_t f, double a, void *params);
 
+/**
+ * Integrates the function `f` on the defined interval (a, b) using the
+ * QAG algorithm (originally from QUADPACK).
+ *
+ * @param f The function to integrate
+ * @param a The beginning of the integration interval
+ * @param b The end of the integration interval
+ * @param params A void pointer to any extra data needed by `f`
+ * @return The integration result
+ */
+double integrate_qags(integration_func_t f, double a, double b, void *params);
+
 } /* namespace profit */
 
 #endif /* _UTILS_H_ */

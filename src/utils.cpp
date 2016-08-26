@@ -127,7 +127,9 @@ double beta(double a, double b) {
 	return gsl_sf_beta(a, b);
 }
 
-double integrate_qagi(integration_func_t f, double a, void *params) {
+static
+double __gsl_integrate_qag(integration_func_t f, void *params,
+                           double a, double b, bool to_infinity) {
 
 	size_t limit = 100;
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc (limit);
@@ -137,10 +139,23 @@ double integrate_qagi(integration_func_t f, double a, void *params) {
 	double epsabs = 1e-4, epsrel = 1e-4;
 	double result, abserr;
 
-	gsl_integration_qagiu(&F, a, epsabs, epsrel, limit, w, &result, &abserr);
+	if( to_infinity ) {
+		gsl_integration_qagiu(&F, a, epsabs, epsrel, limit, w, &result, &abserr);
+	}
+	else {
+		gsl_integration_qags(&F, a, b, epsabs, epsrel, limit, w, &result, &abserr);
+	}
 	gsl_integration_workspace_free (w);
 
 	return result;
+}
+
+double integrate_qagi(integration_func_t f, double a, void *params) {
+	return __gsl_integrate_qag(f, params, a, 0, true);
+}
+
+double integrate_qags(integration_func_t f, double a, double b, void *params) {
+	return __gsl_integrate_qag(f, params, a, b, false);
 }
 
 /* Rmath-based functions -- get rid of simple R-exported names first */
@@ -175,9 +190,11 @@ void __r_integrator(double *x, int n, void *ex) {
 	}
 }
 
-double integrate_qagi(integration_func_t f, double a, void *params) {
+static
+double __r_integrate_qag(integration_func_t f, void *params,
+                       double a, double b, bool to_infinity) {
 
-	int neval, ier, last, inf = 1;
+	int neval, ier, last;
 	int limit = 100;
 	int lenw = 4 * limit;
 	int *iwork = new int[limit];
@@ -186,15 +203,32 @@ double integrate_qagi(integration_func_t f, double a, void *params) {
 	double epsabs = 1e-4, epsrel = 1e-4;
 	struct __r_integrator_args int_args = {f, params};
 
-	::Rdqagi(&__r_integrator, &int_args, &a, &inf,
-	         &epsabs, &epsrel, &result, &abserr, &neval, &ier,
-	         &limit, &lenw, &last,
-	         iwork, work);
+	if( to_infinity ) {
+		int inf = 1;
+		::Rdqagi(&__r_integrator, &int_args, &a, &inf,
+		         &epsabs, &epsrel, &result, &abserr, &neval, &ier,
+		         &limit, &lenw, &last,
+		         iwork, work);
+	}
+	else {
+		::Rdqags(&__r_integrator, &int_args, &a, &b,
+		         &epsabs, &epsrel, &result, &abserr, &neval, &ier,
+		         &limit, &lenw, &last,
+		         iwork, work);
+	}
 
 	delete [] iwork;
 	delete [] work;
 
 	return result;
+}
+
+double integrate_qagi(integration_func_t f, double a, void *params) {
+	return __r_integrate_qag(f, params, a, 0, true);
+}
+
+double integrate_qags(integration_func_t f, double a, double b, void *params) {
+	return __r_integrate_qag(f, params, a, b, false);
 }
 
 #endif
