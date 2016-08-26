@@ -79,9 +79,6 @@ void tokenize(const string &s, vector<string> &tokens, const string &delims) {
 
 }
 
-void _parse_profile_value(const string &profile_name, const string &token, const vector<string> &name_and_value) {
-}
-
 #define _READ_DOUBLE_OR_FAIL(key, val, name, dst) \
 	do { \
 		char *endptr; \
