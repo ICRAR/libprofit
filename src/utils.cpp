@@ -39,6 +39,35 @@
 	#include <Rmath.h>
 	#include <R_ext/Applic.h>
 
+	/*
+	 * R and Rmath play a tricky game where functions with "fully qualified
+	 * names" (e.g., Rf_qgamma) are present only when compiling code with
+	 * undef(MATHLIB_STANDALONE) || undef(R_NO_REMAP_RMATH).
+	 * We currently use the same names in some of our functions. On the other
+	 * hand we compile this code both using the stand-alone Rmath library and
+	 * as part of an R extension. This means that:
+	 *
+	 * * When compiling as standalone we can't access the Rf_* names and
+	 * * When compiling as an R extension our function names are replaced during
+	 *   pre-processing with Rf_* names, and our namespace ends up containing
+	 *   functions like profit::Rf_qgamma.
+	 *
+	 * The code below solves these two problems by avoiding name clashes and
+	 * letting us use the Rf_* names in our code seamessly. In the future we may
+	 * want to change our function names and be safer
+	 */
+	#if defined(MATHLIB_STANDALONE)
+	#define Rf_qgamma   qgamma
+	#define Rf_pgamma   pgamma
+	#define Rf_gammafn  gammafn
+	#define Rf_beta     beta
+	#else
+	#undef qgamma
+	#undef pgamma
+	#undef gammafn
+	#undef beta
+	#endif
+
 #else
 	#error("No high-level library (GSL or R) provided")
 #endif
@@ -109,7 +138,9 @@ void normalize(double *image, unsigned int img_width, unsigned int img_height) {
 
 }
 
-/* GSL-based functions */
+/*
+ * GSL-based functions
+ */
 #if defined(HAVE_GSL)
 double qgamma(double p, double shape) {
 	return gsl_cdf_gamma_Pinv(p, shape, 1);
@@ -158,23 +189,25 @@ double integrate_qags(integration_func_t f, double a, double b, void *params) {
 	return __gsl_integrate_qag(f, params, a, b, false);
 }
 
-/* Rmath-based functions -- get rid of simple R-exported names first */
+/*
+ * R-based functions
+ */
 #elif defined(HAVE_R)
 
 double qgamma(double p, double shape) {
-	return ::qgamma(p, shape, 1, 1, 0);
+	return ::Rf_qgamma(p, shape, 1, 1, 0);
 }
 
 double pgamma(double q, double shape) {
-	return ::pgamma(q, shape, 1, 1, 0);
+	return ::Rf_pgamma(q, shape, 1, 1, 0);
 }
 
 double gammafn(double x) {
-	return ::gammafn(x);
+	return ::Rf_gammafn(x);
 }
 
 double beta(double a, double b) {
-	return ::beta(a, b);
+	return ::Rf_beta(a, b);
 }
 
 struct __r_integrator_args {
