@@ -117,8 +117,7 @@ KingProfile::KingProfile(const Model &model) :
 	RadialProfile(model),
 	rc(1), rt(3), a(2)
 {
-	// this profile defaults to a different accuracy
-	
+	// no-op
 }
 
 } /* namespace profit */
