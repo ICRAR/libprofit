@@ -1,7 +1,8 @@
 API
 ===
 
-.. contents::
+.. contents:: Contents
+   :local:
 
 *libprofit* has two main data types:
 the model class (:class:`Model`)

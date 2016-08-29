@@ -5,7 +5,8 @@ Adding a profile
 .. highlight:: cpp
 .. namespace:: profit
 
-.. contents::
+.. contents:: Contents
+   :local:
 
 This section explains
 the steps required to add a new profile to *libprofit*.

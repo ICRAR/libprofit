@@ -1,7 +1,8 @@
 Profiles
 ========
 
-.. contents::
+.. contents:: Contents
+   :local:
 
 This section lists the profiles currently supported by *libprofit*.
 
