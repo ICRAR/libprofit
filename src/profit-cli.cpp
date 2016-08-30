@@ -79,198 +79,120 @@ void tokenize(const string &s, vector<string> &tokens, const string &delims) {
 
 }
 
-#define _READ_DOUBLE_OR_FAIL(key, val, name, dst) \
-	do { \
-		char *endptr; \
-		double tmp; \
-		if ( key == name ) { \
-			tmp = strtod(val.c_str(), &endptr); \
-			if( tmp == 0 && endptr == val ) { \
-				ostringstream os; \
-				os << "Invalid double value for " << key << ": " << val; \
-				throw invalid_cmdline(os.str()); \
-			} \
-			dst = tmp;\
-			return true; \
-		} \
-	} while(0);
+template <typename T, typename F>
+void read_from_string(const string& key, string &val, const string &name, T &tgt, F reader) {
 
-#define _READ_FROM_LONGINT_OR_FAIL(key, val, name, dst, TYPE) \
-	do { \
-		char *endptr; \
-		long int tmp; \
-		if ( key == name ) { \
-			tmp = strtol(val.c_str(), &endptr, 10); \
-			if( tmp == 0 && endptr == val ) { \
-				ostringstream os; \
-				os << "Invalid integer value for " << key << ": " << val; \
-				throw invalid_cmdline(os.str()); \
-			} \
-			dst = (TYPE)tmp;\
-			return true; \
-		} \
-	} while(0);
+	if( val.empty() || key != name ) {
+		return;
+	}
 
-#define _READ_BOOL_OR_FAIL(key, val, name, dst) _READ_FROM_LONGINT_OR_FAIL(key, val, name, dst, bool)
-#define _READ_UINT_OR_FAIL(key, val, name, dst) _READ_FROM_LONGINT_OR_FAIL(key, val, name, dst, unsigned int)
-
-
-bool _keyval_to_sersic(Profile *p, const string &key, const string &val) {
-	SersicProfile *s = static_cast<SersicProfile *>(p);
-	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  s->xcen);
-	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  s->ycen);
-	_READ_DOUBLE_OR_FAIL(key, val, "mag",   s->mag);
-	_READ_DOUBLE_OR_FAIL(key, val, "re",    s->re);
-	_READ_DOUBLE_OR_FAIL(key, val, "nser",  s->nser);
-	_READ_DOUBLE_OR_FAIL(key, val, "ang",   s->ang);
-	_READ_DOUBLE_OR_FAIL(key, val, "axrat", s->axrat);
-	_READ_DOUBLE_OR_FAIL(key, val, "box",   s->box);
-
-	_READ_BOOL_OR_FAIL(  key, val, "rough",          s->rough);
-	_READ_DOUBLE_OR_FAIL(key, val, "acc",            s->acc);
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  s->rscale_switch);
-	_READ_UINT_OR_FAIL(  key, val, "resolution",     s->resolution);
-	_READ_UINT_OR_FAIL(  key, val, "max_recursions", s->max_recursions);
-	_READ_BOOL_OR_FAIL(  key, val, "adjust",         s->adjust);
-
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     s->rscale_max);
-	_READ_BOOL_OR_FAIL(  key, val, "rescale_flux",   s->rescale_flux);
-
-	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
-	return false;
+	try {
+		tgt = reader(val);
+		val.erase();
+	} catch(invalid_argument &e) {
+		ostringstream os;
+		os << "Invalid double value '" << val << "' for " << key;
+		throw invalid_cmdline(os.str());
+	}
 }
 
-bool _keyval_to_moffat(Profile *p, const string &key, const string &val) {
-	MoffatProfile *m = static_cast<MoffatProfile *>(p);
-	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  m->xcen);
-	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  m->ycen);
-	_READ_DOUBLE_OR_FAIL(key, val, "mag",   m->mag);
-	_READ_DOUBLE_OR_FAIL(key, val, "fwhm",  m->fwhm);
-	_READ_DOUBLE_OR_FAIL(key, val, "con",   m->con);
-	_READ_DOUBLE_OR_FAIL(key, val, "ang",   m->ang);
-	_READ_DOUBLE_OR_FAIL(key, val, "axrat", m->axrat);
-	_READ_DOUBLE_OR_FAIL(key, val, "box",   m->box);
-
-	_READ_BOOL_OR_FAIL(  key, val, "rough",          m->rough);
-	_READ_DOUBLE_OR_FAIL(key, val, "acc",            m->acc);
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  m->rscale_switch);
-	_READ_UINT_OR_FAIL(  key, val, "resolution",     m->resolution);
-	_READ_UINT_OR_FAIL(  key, val, "max_recursions", m->max_recursions);
-	_READ_BOOL_OR_FAIL(  key, val, "adjust",         m->adjust);
-
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     m->rscale_max);
-
-	return false;
+void read_double(const string &key, string &val, const string &name, double &tgt) {
+	read_from_string(key, val, name, tgt, [](const string &v){return stod(v);});
 }
 
-bool _keyval_to_ferrer(Profile *p, const string &key, const string &val) {
-	FerrerProfile *f = static_cast<FerrerProfile *>(p);
-	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  f->xcen);
-	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  f->ycen);
-	_READ_DOUBLE_OR_FAIL(key, val, "mag",   f->mag);
-	_READ_DOUBLE_OR_FAIL(key, val, "rout",  f->rout);
-	_READ_DOUBLE_OR_FAIL(key, val, "a",     f->a);
-	_READ_DOUBLE_OR_FAIL(key, val, "b",     f->b);
-	_READ_DOUBLE_OR_FAIL(key, val, "ang",   f->ang);
-	_READ_DOUBLE_OR_FAIL(key, val, "axrat", f->axrat);
-	_READ_DOUBLE_OR_FAIL(key, val, "box",   f->box);
-
-	_READ_BOOL_OR_FAIL(  key, val, "rough",          f->rough);
-	_READ_DOUBLE_OR_FAIL(key, val, "acc",            f->acc);
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  f->rscale_switch);
-	_READ_UINT_OR_FAIL(  key, val, "resolution",     f->resolution);
-	_READ_UINT_OR_FAIL(  key, val, "max_recursions", f->max_recursions);
-	_READ_BOOL_OR_FAIL(  key, val, "adjust",         f->adjust);
-
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     f->rscale_max);
-
-	return false;
+void read_uint(const string &key, string &val, const string &name, unsigned int &tgt) {
+	read_from_string(key, val, name, tgt, [](const string &v){return stoul(v, nullptr, 10);});
 }
 
-bool _keyval_to_coresersic(Profile *p, const string &key, const string &val) {
-	CoreSersicProfile *cs = static_cast<CoreSersicProfile *>(p);
-	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  cs->xcen);
-	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  cs->ycen);
-	_READ_DOUBLE_OR_FAIL(key, val, "mag",   cs->mag);
-	_READ_DOUBLE_OR_FAIL(key, val, "re",    cs->re);
-	_READ_DOUBLE_OR_FAIL(key, val, "nser",  cs->nser);
-	_READ_DOUBLE_OR_FAIL(key, val, "rb",    cs->rb);
-	_READ_DOUBLE_OR_FAIL(key, val, "a",     cs->a);
-	_READ_DOUBLE_OR_FAIL(key, val, "b",     cs->b);
-	_READ_DOUBLE_OR_FAIL(key, val, "ang",   cs->ang);
-	_READ_DOUBLE_OR_FAIL(key, val, "axrat", cs->axrat);
-	_READ_DOUBLE_OR_FAIL(key, val, "box",   cs->box);
-
-	_READ_BOOL_OR_FAIL(  key, val, "rough",          cs->rough);
-	_READ_DOUBLE_OR_FAIL(key, val, "acc",            cs->acc);
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  cs->rscale_switch);
-	_READ_UINT_OR_FAIL(  key, val, "resolution",     cs->resolution);
-	_READ_UINT_OR_FAIL(  key, val, "max_recursions", cs->max_recursions);
-	_READ_BOOL_OR_FAIL(  key, val, "adjust",         cs->adjust);
-
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     cs->rscale_max);
-
-	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
-	return false;
+void read_bool(const string &key, string &val, const string &name, bool &tgt) {
+	read_from_string(key, val, name, tgt, [](const string &v){return stoul(v, nullptr, 10);});
 }
 
-bool _keyval_to_king(Profile *p, const string &key, const string &val) {
-	KingProfile *cs = static_cast<KingProfile *>(p);
-	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  cs->xcen);
-	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  cs->ycen);
-	_READ_DOUBLE_OR_FAIL(key, val, "mag",   cs->mag);
-	_READ_DOUBLE_OR_FAIL(key, val, "rt",    cs->rt);
-	_READ_DOUBLE_OR_FAIL(key, val, "rc",    cs->rc);
-	_READ_DOUBLE_OR_FAIL(key, val, "a",     cs->a);
-	_READ_DOUBLE_OR_FAIL(key, val, "ang",   cs->ang);
-	_READ_DOUBLE_OR_FAIL(key, val, "axrat", cs->axrat);
-	_READ_DOUBLE_OR_FAIL(key, val, "box",   cs->box);
+void _keyval_to_radial(Profile &p, const string &key, string &val) {
+	RadialProfile &r = static_cast<RadialProfile &>(p);
+	read_double(key, val, "xcen",  r.xcen);
+	read_double(key, val, "ycen",  r.ycen);
+	read_double(key, val, "mag",   r.mag);
+	read_double(key, val, "ang",   r.ang);
+	read_double(key, val, "axrat", r.axrat);
+	read_double(key, val, "box",   r.box);
 
-	_READ_BOOL_OR_FAIL(  key, val, "rough",          cs->rough);
-	_READ_DOUBLE_OR_FAIL(key, val, "acc",            cs->acc);
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_switch",  cs->rscale_switch);
-	_READ_UINT_OR_FAIL(  key, val, "resolution",     cs->resolution);
-	_READ_UINT_OR_FAIL(  key, val, "max_recursions", cs->max_recursions);
-	_READ_BOOL_OR_FAIL(  key, val, "adjust",         cs->adjust);
-
-	_READ_DOUBLE_OR_FAIL(key, val, "rscale_max",     cs->rscale_max);
-
-	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
-	return false;
+	read_bool(  key, val, "rough",          r.rough);
+	read_double(key, val, "acc",            r.acc);
+	read_double(key, val, "rscale_switch",  r.rscale_switch);
+	read_uint(  key, val, "resolution",     r.resolution);
+	read_uint(  key, val, "max_recursions", r.max_recursions);
+	read_bool(  key, val, "adjust",         r.adjust);
+	read_double(key, val, "rscale_max",     r.rscale_max);
 }
 
-bool _keyval_to_sky(Profile *p, const string &key, const string &val) {
-	SkyProfile *s = static_cast<SkyProfile *>(p);
-	_READ_DOUBLE_OR_FAIL(key, val, "bg",  s->bg);
-	_READ_BOOL_OR_FAIL(key, val, "convolve", p->convolve);
-	return false;
+void _keyval_to_sersic(Profile &p, const string &key, string &val) {
+	_keyval_to_radial(p, key, val);
+	SersicProfile &s = static_cast<SersicProfile &>(p);
+	read_double(key, val, "re",           s.re);
+	read_double(key, val, "nser",         s.nser);
+	read_bool(  key, val, "rescale_flux", s.rescale_flux);
 }
 
-bool _keyval_to_psf(Profile *p, const string &key, const string &val) {
-	PsfProfile *s = static_cast<PsfProfile *>(p);
-	_READ_DOUBLE_OR_FAIL(key, val, "xcen",  s->xcen);
-	_READ_DOUBLE_OR_FAIL(key, val, "ycen",  s->ycen);
-	_READ_DOUBLE_OR_FAIL(key, val, "mag",   s->mag);
-	return false;
+void _keyval_to_moffat(Profile &p, const string &key, string &val) {
+	_keyval_to_radial(p, key, val);
+	MoffatProfile &m = static_cast<MoffatProfile &>(p);
+	read_double(key, val, "fwhm", m.fwhm);
+	read_double(key, val, "con",  m.con);
+}
+
+void _keyval_to_ferrer(Profile &p, const string &key, string &val) {
+	_keyval_to_radial(p, key, val);
+	FerrerProfile &f = static_cast<FerrerProfile &>(p);
+	read_double(key, val, "rout", f.rout);
+	read_double(key, val, "a",    f.a);
+	read_double(key, val, "b",    f.b);
+}
+
+void _keyval_to_coresersic(Profile &p, const string &key, string &val) {
+	_keyval_to_radial(p, key, val);
+	CoreSersicProfile &cs = static_cast<CoreSersicProfile &>(p);
+	read_double(key, val, "re",   cs.re);
+	read_double(key, val, "nser", cs.nser);
+	read_double(key, val, "rb",   cs.rb);
+	read_double(key, val, "a",    cs.a);
+	read_double(key, val, "b",    cs.b);
+}
+
+void _keyval_to_king(Profile &p, const string &key, string &val) {
+	_keyval_to_radial(p, key, val);
+	KingProfile &k = static_cast<KingProfile &>(p);
+	read_double(key, val, "rt", k.rt);
+	read_double(key, val, "rc", k.rc);
+	read_double(key, val, "a",  k.a);
+}
+
+void _keyval_to_sky(Profile &p, const string &key, string &val) {
+	SkyProfile &s = static_cast<SkyProfile &>(p);
+	read_double(key, val, "bg",  s.bg);
+}
+
+void _keyval_to_psf(Profile &p, const string &key, string &val) {
+	PsfProfile &s = static_cast<PsfProfile &>(p);
+	read_double(key, val, "xcen",  s.xcen);
+	read_double(key, val, "ycen",  s.ycen);
+	read_double(key, val, "mag",   s.mag);
+}
+
+void keyval_to_profile(Profile &p, const string &key, string &val) {
+	read_bool(key, val, "convolve", p.convolve);
 }
 
 void desc_to_profile(
 	Model &model,
+	const string &name,
 	string description,
-	const char* name,
-	bool (keyval_to_param)(Profile *, const string& name, const string &value)
+	void (keyval_to_param)(Profile &, const string& name, string &value)
 ) {
 
 	string tok;
-	Profile *p;
-	bool assigned;
 
-	p = model.add_profile(name);
-	if( p == NULL ) {
-		ostringstream os;
-		os << "No profile found for profile name: " << name;
-		throw invalid_cmdline(os.str());
-	}
+	Profile &p = model.add_profile(name);
 	if( description.size() == 0 ) {
 		return;
 	}
@@ -287,8 +209,9 @@ void desc_to_profile(
 			throw invalid_cmdline(os.str());
 		}
 
-		assigned = keyval_to_param(p, name_and_value[0], name_and_value[1]);
-		if( !assigned ) {
+		keyval_to_profile(p, name_and_value[0], name_and_value[1]);
+		keyval_to_param(p, name_and_value[0], name_and_value[1]);
+		if( !name_and_value[1].empty() ) {
 			cerr << "Ignoring unknown " << name << " profile parameter: " << name_and_value[0] << endl;
 		}
 
@@ -298,48 +221,25 @@ void desc_to_profile(
 void parse_profile(Model &model, const string &description) {
 
 	/* The description might be only a name */
+	string name;
 	string subdesc;
 	string::size_type colon = description.find(':');
 	if( colon != string::npos ) {
+		name = description.substr(0, colon);
 		subdesc = description.substr(colon + 1);
 	}
-
-	if( !description.compare(0, 6, "sersic") ) {
-		desc_to_profile(model, subdesc, "sersic", &_keyval_to_sersic);
-	}
-	else if( !description.compare(0, 6, "moffat") ) {
-		desc_to_profile(model, subdesc, "moffat", &_keyval_to_moffat);
-	}
-	else if( !description.compare(0, 6, "ferrer") ) {
-		desc_to_profile(model, subdesc, "ferrer", &_keyval_to_ferrer);
-	}
-	else if( !description.compare(0, 10, "coresersic") ) {
-		desc_to_profile(model, subdesc, "coresersic", &_keyval_to_coresersic);
-	}
-	else if( !description.compare(0, 4, "king") ) {
-		desc_to_profile(model, subdesc, "king", &_keyval_to_king);
-	}
-	else if( !description.compare(0, 3, "sky") ) {
-		desc_to_profile(model, subdesc, "sky", &_keyval_to_sky);
-	}
-	else if( !description.compare(0, 3, "psf") ) {
-		desc_to_profile(model, subdesc, "psf", &_keyval_to_psf);
-	}
 	else {
-		ostringstream os;
-		os << "Unknown profile name in profile description: " << description;
-		throw invalid_cmdline(os.str());
+		name = description;
 	}
+
+	desc_to_profile(model, name, subdesc, &_keyval_to_psf);
 }
 
-double *parse_psf(string optarg,
-                  unsigned int &psf_width, unsigned int &psf_height,
-                  double &psf_scale_x, double &psf_scale_y) {
+vector<double> parse_psf(string optarg,
+                         unsigned int &psf_width, unsigned int &psf_height,
+                         double &psf_scale_x, double &psf_scale_y) {
 
-	char *endptr;
-	const char *tok;
 	unsigned int size, i = 0;
-	double *psf;
 	bool read_scales = false;
 
 	/* format is w:h:[optional scale_x:scale_y:]:val1,val2... */
@@ -360,60 +260,24 @@ double *parse_psf(string optarg,
 	}
 
 	vector<string>::iterator it = tokens.begin();
-	tok = (*it++).c_str();
-	psf_width = (unsigned int)strtoul(tok, &endptr, 10);
-	if( tok == endptr ) {
-		ostringstream os;
-		os << "Invalid value for psf's width: " << tok;
-		throw invalid_cmdline(os.str());
-	}
-
-	tok = (*it++).c_str();
-	psf_height = (unsigned int)strtoul(tok, &endptr, 10);
-	if( tok == endptr ) {
-		ostringstream os;
-		os << "Invalid value for psf's height: " << tok;
-		throw invalid_cmdline(os.str());
-	}
-
+	psf_width = stoul(*it++);
+	psf_height = stoul(*it++);
 	if( read_scales ) {
-		tok = (*it++).c_str();
-		psf_scale_x = strtod(tok, &endptr);
-		if( tok == endptr ) {
-			ostringstream os;
-			os << "Invalid value for psf's scale_x: " << tok;
-			throw invalid_cmdline(os.str());
-		}
-
-		tok = (*it++).c_str();
-		psf_scale_y = strtod(tok, &endptr);
-		if( tok == endptr ) {
-			ostringstream os;
-			os << "Invalid value for psf's scale_y: " << tok;
-			throw invalid_cmdline(os.str());
-		}
+		psf_scale_x = stod(*it++);
+		psf_scale_y = stod(*it++);
 	}
 
 	size = psf_width * psf_height;
-	psf = new double[size];
+	vector<double> psf(size);
 
 	vector<string> values;
 	tokenize(*it, values, ",");
 	i = 0;
 	for(auto value: values) {
-		const char *v = value.c_str();
-		psf[i] = strtod(v, &endptr);
-		if( psf[i] == 0 && v == endptr ) {
-			delete [] psf;
-			ostringstream os;
-			os << "Invalid floating-point value for psf: " << value;
-			throw invalid_cmdline(os.str());
-		}
-		i++;
+		psf[i++] = stod(value);
 	}
 
 	if( i != size ) {
-		delete [] psf;
 		ostringstream os;
 		os << "Not enough values provided for PSF. Provided: " << i << ", expected: " << size;
 		throw invalid_cmdline(os.str());
@@ -480,10 +344,10 @@ double swap_bytes(double v) {
 
 #define FITS_BLOCK_SIZE (36*80)
 
-double *read_image_from_fits_file(const string &filename, unsigned int &width, unsigned int &height, double &scale_x, double &scale_y) {
+vector<double> read_image_from_fits_file(const string &filename, unsigned int &width, unsigned int &height, double &scale_x, double &scale_y) {
 
 	FILE *f;
-	unsigned int i, pos, padding;
+	unsigned int pos, padding;
 	char hdr[80];
 
 	width = height = 0;
@@ -491,8 +355,9 @@ double *read_image_from_fits_file(const string &filename, unsigned int &width, u
 
 	f = fopen(filename.c_str(), "rb");
 	if( !f ) {
-		perror("Couldn't open file for reading");
-		return NULL;
+		ostringstream ss;
+		ss << "Couldn't open '" << filename << "' for reading: " << strerror(errno);
+		throw invalid_cmdline(ss.str());
 	}
 
 	/*
@@ -523,25 +388,19 @@ double *read_image_from_fits_file(const string &filename, unsigned int &width, u
 	fseek(f, padding, SEEK_CUR);
 
 	unsigned int size = width * height;
-	double *out = new double[size];
-	size_t nitems = fread(out, sizeof(double), size, f);
+	vector<double> psf(size);
+	size_t nitems = fread(psf.data(), sizeof(double), size, f);
 	fclose(f);
 	if( nitems != size ) {
-		perror("Error while reading file");
-		delete [] out;
-		return NULL;
+		throw invalid_cmdline("Error while reading file: less data found than expected");
 	}
 
 	/* data has to be big-endian */
 	if( is_little_endian() ) {
-		double *it = out;
-		for(i=0; i!=size; i++) {
-			*it = swap_bytes(*it);
-			it++;
-		}
+		transform(psf.begin(), psf.end(), psf.begin(), swap_bytes);
 	}
 
-	return out;
+	return psf;
 }
 
 int to_fits(Model &m, vector<double> image, string fname) {
@@ -661,10 +520,6 @@ int parse_and_run(int argc, char *argv[]) {
 				else {
 					m.psf = parse_psf(optarg, m.psf_width, m.psf_height, m.psf_scale_x, m.psf_scale_y);
 				}
-				if( !m.psf ) {
-					usage(stderr, argv);
-					return 1;
-				}
 				break;
 
 			case 'w':
@@ -685,11 +540,6 @@ int parse_and_run(int argc, char *argv[]) {
 
 			case 'm':
 				magzero = strtod(optarg, &endptr);
-				if( magzero == 0 && endptr == optarg ) {
-					ostringstream os;
-					os << "Invalid magzero value: " << optarg;
-					throw invalid_cmdline(os.str());
-				}
 				break;
 
 			case 't':
