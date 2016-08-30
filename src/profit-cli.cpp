@@ -547,7 +547,7 @@ double *read_image_from_fits_file(const string &filename, unsigned int &width, u
 int to_fits(Model &m, vector<double> image, string fname) {
 
 	FILE *f;
-	unsigned int i, j, pos, padding;
+	unsigned int i, pos, padding;
 	char hdr[80];
 
 	/* Append .fits if not in the name yet */
