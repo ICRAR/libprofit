@@ -32,13 +32,17 @@ project(libprofit VERSION ${PROFIT_VERSION} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules/)
 
-# Check if there's GSL or R support, in that order
-find_package(GSL)
-if( GSL_FOUND )
-	add_definitions(-DHAVE_GSL)
-	include_directories(${GSL_INCLUDE_DIRS})
-	set(profit_LIBS ${GSL_LIBRARIES})
-else ()
+# Macros to check for presence of GSL and R/Rmath
+macro(find_gsl)
+	find_package(GSL)
+	if( GSL_FOUND )
+		add_definitions(-DHAVE_GSL)
+		include_directories(${GSL_INCLUDE_DIRS})
+		set(profit_LIBS ${GSL_LIBRARIES})
+	endif()
+endmacro()
+
+macro(find_r_and_rmath)
 	find_package(PkgConfig)
 	if( PKG_CONFIG_FOUND )
 		pkg_check_modules(R libR)
@@ -49,7 +53,22 @@ else ()
 			set(profit_LIBS ${R_LIBRARIES} ${RMATH_LIBRARIES})
 		endif( R_FOUND AND RMATH_FOUND )
 	endif( PKG_CONFIG_FOUND )
-endif( GSL_FOUND )
+endmacro()
+
+# Depending on the user's preference we check GSL or R/Rmath first
+# We default to use GSL
+if( LIBPROFIT_USE_R )
+	find_r_and_rmath()
+	if( NOT R_FOUND OR NOT RMATH_FOUND)
+		find_gsl()
+	endif()
+else()
+	find_gsl()
+	if( NOT GSL_FOUND )
+		find_r_and_rmath()
+	endif()
+endif()
+
 
 # Common definitions for the shared lib and the binary
 add_definitions(-DPROFIT_VERSION="${PROFIT_VERSION}")
