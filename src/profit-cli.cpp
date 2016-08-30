@@ -544,7 +544,7 @@ double *read_image_from_fits_file(const string &filename, unsigned int &width, u
 	return out;
 }
 
-int to_fits(Model &m, string fname) {
+int to_fits(Model &m, vector<double> image, string fname) {
 
 	FILE *f;
 	unsigned int i, j, pos, padding;
@@ -599,24 +599,18 @@ int to_fits(Model &m, string fname) {
 	}
 
 	/* data has to be big-endian */
+	size_t image_size = m.width * m.height;
 	if( is_little_endian() ) {
-		double *big_endian_image = new double[m.width * m.height];
-		for(j=0; j!=m.height; j++) {
-			for(i=0; i!=m.width; i++) {
-				pos = i + j*m.width;
-				big_endian_image[pos] = swap_bytes(m.image[pos]);
-			}
-		}
-
-		/* Simply replace the model's image, nobody will use it but us */
-		delete [] m.image;
-		m.image = big_endian_image;
+		vector<double> big_endian_image(image_size);
+		transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
+		fwrite(big_endian_image.data(), sizeof(double), image_size, f);
+	}
+	else {
+		fwrite(image.data(), sizeof(double), image_size, f);
 	}
 
-	fwrite(m.image, sizeof(double), m.width * m.height, f);
-
 	/* Pad with zeroes until we complete the current 36*80 block */
-	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * m.width * m.height) % FITS_BLOCK_SIZE);
+	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * image_size) % FITS_BLOCK_SIZE);
 	string zeros(padding, 0);
 	fwrite(zeros.c_str(), 1, padding, f);
 	fclose(f);
@@ -749,9 +743,9 @@ int parse_and_run(int argc, char *argv[]) {
 	/* This means that we evaluated the model once, but who cares */
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
+	vector<double> image;
 	for(i=0; i!=iterations; i++) {
-		delete [] m.image;
-		m.evaluate();
+		image = m.evaluate();
 	}
 	gettimeofday(&end, NULL);
 	duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
@@ -759,20 +753,20 @@ int parse_and_run(int argc, char *argv[]) {
 	switch(output) {
 
 		case binary:
-			fwrite(m.image, sizeof(double), m.width * m.height, stdout);
+			fwrite(image.data(), sizeof(double), m.width * m.height, stdout);
 			break;
 
 		case text:
 			for(j=0; j!=m.height; j++) {
 				for(i=0; i!=m.width; i++) {
-					printf("%g ", m.image[j*m.width + i]);
+					printf("%g ", image[j*m.width + i]);
 				}
 				printf("\n");
 			}
 			break;
 
 		case fits:
-			if( to_fits(m, fits_output) ) {
+			if( to_fits(m, image, fits_output) ) {
 				perror("Error while saving image to FITS file");
 				return 1;
 			}

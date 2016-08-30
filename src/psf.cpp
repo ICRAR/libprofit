@@ -30,6 +30,8 @@
 #include "profit/psf.h"
 #include "profit/utils.h"
 
+using namespace std;
+
 namespace profit
 {
 
@@ -51,10 +53,10 @@ unsigned int bind(double value, unsigned int max) {
 	return std::min(uintval, max);
 }
 
-void PsfProfile::evaluate(double *image) {
+void PsfProfile::evaluate(std::vector<double> &image) {
 
 	int psf_pix_x, psf_pix_y;
-	unsigned int i, pix_x, pix_y;
+	unsigned int pix_x, pix_y;
 	double x, y, psf_x, psf_y;
 	double total = 0;
 	double scale = pow(10, -0.4*(this->mag - this->model.magzero));
@@ -142,10 +144,7 @@ void PsfProfile::evaluate(double *image) {
 	if( total != 0 ) {
 		multiplier = scale / total;
 	}
-	double *img_ptr = image;
-	for(i=0; i!=height * height; i++, img_ptr++) {
-		*img_ptr *= multiplier;
-	}
+	transform(image.begin(), image.end(), image.begin(), [=](double v) {return v*multiplier;});
 
 }
 

@@ -24,7 +24,11 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <vector>
+
 #include "profit/sky.h"
+
+using namespace std;
 
 namespace profit {
 
@@ -33,7 +37,7 @@ void SkyProfile::validate() {
 	return;
 }
 
-void SkyProfile::evaluate(double *image) {
+void SkyProfile::evaluate(vector<double> &image) {
 
 	/* Setup a pointer to iterate over the calcmask, if any */
 	bool *mask_ptr = model.calcmask;
@@ -41,10 +45,8 @@ void SkyProfile::evaluate(double *image) {
 		mask_ptr -= 1;
 	}
 
-	unsigned int i, size = model.width * model.height;
-
 	/* Fill the image with the background value */
-	for(i=0; i!=size; i++) {
+	for(auto &pixel: image) {
 
 		/* Check the calculation mask and avoid pixel if necessary  */
 		if( model.calcmask ) {
@@ -54,8 +56,7 @@ void SkyProfile::evaluate(double *image) {
 			}
 		}
 
-		*image = this->bg;
-		image++;
+		pixel = this->bg;
 	}
 }
 

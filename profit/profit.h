@@ -91,12 +91,12 @@ public:
 	 * Performs the profile evaluation and saves the resulting image into
 	 * the given `image` array. This is the main function of the profile.
 	 *
-	 * @param image The array where image values need to be stored.
-	 *              Its size is `model->width` * `model->height`.
+	 * @param image The vector where image values need to be stored.
+	 *              Its size is `model.width` * `model.height`.
 	 *              The data is organized by rows first, columns later;
 	 *               i.e pixel (x,y) is accessed by `image[y*width + x]`
 	 */
-	virtual void evaluate(double *image) = 0;
+	virtual void evaluate(std::vector<double> &image) = 0;
 
 	/**
 	 * A (constant) reference to the model this profile belongs to
@@ -154,13 +154,17 @@ public:
 	 * @param profile_name The name of the profile that should be created
 	 * @returns A new profile that corresponds to the given name; `NULL` otherwise.
 	 */
-	Profile *add_profile(std::string profile_name);
+	Profile *add_profile(const std::string &profile_name);
 
 	/**
 	 * Calculates an image using the information contained in the model.
 	 * The result of the computation is stored in the image field.
+	 *
+	 * @returns The image created by libprofit. The data is organized by rows
+	 *          first, columns later; i.e pixel ``(x,y)`` is accessed by
+	 *          ``image[y*width + x]``
 	 */
-	void evaluate();
+	std::vector<double> evaluate();
 
 	/**
 	 * The width of the model to generate
@@ -220,14 +224,6 @@ public:
 	 * only to a given area (i.e., those cells where the value is ``true``).
 	 */
 	bool *calcmask;
-
-	/**
-	 * The image created by libprofit.
-	 *
-	 * The data is organized by rows first, columns later;
-	 * i.e pixel (x,y) is accessed by image[y*width + x]
-	 */
-	double *image;
 
 	/**
 	 * A list of pointers to the individual profiles used to generate the

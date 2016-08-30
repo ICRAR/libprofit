@@ -24,14 +24,17 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstring>
+#include <vector>
+
+using namespace std;
 
 namespace profit
 {
 
-double *convolve(double *src, unsigned int src_width, unsigned int src_height,
-                 double *krn, unsigned int krn_width, unsigned int krn_height,
-                 bool *mask, bool replace){
+vector<double>
+convolve(const vector<double> &src, unsigned int src_width, unsigned int src_height,
+         const vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
+         const bool *mask){
 
 	double pixel;
 	unsigned int i, j, k, l;
@@ -40,12 +43,12 @@ double *convolve(double *src, unsigned int src_width, unsigned int src_height,
 	unsigned int krn_size = krn_width * krn_height;
 	int src_i, src_j;
 
-	double *convolution = new double[src_width * src_height];
+	vector<double> convolution(src_width * src_height);
 
-	double *out = convolution - 1;
-	double *srcPtr1 = src - 1, *srcPtr2;
-	double *krnPtr;
-	bool *maskPtr = mask;
+	double *out = convolution.data() - 1;
+	const double *srcPtr1 = src.data() - 1, *srcPtr2;
+	const double *krnPtr;
+	const bool *maskPtr = mask;
 
 	if( mask ) {
 		maskPtr -= 1;
@@ -69,7 +72,7 @@ double *convolve(double *src, unsigned int src_width, unsigned int src_height,
 			}
 
 			pixel = 0;
-			krnPtr = krn + krn_size - 1;
+			krnPtr = krn.data() + krn_size - 1;
 			srcPtr2 = srcPtr1 - krn_half_width - krn_half_height*src_width;
 
 			/* ... now loop around the kernel */
@@ -93,12 +96,6 @@ double *convolve(double *src, unsigned int src_width, unsigned int src_height,
 
 			*out = pixel;
 		}
-	}
-
-	if( replace ) {
-		src = (double *)memcpy(src, convolution, sizeof(double) * src_width * src_height);
-		delete [] convolution;
-		return src;
 	}
 
 	return convolution;

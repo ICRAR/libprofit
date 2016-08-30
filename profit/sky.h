@@ -55,7 +55,7 @@ public:
 	 * ---------------------------------------------
 	 */
 	void validate();
-	void evaluate(double *image);
+	void evaluate(std::vector<double> &image);
 
 	/*
 	 * -------------------------
