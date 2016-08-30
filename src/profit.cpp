@@ -104,7 +104,7 @@ Profile &Model::add_profile(const string &profile_name) {
 	else if ( profile_name == "moffat" ) {
 		profile = static_cast<Profile *>(new MoffatProfile(*this));
 	}
-	else if ( profile_name == "ferrer" ) {
+	else if ( profile_name == "ferrer" || profile_name == "ferrers" ) {
 		profile = static_cast<Profile *>(new FerrerProfile(*this));
 	}
 	else if ( profile_name == "coresersic" ) {
