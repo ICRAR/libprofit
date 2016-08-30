@@ -221,7 +221,7 @@ void RadialProfile::evaluate(vector<double> &image) {
 			x += half_xbin;
 
 			/* We were instructed to ignore this pixel */
-			if( model.calcmask && !model.calcmask[i + j*model.width] ) {
+			if( !model.calcmask.empty() && !model.calcmask[i + j*model.width] ) {
 				x += half_xbin;
 				continue;
 			}

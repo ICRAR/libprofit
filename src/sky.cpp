@@ -39,19 +39,15 @@ void SkyProfile::validate() {
 
 void SkyProfile::evaluate(vector<double> &image) {
 
-	/* Setup a pointer to iterate over the calcmask, if any */
-	bool *mask_ptr = model.calcmask;
-	if( mask_ptr ) {
-		mask_ptr -= 1;
-	}
+	/* In case we need to mask some pixels out */
+	auto mask_it = model.calcmask.begin();
 
 	/* Fill the image with the background value */
 	for(auto &pixel: image) {
 
 		/* Check the calculation mask and avoid pixel if necessary  */
-		if( model.calcmask ) {
-			mask_ptr++;
-			if( !*mask_ptr ) {
+		if( !model.calcmask.empty() ) {
+			if( !*mask_it++ ) {
 				continue;
 			}
 		}

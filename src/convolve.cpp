@@ -34,7 +34,7 @@ namespace profit
 vector<double>
 convolve(const vector<double> &src, unsigned int src_width, unsigned int src_height,
          const vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-         const bool *mask){
+         const vector<bool> mask){
 
 	double pixel;
 	unsigned int i, j, k, l;
@@ -48,11 +48,7 @@ convolve(const vector<double> &src, unsigned int src_width, unsigned int src_hei
 	double *out = convolution.data() - 1;
 	const double *srcPtr1 = src.data() - 1, *srcPtr2;
 	const double *krnPtr;
-	const bool *maskPtr = mask;
-
-	if( mask ) {
-		maskPtr -= 1;
-	}
+	auto mask_it = mask.begin();
 
 	/* Convolve! */
 	/* Loop around the output image first... */
@@ -63,9 +59,8 @@ convolve(const vector<double> &src, unsigned int src_width, unsigned int src_hei
 			srcPtr1++;
 
 			/* Don't convolve this pixel */
-			if( mask ) {
-				maskPtr++;
-				if( !*maskPtr ) {
+			if( !mask.empty() ) {
+				if( !*mask_it++ ) {
 					*out = 0;
 					continue;
 				}

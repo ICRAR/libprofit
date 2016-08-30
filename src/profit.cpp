@@ -81,9 +81,9 @@ Model::Model() :
 	width(0), height(0),
 	scale_x(1), scale_y(1),
 	magzero(0),
-	psf(nullptr), psf_width(0), psf_height(0),
+	psf(), psf_width(0), psf_height(0),
 	psf_scale_x(1), psf_scale_y(1),
-	calcmask(nullptr), profiles()
+	calcmask(), profiles()
 {
 	// no-op
 }
@@ -149,7 +149,7 @@ vector<double> Model::evaluate() {
 	 */
 	for(auto profile: this->profiles) {
 		if( profile->convolve ) {
-			if( !this->psf ) {
+			if( this->psf.empty() ) {
 				stringstream ss;
 				ss <<  "Profile " << profile->name << " requires convolution but no psf was provided";
 				throw invalid_parameter(ss.str());
@@ -205,8 +205,7 @@ vector<double> Model::evaluate() {
 		it++;
 	}
 	if( do_convolve ) {
-		size_t psf_size = this->psf_width * this->psf_height;
-		vector<double> psf(this->psf, this->psf + psf_size);
+		vector<double> psf(this->psf);
 		normalize(psf);
 		image = convolve(image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask);
 	}
@@ -223,12 +222,9 @@ vector<double> Model::evaluate() {
 }
 
 Model::~Model() {
-
 	for(auto profile: this->profiles) {
 		delete profile;
 	}
-	delete [] this->psf;
-	delete [] this->calcmask;
 }
 
 } /* namespace profit */

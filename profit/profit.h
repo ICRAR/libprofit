@@ -202,7 +202,7 @@ public:
 	/**
 	 * The point spread function (psf) to use when convolving images
 	 */
-	double *psf;
+	std::vector<double> psf;
 
 	/**
 	 * The psf's width
@@ -231,7 +231,7 @@ public:
 	 * output image, and its values are used to limit the profile calculation
 	 * only to a given area (i.e., those cells where the value is ``true``).
 	 */
-	bool *calcmask;
+	std::vector<bool> calcmask;
 
 private:
 
