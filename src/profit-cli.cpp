@@ -724,7 +724,7 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 
 	/* No profiles given */
-	if( !m.profiles.size() ) {
+	if( !m.has_profiles() ) {
 		usage(stderr, argv);
 		return 1;
 	}

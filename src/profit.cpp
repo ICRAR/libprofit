@@ -88,7 +88,11 @@ Model::Model() :
 	// no-op
 }
 
-Profile *Model::add_profile(const string &profile_name) {
+bool Model::has_profiles() const {
+	return this->profiles.size() > 0;
+}
+
+Profile &Model::add_profile(const string &profile_name) {
 
 	Profile * profile = nullptr;
 	if( profile_name == "sky" ) {
@@ -112,14 +116,15 @@ Profile *Model::add_profile(const string &profile_name) {
 	else if ( profile_name == "psf" ) {
 		profile = static_cast<Profile *>(new PsfProfile(*this));
 	}
-
-	if( profile == nullptr ) {
-		return nullptr;
+	else {
+		ostringstream ss;
+		ss << "Unknown profile name: " << profile_name;
+		throw invalid_parameter(ss.str());
 	}
 
 	profile->name = profile_name;
 	this->profiles.push_back(profile);
-	return profile;
+	return *profile;
 }
 
 vector<double> Model::evaluate() {

@@ -148,13 +148,21 @@ public:
 	 * Creates a new profile for the given name and adds it to the given model.
 	 * On success, the new profile is created, added to the model,
 	 * and its reference is returned for further customization.
-	 * On failure (i.e., if a profile with the given name is not supported) `NULL` is
-	 * returned and no profile is added to the model.
+	 * If a profile with the given name is not supported an invalid_parameter
+	 * exception is thrown.
 	 *
 	 * @param profile_name The name of the profile that should be created
-	 * @returns A new profile that corresponds to the given name; `NULL` otherwise.
+	 * @returns A new profile that corresponds to the given name
 	 */
-	Profile *add_profile(const std::string &profile_name);
+	Profile &add_profile(const std::string &profile_name);
+
+	/**
+	 * Whether this model contains any profiles or not.
+	 *
+	 * @return `true` if this module contains at least one profile,
+	 * `false` otherwise
+	 */
+	bool has_profiles() const;
 
 	/**
 	 * Calculates an image using the information contained in the model.
@@ -224,6 +232,8 @@ public:
 	 * only to a given area (i.e., those cells where the value is ``true``).
 	 */
 	bool *calcmask;
+
+private:
 
 	/**
 	 * A list of pointers to the individual profiles used to generate the
