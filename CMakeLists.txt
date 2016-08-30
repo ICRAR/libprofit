@@ -29,6 +29,7 @@ file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION PROFIT_VERSION)
 
 # Our project...
 project(libprofit VERSION ${PROFIT_VERSION} LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules/)
 
 # Check if there's GSL or R support, in that order
@@ -70,7 +71,6 @@ set(PROFIT_SRC
 )
 add_library(profit SHARED ${PROFIT_SRC})
 target_link_libraries(profit ${profit_LIBS})
-target_compile_features(profit PUBLIC cxx_auto_type cxx_range_for)
 
 # The executable
 add_executable(profit-cli src/profit-cli.cpp)
