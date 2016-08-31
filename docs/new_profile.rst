@@ -39,7 +39,7 @@ Any kind of information can be added to the class,
 but it is **required** that the class extends
 the base :class:`Profile` class.
 The class should be defined
-in an ``.h`` file in the ``include`` directory
+in an ``.h`` file in the ``profit`` directory
 so it can be used by others,
 and should be part of the ``profit`` namespace.
 
@@ -135,11 +135,11 @@ so you will start with a clean slate.
 The image is already initialized with zeros,
 so if your profile doesn't cover the entire image
 there is no need to cover unfilled areas with zeros.
-The image is an array of ``double`` values
+The image is a vector of ``double`` values
 representing a 2D image with dimensions ``model->width`` x ``model->height``,
 with data organized in rows first, columns later.
 This means that to access pixel ``(x,y)``
-one must access the array at position ``x + y*model->width``.
+one must access the vector at position ``x + y*model->width``.
 
 It was mentioned earlier that the ``example`` profile
 fills the image by taking the X and Y coordinates
@@ -151,7 +151,7 @@ An implementation of this would then look like this:
  :linenos:
  :emphasize-lines: 10,14,17-19
 
- void ExampleProfile::evaluate(double *image) {
+ void ExampleProfile::evaluate(std::vector<double> &image) {
 
      Model *model = this->model;
      double x, y;
@@ -255,15 +255,19 @@ which is done earlier on in ``profit.cpp``:
 
 .. code-block:: cpp
 
- #include "example.h"
+ #include "profit/example.h"
 
-Finally, and because our compilation system is still very basic,
+Finally,
 you need to manually add the new ``.cpp`` file
 to the list of files to be compiled.
-This is done by adding it to the ``OBJS`` list
-in the ``Makefile``::
+This is done by adding it to the ``PROFIT_SRC`` list
+in the ``CMakeLists.txt`` file::
 
- OBJS = sersic.o profit.o [...] example.o
+ set(PROFIT_SRC
+   [...]
+   src/example.cpp
+   [...]
+ )
 
 
 Full example

@@ -47,14 +47,14 @@ The basic usage pattern then is as follows:
 
 #. First obtain a model instance::
 
-	 Model *model = new Model();
-	 // You can also simply declare it in the stack:
-	 // Model model;
+	 Model model;
 
 #. Create a profile. For a list of supported names see :doc:`profiles`;
-   if you want to support a new profile see :doc:`new_profile`::
+   if you want to support a new profile see :doc:`new_profile`.
+   If an unknown name is given an :class:`invalid_parameter` exception will be
+   thrown::
 
-	 Profile *sersic_profile = model->add_profile("sersic");
+	 Profile &sersic_profile = model.add_profile("sersic");
 
 #. Customize your profile.
    An explicit cast must be performed on the :class:`Profile` to turn it
@@ -62,10 +62,10 @@ The basic usage pattern then is as follows:
    By convention these sub-types are named after the profile they represent,
    like this::
 
-	 SersicProfile *sp = static_cast<SersicProfile *>(sersic_profile);
-	 sp->xcen = 34.67;
-	 sp->ycen = 9.23;
-	 sp->axrat = 0.345;
+	 SersicProfile &sp = static_cast<SersicProfile &>(sersic_profile);
+	 sp.xcen = 34.67;
+	 sp.ycen = 9.23;
+	 sp.axrat = 0.345;
 	 // ...
 
 #. Repeat the previous two steps for all profiles
@@ -73,27 +73,21 @@ The basic usage pattern then is as follows:
 
 #. Evaluate the model simply run::
 
-	 model->evaluate();
+	 std::vector<double> image = model.evaluate();
 
 #. If there are have been errors
    while generating the image
    an :class:`invalid_parameter` exception will be thrown by the code,
    so users might want to use a ``try/catch`` statement
-   to identify these situations.
-   If no errors occurred you can safely access the data
-   stored in :member:`Model::image`::
+   to identify these situations::
 
 	 try {
-	     model->evaluate();
-	     do_something_with_your_image(model->image);
+	     std::vector<double> image = model.evaluate();
 	 } catch (invalid_parameter &e) {
 	     cerr << "Oops! There was an error evaluating the model: " << e.what() << endl;
 	 }
 
-#. Finally dispose of the model::
-
-	 delete model;
-	 // If declared as a variable of the stack there's no need to delete it
+#. When the model is destroyed the underlying profiles are destroyed as well.
 
 To illustrate this process, refer to the following figure:
 

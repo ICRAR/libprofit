@@ -1,7 +1,7 @@
 /* copyright statement, etc */
 
 #include <cmath>
-#include "example.h"
+#include "profit/example.h"
 
 namespace profit {
 
@@ -33,7 +33,7 @@ void ExampleProfile::validate() {
 	*/
 }
 
-void ExampleProfile::evaluate(double *image) {
+void ExampleProfile::evaluate(std::vector<double> &image) {
 
 	Model *model = this->model;
 	double x, y;

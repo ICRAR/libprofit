@@ -2,6 +2,8 @@
 #ifndef _EXAMPLE_H_
 #define _EXAMPLE_H_
 
+#include <vector>
+
 #include "profit.h"
 
 namespace profit
@@ -13,7 +15,7 @@ public:
 
 	ExampleProfile();
 	void validate();
-	void evaluate(double *image);
+	void evaluate(std::vector<double> &image);
 
 	double param1;
 	double param2;
