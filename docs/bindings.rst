@@ -5,9 +5,9 @@ Bindings exist to wrap *libprofit* into different languages.
 
 At the moment of writing the following two are available:
 
-* `pyprofit <https://github.com/rtobar/pyprofit>`_:
+* `pyprofit <https://github.com/ICRAR/pyprofit>`_:
   a Python wrapper for *libprofit*.
-* `ProFit <https://github.com/asgr/ProFit>`_:
+* `ProFit <https://github.com/ICRAR/ProFit>`_:
   A package for R that wraps *libprofit* and performs high-level
   profile fitting against an input galaxy.
 

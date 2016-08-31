@@ -1,10 +1,10 @@
 Getting *libprofit*
 ###################
 
-*libprofit* is currently hosted in `GitHub <https://github.com/rtobar/libprofit>`_.
+*libprofit* is currently hosted in `GitHub <https://github.com/ICRAR/libprofit>`_.
 To get a copy you can clone the repository::
 
- git clone https://github.com/rtobar/libprofit
+ git clone https://github.com/ICRAR/libprofit
 
 
 Compiling
