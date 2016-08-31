@@ -34,6 +34,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <string>
 #include <sstream>
 
@@ -96,18 +97,22 @@ void read_from_string(const string& key, string &val, const string &name, T &tgt
 	}
 }
 
+static
 void read_double(const string &key, string &val, const string &name, double &tgt) {
 	read_from_string(key, val, name, tgt, [](const string &v){return stod(v);});
 }
 
+static
 void read_uint(const string &key, string &val, const string &name, unsigned int &tgt) {
 	read_from_string(key, val, name, tgt, [](const string &v){return stoul(v, nullptr, 10);});
 }
 
+static
 void read_bool(const string &key, string &val, const string &name, bool &tgt) {
 	read_from_string(key, val, name, tgt, [](const string &v){return stoul(v, nullptr, 10);});
 }
 
+static
 void _keyval_to_radial(Profile &p, const string &key, string &val) {
 	RadialProfile &r = static_cast<RadialProfile &>(p);
 	read_double(key, val, "xcen",  r.xcen);
@@ -126,7 +131,8 @@ void _keyval_to_radial(Profile &p, const string &key, string &val) {
 	read_double(key, val, "rscale_max",     r.rscale_max);
 }
 
-void _keyval_to_sersic(Profile &p, const string &key, string &val) {
+static
+void keyval_to_sersic(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
 	SersicProfile &s = static_cast<SersicProfile &>(p);
 	read_double(key, val, "re",           s.re);
@@ -134,14 +140,16 @@ void _keyval_to_sersic(Profile &p, const string &key, string &val) {
 	read_bool(  key, val, "rescale_flux", s.rescale_flux);
 }
 
-void _keyval_to_moffat(Profile &p, const string &key, string &val) {
+static
+void keyval_to_moffat(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
 	MoffatProfile &m = static_cast<MoffatProfile &>(p);
 	read_double(key, val, "fwhm", m.fwhm);
 	read_double(key, val, "con",  m.con);
 }
 
-void _keyval_to_ferrer(Profile &p, const string &key, string &val) {
+static
+void keyval_to_ferrer(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
 	FerrerProfile &f = static_cast<FerrerProfile &>(p);
 	read_double(key, val, "rout", f.rout);
@@ -149,7 +157,8 @@ void _keyval_to_ferrer(Profile &p, const string &key, string &val) {
 	read_double(key, val, "b",    f.b);
 }
 
-void _keyval_to_coresersic(Profile &p, const string &key, string &val) {
+static
+void keyval_to_coresersic(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
 	CoreSersicProfile &cs = static_cast<CoreSersicProfile &>(p);
 	read_double(key, val, "re",   cs.re);
@@ -159,7 +168,8 @@ void _keyval_to_coresersic(Profile &p, const string &key, string &val) {
 	read_double(key, val, "b",    cs.b);
 }
 
-void _keyval_to_king(Profile &p, const string &key, string &val) {
+static
+void keyval_to_king(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
 	KingProfile &k = static_cast<KingProfile &>(p);
 	read_double(key, val, "rt", k.rt);
@@ -167,32 +177,43 @@ void _keyval_to_king(Profile &p, const string &key, string &val) {
 	read_double(key, val, "a",  k.a);
 }
 
-void _keyval_to_sky(Profile &p, const string &key, string &val) {
+static
+void keyval_to_sky(Profile &p, const string &key, string &val) {
 	SkyProfile &s = static_cast<SkyProfile &>(p);
 	read_double(key, val, "bg",  s.bg);
 }
 
-void _keyval_to_psf(Profile &p, const string &key, string &val) {
+static
+void keyval_to_psf(Profile &p, const string &key, string &val) {
 	PsfProfile &s = static_cast<PsfProfile &>(p);
 	read_double(key, val, "xcen",  s.xcen);
 	read_double(key, val, "ycen",  s.ycen);
 	read_double(key, val, "mag",   s.mag);
 }
 
-void keyval_to_profile(Profile &p, const string &key, string &val) {
-	read_bool(key, val, "convolve", p.convolve);
-}
+typedef void (*keyval_to_param_t)(Profile &, const string& name, string &value);
+static std::map<string, keyval_to_param_t> reader_functions = {
+	{"sersic",     &keyval_to_sersic},
+	{"moffat",     &keyval_to_moffat},
+	{"ferrer",     &keyval_to_ferrer},
+	{"ferrers",    &keyval_to_ferrer},
+	{"king",       &keyval_to_king},
+	{"coresersic", &keyval_to_coresersic},
+	{"sky",        &keyval_to_sky},
+	{"psf",        &keyval_to_psf}
+};
 
 void desc_to_profile(
 	Model &model,
 	const string &name,
-	string description,
-	void (keyval_to_param)(Profile &, const string& name, string &value)
+	string description
 ) {
 
 	string tok;
 
 	Profile &p = model.add_profile(name);
+	keyval_to_param_t keyval_to_param = reader_functions[name];
+
 	if( description.size() == 0 ) {
 		return;
 	}
@@ -209,8 +230,10 @@ void desc_to_profile(
 			throw invalid_cmdline(os.str());
 		}
 
-		keyval_to_profile(p, name_and_value[0], name_and_value[1]);
-		keyval_to_param(p, name_and_value[0], name_and_value[1]);
+		const string &key = name_and_value[0];
+		string &val = name_and_value[1];
+		read_bool(key, val, "convolve", p.convolve);
+		keyval_to_param(p, key, val);
 		if( !name_and_value[1].empty() ) {
 			cerr << "Ignoring unknown " << name << " profile parameter: " << name_and_value[0] << endl;
 		}
@@ -232,7 +255,7 @@ void parse_profile(Model &model, const string &description) {
 		name = description;
 	}
 
-	desc_to_profile(model, name, subdesc, &_keyval_to_psf);
+	desc_to_profile(model, name, subdesc);
 }
 
 vector<double> parse_psf(string optarg,
