@@ -86,6 +86,9 @@ void add_images(vector<double> &dest, const vector<double> &src) {
 
 void normalize(vector<double> &image) {
 	double sum = accumulate(image.begin(), image.end(), 0);
+	if( sum == 0 ) {
+		return;
+	}
 	transform(image.begin(), image.end(), image.begin(), [=](double x) {return x/sum;});
 }
 
