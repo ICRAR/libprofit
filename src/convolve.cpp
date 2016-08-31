@@ -34,7 +34,7 @@ namespace profit
 vector<double>
 convolve(const vector<double> &src, unsigned int src_width, unsigned int src_height,
          const vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-         const vector<bool> mask){
+         const vector<bool> &mask){
 
 	double pixel;
 	unsigned int i, j, k, l;
