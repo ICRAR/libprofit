@@ -100,3 +100,14 @@ install(TARGETS profit profit-cli
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/profit DESTINATION include)
+
+
+# Tests
+if( LIBPROFIT_TEST )
+	find_package(CxxTest)
+	if( CXXTEST_FOUND )
+		include_directories(${CXXTEST_INCLUDE_DIR})
+		enable_testing()
+		add_subdirectory(tests)
+	endif()
+endif()
