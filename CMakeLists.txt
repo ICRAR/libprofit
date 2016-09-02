@@ -34,7 +34,17 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules/)
 
 # Macros to check for presence of GSL and R/Rmath
 macro(find_gsl)
+
+	# Try with FindGSL.cmake first, if found
+	# Otherwise try with pkg-config
 	find_package(GSL)
+	if( GSL_FOUND )
+		find_package(PkgConfig)
+			pkg_check_modules(GSL gsl)
+		if( PKG_CONFIG_FOUND )
+		endif()
+	endif()
+
 	if( GSL_FOUND )
 		add_definitions(-DHAVE_GSL)
 		include_directories(${GSL_INCLUDE_DIRS})
@@ -66,6 +76,13 @@ else()
 	find_gsl()
 	if( NOT GSL_FOUND )
 		find_r_and_rmath()
+	endif()
+endif()
+
+# None found, what an ill luck
+if( NOT GSL_FOUND )
+	if( NOT R_FOUND OR NOT RMATH_FOUND )
+		message(FATAL_ERROR "Neither GSL nor R/Rmath were found, cannot continue")
 	endif()
 endif()
 
