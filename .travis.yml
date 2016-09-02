@@ -25,6 +25,7 @@
 #
 
 language: cpp
+sudo: required
 
 # We try with both GNU and LLVM
 matrix:
@@ -39,12 +40,6 @@ matrix:
     env: COMPILER=g++-4.9
   - compiler: clang
 
-# We need gsl regardless
-addons:
- apt:
-  packages:
-   - libgsl0-dev
-
 # We use cmake, but in precise we still have 2.8...
 before_install:
  - cd ${TRAVIS_BUILD_DIR}
@@ -53,6 +48,7 @@ before_install:
  - export PATH=${TRAVIS_BUILD_DIR}/cmake-3.1.3-Linux-x86_64/bin:$PATH
  - export CMAKE_MODULE_PATH=${TRAVIS_BUILD_DIR}/cmake-3.1.3-Linux-x86_64/share/cmake-3.1/Modules:${CMAKE_MODULE_PATH}
  - git clone https://github.com/CxxTest/cxxtest
+ - sudo apt-get install libgsl0-dev
 
 install:
  - mkdir build
