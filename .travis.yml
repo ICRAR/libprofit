@@ -42,11 +42,13 @@ before_install:
  - curl -O https://cmake.org/files/v3.1/cmake-3.1.3-Linux-x86_64.tar.gz
  - tar -xf cmake-3.1.3-Linux-x86_64.tar.gz
  - export PATH=$PWD/cmake-3.1.3-Linux-x86_64/bin:$PATH
+ - git clone https://github.com/CxxTest/cxxtest
+ - export PATH=$PWD/cxxtest/bin:$PATH
 
 install:
  - mkdir build
  - cd build
- - cmake .. -DLIBPROFIT_TEST
+ - cmake .. -DLIBPROFIT_TEST=1
  - make all
 
 script:
