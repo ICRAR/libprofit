@@ -33,9 +33,9 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <exception>
 #include <iostream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <sstream>
 
