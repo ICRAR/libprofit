@@ -38,10 +38,10 @@ macro(find_gsl)
 	# Try with FindGSL.cmake first, if found
 	# Otherwise try with pkg-config
 	find_package(GSL)
-	if( GSL_FOUND )
+	if( NOT GSL_FOUND )
 		find_package(PkgConfig)
-			pkg_check_modules(GSL gsl)
 		if( PKG_CONFIG_FOUND )
+			pkg_check_modules(GSL gsl)
 		endif()
 	endif()
 
