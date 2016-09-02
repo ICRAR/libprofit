@@ -27,11 +27,19 @@
 language: cpp
 
 # We try with both GNU and LLVM
-compiler:
- - gcc
- - clang
+matrix:
+ include:
+  - compiler: gcc
+    addons:
+     apt:
+      sources:
+       - ubuntu-toolchain-r-test
+      packages:
+       - g++-4.9
+    env: COMPILER=g++-4.9
+  - compiler: clang
 
-# We need gsl
+# We need gsl regardless
 addons:
  apt:
   packages:
@@ -43,6 +51,7 @@ before_install:
  - curl -O https://cmake.org/files/v3.1/cmake-3.1.3-Linux-x86_64.tar.gz
  - tar -xf cmake-3.1.3-Linux-x86_64.tar.gz
  - export PATH=${TRAVIS_BUILD_DIR}/cmake-3.1.3-Linux-x86_64/bin:$PATH
+ - export CMAKE_MODULE_PATH=${TRAVIS_BUILD_DIR}/cmake-3.1.3-Linux-x86_64/share/cmake-3.1/Modules:${CMAKE_MODULE_PATH}
  - git clone https://github.com/CxxTest/cxxtest
 
 install:
