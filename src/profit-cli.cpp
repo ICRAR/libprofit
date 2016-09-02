@@ -33,6 +33,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <exception>
 #include <iostream>
 #include <map>
 #include <string>
