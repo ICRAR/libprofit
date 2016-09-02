@@ -39,6 +39,7 @@ matrix:
        - g++-4.9
     env: COMPILER=g++-4.9
   - compiler: clang
+    env: COMPILER=clang++
 
 # We use cmake, but in precise we still have 2.8...
 before_install:
@@ -51,11 +52,12 @@ before_install:
  - sudo apt-get install libgsl0-dev
 
 install:
+ - cd ${TRAVIS_BUILD_DIR}
  - mkdir build
  - cd build
- - cmake .. -DLIBPROFIT_TEST=1 -DCMAKE_INCLUDE_PATH=${TRAVIS_BUILD_DIR}/cxxtest -DCMAKE_PROGRAM_PATH=${TRAVIS_BUILD_DIR}/cxxtest/bin
+ - cmake .. -DCMAKE_CXX_COMPILER=$COMPILER -DLIBPROFIT_TEST=1 -DCMAKE_INCLUDE_PATH=${TRAVIS_BUILD_DIR}/cxxtest -DCMAKE_PROGRAM_PATH=${TRAVIS_BUILD_DIR}/cxxtest/bin
  - make all
 
 script:
- - cd build
+ - cd ${TRAVIS_BUILD_DIR}/build
  - make test
