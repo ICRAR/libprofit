@@ -31,13 +31,18 @@ compiler:
  - gcc
  - clang
 
-# We need cxxtest for our unittests
+# We need gsl
 addons:
  apt:
   packages:
-   - cxxtest
+   - libgsl0-dev
 
-# We use cmake
+# We use cmake, but in precise we still have 2.8...
+before-install:
+ - curl -O http://www.cmake.org/files/v3.1/cmake-3.1.3-Linux-x86_64.tar.gz
+ - tar -xf cmake-3.1.3-Linux-x86_64.tar.gz
+ - export PATH=$PWD/cmake-3.1.3-Linux-x86_64/bin:$PATH
+
 install:
  - mkdir build
  - cd build
