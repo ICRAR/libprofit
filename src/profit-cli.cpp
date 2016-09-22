@@ -39,6 +39,7 @@
 #include <string>
 #include <sstream>
 
+#include "profit/brokenexponential.h"
 #include "profit/coresersic.h"
 #include "profit/ferrer.h"
 #include "profit/king.h"
@@ -170,6 +171,16 @@ void keyval_to_coresersic(Profile &p, const string &key, string &val) {
 }
 
 static
+void keyval_to_brokenexp(Profile &p, const string &key, string &val) {
+	_keyval_to_radial(p, key, val);
+	BrokenExponentialProfile &be = static_cast<BrokenExponentialProfile &>(p);
+	read_double(key, val, "h1", be.h1);
+	read_double(key, val, "h2", be.h2);
+	read_double(key, val, "rb", be.rb);
+	read_double(key, val, "a",  be.a);
+}
+
+static
 void keyval_to_king(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
 	KingProfile &k = static_cast<KingProfile &>(p);
@@ -200,6 +211,7 @@ static std::map<string, keyval_to_param_t> reader_functions = {
 	{"ferrers",    &keyval_to_ferrer},
 	{"king",       &keyval_to_king},
 	{"coresersic", &keyval_to_coresersic},
+	{"brokenexp",  &keyval_to_brokenexp},
 	{"sky",        &keyval_to_sky},
 	{"psf",        &keyval_to_psf}
 };
@@ -336,6 +348,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file," * moffat: fwhm, con\n");
 	fprintf(file," * ferrer: a, b, rout\n");
 	fprintf(file," * coresersic: re, nser, rb, a, b\n");
+	fprintf(file," * brokenexp: h1, h2, rb, a\n");
 	fprintf(file," * king: rc, rt, a\n");
 	fprintf(file,"\
  * sersic, moffat, ferrer, coresersic, king: xcen, ycen, mag, box, ang, axrat,\n\
