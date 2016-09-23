@@ -46,6 +46,9 @@ Profile classes
 .. doxygenclass:: profit::CoreSersicProfile
    :members:
 
+.. doxygenclass:: profit::BrokenExponentialProfile
+   :members:
+
 .. doxygenclass:: profit::KingProfile
    :members:
 

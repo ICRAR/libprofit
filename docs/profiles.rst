@@ -107,6 +107,18 @@ with:
 * **rt**: The transition radius of the sersic profile
 * **a**: The power-law of the King.
 
+``brokenexp``
+-------------
+
+The broken exponential profile works in exactly the same way as the sersic profile.
+It replaces the ``re`` and ``nser`` parameters from the ``sersic`` profile
+with:
+
+* **h1**: The inner exponential scale length.
+* **h2**: The outer exponential scale length (must be equal to or less than ``h1``).
+* **rb**: The break radius.
+* **a**: The strength of the truncation as the radius approaches ``rb``.
+
 ``sky``
 -------
 
