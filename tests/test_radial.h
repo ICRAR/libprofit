@@ -60,6 +60,22 @@ public:
 		}
 	}
 
+	void test_create_boxy(void) {
+		for(auto pname: all_radial) {
+
+			// 100x100 model, with profile centered at (50,50), box=0.5
+			Model m;
+			m.width = m.height = 100;
+			auto &radialp = static_cast<RadialProfile &>(m.add_profile(pname));
+			radialp.xcen = radialp.ycen = 50;
+			radialp.box = 0.1;
+
+			// we don't assert anything yet, only check that the profile can be
+			// constructed successfully with its default values
+			m.evaluate();
+		}
+	}
+
 	void test_calcmask(void) {
 
 		Model m;
