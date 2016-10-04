@@ -47,6 +47,10 @@ public:
 		m.height = 1;
 		m.evaluate(); // fine...
 
+		// We generate the correct size
+		m.width = 100;
+		m.height = 100;
+		TS_ASSERT_EQUALS(m.width * m.height, m.evaluate().size())
 	}
 
 	void test_valid_scales(void) {
@@ -80,7 +84,8 @@ public:
 		}
 
 		// these are fine
-		for(auto name: {"brokenexp", "coresersic", "ferrer", "king", "moffat", "psf", "sersic", "sky"}) {
+		for(auto name: {"brokenexp", "coresersic", "ferrer", "ferrers",
+		                "king", "moffat", "psf", "sersic", "sky"}) {
 			m.add_profile(name);
 		}
 

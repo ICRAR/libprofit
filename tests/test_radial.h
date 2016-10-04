@@ -45,7 +45,7 @@ public:
 		m.magzero = 0;
 		m.psf = {1,1,1,1};
 
-		auto psfprof = static_cast<SersicProfile &>(m.add_profile("sersic"));
+		auto &psfprof = static_cast<SersicProfile &>(m.add_profile("sersic"));
 		psfprof.xcen = 1;
 		psfprof.ycen = 1;
 		psfprof.re = 10;

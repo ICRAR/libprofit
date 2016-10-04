@@ -45,7 +45,7 @@ public:
 		m.magzero = 0;
 		m.psf = {1,1,1,1};
 
-		auto psfprof = static_cast<PsfProfile &>(m.add_profile("psf"));
+		auto &psfprof = static_cast<PsfProfile &>(m.add_profile("psf"));
 		psfprof.xcen = 2;
 		psfprof.ycen = 2;
 		psfprof.mag = 0;
