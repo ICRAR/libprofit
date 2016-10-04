@@ -69,4 +69,4 @@ script:
  - make test
 
 after_success:
- - if [ "$COMPILER" == "g++-4.9" ]; then cd ${TRAVIS_BUILD_DIR}; coveralls -r . -i build/CMakeFiles/profit.dir/src/ -i src/ -i profit/; fi
+ - if [ "$COMPILER" == "g++-4.9" ]; then cd ${TRAVIS_BUILD_DIR}; cpp-coveralls --gcov `which gcov-4.9` -r . -i build/CMakeFiles/profit.dir/src/ -i src/ -i profit/; fi
