@@ -52,12 +52,6 @@ invalid_parameter::invalid_parameter(const string &what_arg) :
 	// no-op
 }
 
-invalid_parameter::invalid_parameter(const invalid_parameter &e) :
-   m_what(e.m_what)
-{
-	// no-op
-}
-
 invalid_parameter::~invalid_parameter() throw () {
 	// no-op
 }
@@ -155,7 +149,7 @@ vector<double> Model::evaluate() {
 		if( profile->convolve ) {
 			if( this->psf.empty() ) {
 				stringstream ss;
-				ss <<  "Profile " << profile->name << " requires convolution but no psf was provided";
+				ss << "Profile " << profile->name << " requires convolution but no psf was provided";
 				throw invalid_parameter(ss.str());
 			}
 			if( !this->psf_width ) {
@@ -163,6 +157,12 @@ vector<double> Model::evaluate() {
 			}
 			if( !this->psf_height ) {
 				throw invalid_parameter("Model's psf height is 0");
+			}
+			if( this->psf_width * this->psf_height != this->psf.size() ) {
+				ostringstream ss;
+				ss << "PSF dimensions (" << psf_width << "x" << psf_height <<
+				      ") don't correspond to PSF length (" << psf.size() << ")";
+				throw invalid_parameter(ss.str());
 			}
 			break;
 		}
