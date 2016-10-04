@@ -50,4 +50,21 @@ public:
 
 	}
 
+	void test_with_calcmask(void) {
+
+		Model m;
+		m.width = 2;
+		m.height = 2;
+		m.calcmask = {true, true, true, false};
+
+		auto &skyprof = static_cast<SkyProfile &>(m.add_profile("sky"));
+		skyprof.bg = 5;
+
+		std::vector<double> image = m.evaluate();
+		for(int idx: {0,1,2}) {
+			TS_ASSERT_EQUALS(5, image[idx]);
+		}
+		TS_ASSERT_EQUALS(0, image[3]);
+
+	}
 };
