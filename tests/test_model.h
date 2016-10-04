@@ -80,7 +80,7 @@ public:
 		}
 
 		// these are fine
-		for(auto name: {"coresersic", "ferrer", "king", "moffat", "psf", "sersic", "sky"}) {
+		for(auto name: {"brokenexp", "coresersic", "ferrer", "king", "moffat", "psf", "sersic", "sky"}) {
 			m.add_profile(name);
 		}
 
