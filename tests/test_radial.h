@@ -24,6 +24,7 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <vector>
 
 #include <cxxtest/TestSuite.h>
 
@@ -31,9 +32,33 @@
 
 using namespace profit;
 
+std::vector<const char *> all_radial = {
+	"brokenexp",
+	"coresersic",
+	"ferrer",
+	"king",
+	"moffat",
+	"sersic"
+};
+
 class TestRadial : public CxxTest::TestSuite {
 
 public:
+
+	void test_create_default(void) {
+		for(auto pname: all_radial) {
+
+			// 100x100 model, with profile centered at (50,50)
+			Model m;
+			m.width = m.height = 100;
+			auto &radialp = static_cast<RadialProfile &>(m.add_profile(pname));
+			radialp.xcen = radialp.ycen = 50;
+
+			// we don't assert anything yet, only check that the profile can be
+			// constructed successfully with its default values
+			m.evaluate();
+		}
+	}
 
 	void test_calcmask(void) {
 
