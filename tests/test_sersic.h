@@ -45,7 +45,7 @@ private:
 		sersicp.xcen = sersicp.ycen = 25;
 		sersicp.box = box;
 
-		for(auto nser: {0.5, 1., 1.5, 2., 4., 8., 16.}) {
+		for(auto nser: {0.5, 1., 1.5, 2., 3., 4., 8., 16.}) {
 			// we don't assert anything yet, only check that the profile can be
 			// constructed successfully with the given values
 			sersicp.nser = nser;
