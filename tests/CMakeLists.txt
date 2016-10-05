@@ -26,7 +26,7 @@
 # Note: This file is included from the main CMakeLists.txt
 #       so we skip most of the configuration here and go
 #       straight to the point
-set(LIBPROFIT_TEST_NAMES model psf radial sky)
+set(LIBPROFIT_TEST_NAMES model psf radial sersic sky)
 foreach(test_name ${LIBPROFIT_TEST_NAMES})
 	CXXTEST_ADD_TEST(test_${test_name} test_${test_name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/test_${test_name}.h)
 	target_link_libraries(test_${test_name} profit)
