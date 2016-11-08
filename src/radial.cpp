@@ -270,8 +270,8 @@ void RadialProfile::evaluate(vector<double> &image) {
 /**
  * Constructor with sane defaults
  */
-RadialProfile::RadialProfile(const Model &model) :
-	Profile(model),
+RadialProfile::RadialProfile(const Model &model, const string &name) :
+	Profile(model, name),
 	xcen(0), ycen(0),
 	mag(15), ang(0),
 	axrat(1), box(0),

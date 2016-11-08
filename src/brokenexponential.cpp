@@ -121,8 +121,8 @@ double BrokenExponentialProfile::adjust_acc() {
 	return this->acc;
 }
 
-BrokenExponentialProfile::BrokenExponentialProfile(const Model &model) :
-	RadialProfile(model),
+BrokenExponentialProfile::BrokenExponentialProfile(const Model &model, const string &name) :
+	RadialProfile(model, name),
 	h1(1), h2(1), rb(1), a(1)
 {
 	// no-op

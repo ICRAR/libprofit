@@ -77,7 +77,7 @@ public:
 	 *
 	 * @param model The model this profile belongs to
 	 */
-	Profile(const Model & model);
+	Profile(const Model & model, const std::string &name);
 
 	/**
 	 * Destructor
@@ -108,14 +108,14 @@ public:
 	const Model &model;
 
 	/**
+	 * The name of this profile
+	 */
+	const std::string name;
+
+	/**
 	 * Whether the resulting image of this profile should be convolved or not.
 	 */
 	bool convolve;
-
-	/**
-	 * The name of this profile
-	 */
-	std::string name;
 
 };
 

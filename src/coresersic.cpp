@@ -140,8 +140,8 @@ double CoreSersicProfile::adjust_acc() {
 	return this->acc;
 }
 
-CoreSersicProfile::CoreSersicProfile(const Model &model) :
-	RadialProfile(model),
+CoreSersicProfile::CoreSersicProfile(const Model &model, const string &name) :
+	RadialProfile(model, name),
 	re(1), rb(1), nser(4), a(1), b(1)
 {
 	// no-op

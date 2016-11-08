@@ -56,8 +56,8 @@ void SkyProfile::evaluate(vector<double> &image) {
 	}
 }
 
-SkyProfile::SkyProfile(const Model &model) :
-	Profile(model),
+SkyProfile::SkyProfile(const Model &model, const string &name) :
+	Profile(model, name),
 	bg(0.)
 {
 	// no-op

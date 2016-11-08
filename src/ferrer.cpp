@@ -129,8 +129,8 @@ double FerrerProfile::adjust_acc() {
 	return this->acc;
 }
 
-FerrerProfile::FerrerProfile(const Model &model) :
-	RadialProfile(model),
+FerrerProfile::FerrerProfile(const Model &model, const string &name) :
+	RadialProfile(model, name),
 	rout(3), a(1), b(1)
 {
 	// this profile defaults to a different accuracy

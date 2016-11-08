@@ -63,8 +63,9 @@ public:
 	 * Constructor
 	 *
 	 * @param model The model this profile belongs to
+	 * @param name The name of this profile
 	 */
-	FerrerProfile(const Model & model);
+	FerrerProfile(const Model &model, const std::string &name);
 
 	void validate() override;
 

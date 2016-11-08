@@ -148,8 +148,8 @@ void PsfProfile::evaluate(std::vector<double> &image) {
 
 }
 
-PsfProfile::PsfProfile(const Model &model) :
-	Profile(model),
+PsfProfile::PsfProfile(const Model &model, const string &name) :
+	Profile(model, name),
 	xcen(0),
 	ycen(0),
 	mag(0)

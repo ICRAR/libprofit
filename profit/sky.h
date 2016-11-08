@@ -46,8 +46,9 @@ public:
 	 * Constructor
 	 *
 	 * @param model The model this profile belongs to
+	 * @param name The name of this profile
 	 */
-	SkyProfile(const Model &model);
+	SkyProfile(const Model &model, const std::string &name);
 
 	/*
 	 * ---------------------------------------------

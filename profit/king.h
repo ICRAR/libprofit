@@ -64,8 +64,9 @@ public:
 	 * Constructor
 	 *
 	 * @param model The model this profile belongs to
+	 * @param name The name of this profile
 	 */
-	KingProfile(const Model &model);
+	KingProfile(const Model &model, const std::string &name);
 
 	void validate() override;
 

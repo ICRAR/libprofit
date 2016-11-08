@@ -343,8 +343,8 @@ void SersicProfile::subsampling_params(double x, double y,
 /**
  * The sersic creation function
  */
-SersicProfile::SersicProfile(const Model &model) :
-	RadialProfile(model),
+SersicProfile::SersicProfile(const Model &model, const string &name) :
+	RadialProfile(model, name),
 	re(1), nser(1),
 	rescale_flux(false)
 {

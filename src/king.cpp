@@ -123,8 +123,8 @@ double KingProfile::adjust_acc() {
 	return this->acc;
 }
 
-KingProfile::KingProfile(const Model &model) :
-	RadialProfile(model),
+KingProfile::KingProfile(const Model &model, const string &name) :
+	RadialProfile(model, name),
 	rc(1), rt(3), a(2)
 {
 	// no-op

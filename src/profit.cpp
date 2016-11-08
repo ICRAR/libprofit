@@ -60,8 +60,9 @@ const char *invalid_parameter::what() const throw() {
 	return m_what.c_str();
 }
 
-Profile::Profile(const Model &model) :
+Profile::Profile(const Model &model, const string &name) :
 	model(model),
+	name(name),
 	convolve(false)
 {
 	// no-op
@@ -70,6 +71,14 @@ Profile::Profile(const Model &model) :
 Profile::~Profile()
 {
 	// no-op
+}
+
+bool Profile::do_convolve() const {
+	return convolve;
+}
+
+const string& Profile::get_name() const {
+	return name;
 }
 
 Model::Model() :
@@ -91,28 +100,28 @@ Profile &Model::add_profile(const string &profile_name) {
 
 	Profile * profile = nullptr;
 	if( profile_name == "sky" ) {
-		profile = static_cast<Profile *>(new SkyProfile(*this));
+		profile = static_cast<Profile *>(new SkyProfile(*this, profile_name));
 	}
 	else if ( profile_name == "sersic" ) {
-		profile = static_cast<Profile *>(new SersicProfile(*this));
+		profile = static_cast<Profile *>(new SersicProfile(*this, profile_name));
 	}
 	else if ( profile_name == "moffat" ) {
-		profile = static_cast<Profile *>(new MoffatProfile(*this));
+		profile = static_cast<Profile *>(new MoffatProfile(*this, profile_name));
 	}
 	else if ( profile_name == "ferrer" || profile_name == "ferrers" ) {
-		profile = static_cast<Profile *>(new FerrerProfile(*this));
+		profile = static_cast<Profile *>(new FerrerProfile(*this, profile_name));
 	}
 	else if ( profile_name == "coresersic" ) {
-		profile = static_cast<Profile *>(new CoreSersicProfile(*this));
+		profile = static_cast<Profile *>(new CoreSersicProfile(*this, profile_name));
 	}
 	else if ( profile_name == "king" ) {
-		profile = static_cast<Profile *>(new KingProfile(*this));
+		profile = static_cast<Profile *>(new KingProfile(*this, profile_name));
 	}
 	else if ( profile_name == "brokenexp" ) {
-		profile = static_cast<Profile *>(new BrokenExponentialProfile(*this));
+		profile = static_cast<Profile *>(new BrokenExponentialProfile(*this, profile_name));
 	}
 	else if ( profile_name == "psf" ) {
-		profile = static_cast<Profile *>(new PsfProfile(*this));
+		profile = static_cast<Profile *>(new PsfProfile(*this, profile_name));
 	}
 	else {
 		ostringstream ss;
@@ -120,7 +129,6 @@ Profile &Model::add_profile(const string &profile_name) {
 		throw invalid_parameter(ss.str());
 	}
 
-	profile->name = profile_name;
 	this->profiles.push_back(profile);
 	return *profile;
 }
@@ -146,10 +154,10 @@ vector<double> Model::evaluate() {
 	 * a valid psf.
 	 */
 	for(auto profile: this->profiles) {
-		if( profile->convolve ) {
+		if( profile->do_convolve() ) {
 			if( this->psf.empty() ) {
 				stringstream ss;
-				ss << "Profile " << profile->name << " requires convolution but no psf was provided";
+				ss << "Profile " << profile->get_name() << " requires convolution but no psf was provided";
 				throw invalid_parameter(ss.str());
 			}
 			if( !this->psf_width ) {
@@ -202,7 +210,7 @@ vector<double> Model::evaluate() {
 	bool do_convolve = false;
 	auto it = profile_images.begin();
 	for(auto profile: this->profiles) {
-		if( profile->convolve ) {
+		if( profile->do_convolve() ) {
 			do_convolve = true;
 			add_images(image, *it);
 		}
@@ -215,7 +223,7 @@ vector<double> Model::evaluate() {
 	}
 	it = profile_images.begin();
 	for(auto profile: this->profiles) {
-		if( !profile->convolve ) {
+		if( !profile->do_convolve() ) {
 			add_images(image, *it);
 		}
 		it++;

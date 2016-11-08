@@ -45,8 +45,9 @@ public:
 	 * Constructor
 	 *
 	 * @param model The model this profile belongs to
+	 * @param name The name of this profile
 	 */
-	PsfProfile(const Model &);
+	PsfProfile(const Model &model, const std::string &name);
 
 	/*
 	 * ---------------------------------------------
