@@ -72,6 +72,8 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * The X center of this profile
 	 */
@@ -86,6 +88,7 @@ protected:
 	 * The magnitude of this profile, based on the model's magnitude
 	 */
 	double mag;
+	// @}
 
 };
 

@@ -88,6 +88,8 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * Full-width at half maximum of the profiles across the major axis of the
 	 * intensity profile.
@@ -95,9 +97,10 @@ protected:
 	double fwhm;
 
 	/**
-	 * Profile concentration
+	 * %Profile concentration
 	 */
 	double con;
+	// @}
 
 private:
 

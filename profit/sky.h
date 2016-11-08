@@ -73,11 +73,13 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * The value to fill the image with.
 	 */
 	double bg;
-
+	// @}
 };
 
 } /* namespace profit */

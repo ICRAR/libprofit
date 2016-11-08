@@ -7,7 +7,7 @@ API
 *libprofit* has two main data types:
 the model class (:class:`Model`)
 and the base profile class (:class:`Profile`).
-We introduce the base profile first, then the model.
+We introduce the model first, then the base profile.
 
 As a small reference, see the following class diagram.
 
@@ -29,31 +29,32 @@ Profile classes
 ---------------
 
 .. doxygenclass:: profit::Profile
-   :members:
+   :members: convolve, parameter
 
 .. doxygenclass:: profit::RadialProfile
-   :members:
+   :members: xcen, ycen, mag, ang, axrat, box, rough, acc, rscale_switch,
+             resolution, max_recursions, adjust, rscale_max
 
 .. doxygenclass:: profit::SersicProfile
-   :members:
+   :members: re, nser, rescale_flux
 
 .. doxygenclass:: profit::MoffatProfile
-   :members:
+   :members: fwhm, con
 
 .. doxygenclass:: profit::FerrerProfile
-   :members:
+   :members: rout, a, b
 
 .. doxygenclass:: profit::CoreSersicProfile
-   :members:
+   :members: re, rb, nser, a, b
 
 .. doxygenclass:: profit::BrokenExponentialProfile
-   :members:
+   :members: h1, h2, rb, a
 
 .. doxygenclass:: profit::KingProfile
-   :members:
+   :members: rc, rt, a
 
 .. doxygenclass:: profit::PsfProfile
-   :members:
+   :members: xcen, ycen, mag
 
 .. doxygenclass:: profit::SkyProfile
-   :members:
+   :members: bg

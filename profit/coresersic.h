@@ -85,6 +85,8 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * The effective radius of the Sersic component
 	 */
@@ -109,10 +111,9 @@ protected:
 	 * The inner power-law of the Core-Sersic.
 	 */
 	double b;
+	// @}
 
-	/**
-	 * The Sersic bn.
-	 */
+	/* internally calculated when the profile is evaluated */
 	double _bn;
 
 private:

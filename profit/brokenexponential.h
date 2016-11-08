@@ -82,6 +82,8 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * The inner exponential scale length.
 	 */
@@ -101,6 +103,7 @@ protected:
 	 * The strength of the truncation as the radius approaches ``rb``.
 	 */
 	double a;
+	// @}
 
 private:
 

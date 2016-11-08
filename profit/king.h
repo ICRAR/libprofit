@@ -85,6 +85,8 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * The effective radius of the Sersic component
 	 */
@@ -99,6 +101,7 @@ protected:
 	 * The power-law of the King.
 	 */
 	double a;
+	// @}
 
 private:
 

@@ -167,10 +167,13 @@ protected:
 	 */
 	const std::string name;
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * Whether the resulting image of this profile should be convolved or not.
 	 */
 	bool convolve;
+	// @}
 
 private:
 

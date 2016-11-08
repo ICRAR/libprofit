@@ -82,6 +82,8 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * The outer truncation radius
 	 */
@@ -96,6 +98,7 @@ protected:
 	 * The strength of the truncation as the radius approaches ``rout``.
 	 */
 	double b;
+	// @}
 
 private:
 

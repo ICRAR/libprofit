@@ -102,6 +102,8 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * The effective radius
 	 */
@@ -116,8 +118,9 @@ protected:
 	 * Rescale flux up to rscale_max or not
 	 */
 	bool rescale_flux;
+	// @}
 
-	/* These are internally calculated profile init */
+	/* these are internally calculated when the profile is evaluated */
 	double _bn;
 	double _rescale_factor;
 

@@ -36,6 +36,8 @@
 namespace profit
 {
 
+/** @defgroup Parameters */
+
 class RadialProfile;
 
 /**
@@ -172,6 +174,8 @@ protected:
 	 * -------------------------
 	 */
 
+	/** @name Profile Parameters */
+	// @{
 	/**
 	 * The X center of this profile, in image coordinates
 	 */
@@ -248,13 +252,13 @@ protected:
 	 * anymore
 	 */
 	double rscale_max;
+	// @}
 
 	/*
 	 * radius scale, profiles provide it in different ways
 	 * via get_rscale()
 	 */
 	double rscale;
-
 
 #ifdef PROFIT_DEBUG
 	/* record of how many subintegrations we've done */
