@@ -39,15 +39,7 @@
 #include <string>
 #include <sstream>
 
-#include "profit/brokenexponential.h"
-#include "profit/coresersic.h"
-#include "profit/ferrer.h"
-#include "profit/king.h"
-#include "profit/moffat.h"
 #include "profit/profit.h"
-#include "profit/psf.h"
-#include "profit/sersic.h"
-#include "profit/sky.h"
 
 using namespace profit;
 using namespace std;
@@ -83,14 +75,15 @@ void tokenize(const string &s, vector<string> &tokens, const string &delims) {
 }
 
 template <typename T, typename F>
-void read_from_string(const string& key, string &val, const string &name, T &tgt, F reader) {
+void read_from_string(Profile &p, const string& key, string &val, const string &name, F reader) {
 
 	if( val.empty() || key != name ) {
 		return;
 	}
 
 	try {
-		tgt = reader(val);
+		T tgt = reader(val);
+		p.parameter(name, tgt);
 		val.erase();
 	} catch(invalid_argument &e) {
 		ostringstream os;
@@ -100,107 +93,98 @@ void read_from_string(const string& key, string &val, const string &name, T &tgt
 }
 
 static
-void read_double(const string &key, string &val, const string &name, double &tgt) {
-	read_from_string(key, val, name, tgt, [](const string &v){return stod(v);});
+void read_dble(Profile &p, const string &key, string &val, const string &name) {
+	read_from_string<double>(p, key, val, name, [](const string &v){return stod(v);});
 }
 
 static
-void read_uint(const string &key, string &val, const string &name, unsigned int &tgt) {
-	read_from_string(key, val, name, tgt, [](const string &v){return stoul(v, nullptr, 10);});
+void read_uint(Profile &p, const string &key, string &val, const string &name) {
+	read_from_string<unsigned int>(p, key, val, name, [](const string &v){return stoul(v, nullptr, 10);});
 }
 
 static
-void read_bool(const string &key, string &val, const string &name, bool &tgt) {
-	read_from_string(key, val, name, tgt, [](const string &v){return stoul(v, nullptr, 10);});
+void read_bool(Profile &p, const string &key, string &val, const string &name) {
+	read_from_string<bool>(p, key, val, name, [](const string &v){return stoul(v, nullptr, 10);});
 }
 
 static
 void _keyval_to_radial(Profile &p, const string &key, string &val) {
-	RadialProfile &r = static_cast<RadialProfile &>(p);
-	read_double(key, val, "xcen",  r.xcen);
-	read_double(key, val, "ycen",  r.ycen);
-	read_double(key, val, "mag",   r.mag);
-	read_double(key, val, "ang",   r.ang);
-	read_double(key, val, "axrat", r.axrat);
-	read_double(key, val, "box",   r.box);
+	read_dble(p, key, val, "xcen");
+	read_dble(p, key, val, "ycen");
+	read_dble(p, key, val, "mag");
+	read_dble(p, key, val, "ang");
+	read_dble(p, key, val, "axrat");
+	read_dble(p, key, val, "box");
 
-	read_bool(  key, val, "rough",          r.rough);
-	read_double(key, val, "acc",            r.acc);
-	read_double(key, val, "rscale_switch",  r.rscale_switch);
-	read_uint(  key, val, "resolution",     r.resolution);
-	read_uint(  key, val, "max_recursions", r.max_recursions);
-	read_bool(  key, val, "adjust",         r.adjust);
-	read_double(key, val, "rscale_max",     r.rscale_max);
+	read_bool(p, key, val, "rough");
+	read_dble(p, key, val, "acc");
+	read_dble(p, key, val, "rscale_switch");
+	read_uint(p, key, val, "resolution");
+	read_uint(p, key, val, "max_recursions");
+	read_bool(p, key, val, "adjust");
+	read_dble(p, key, val, "rscale_max");
 }
 
 static
 void keyval_to_sersic(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
-	SersicProfile &s = static_cast<SersicProfile &>(p);
-	read_double(key, val, "re",           s.re);
-	read_double(key, val, "nser",         s.nser);
-	read_bool(  key, val, "rescale_flux", s.rescale_flux);
+	read_dble(p, key, val, "re");
+	read_dble(p, key, val, "nser");
+	read_bool(p, key, val, "rescale_flux");
 }
 
 static
 void keyval_to_moffat(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
-	MoffatProfile &m = static_cast<MoffatProfile &>(p);
-	read_double(key, val, "fwhm", m.fwhm);
-	read_double(key, val, "con",  m.con);
+	read_dble(p, key, val, "fwhm");
+	read_dble(p, key, val, "con");
 }
 
 static
 void keyval_to_ferrer(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
-	FerrerProfile &f = static_cast<FerrerProfile &>(p);
-	read_double(key, val, "rout", f.rout);
-	read_double(key, val, "a",    f.a);
-	read_double(key, val, "b",    f.b);
+	read_dble(p, key, val, "rout");
+	read_dble(p, key, val, "a");
+	read_dble(p, key, val, "b");
 }
 
 static
 void keyval_to_coresersic(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
-	CoreSersicProfile &cs = static_cast<CoreSersicProfile &>(p);
-	read_double(key, val, "re",   cs.re);
-	read_double(key, val, "nser", cs.nser);
-	read_double(key, val, "rb",   cs.rb);
-	read_double(key, val, "a",    cs.a);
-	read_double(key, val, "b",    cs.b);
+	read_dble(p, key, val, "re");
+	read_dble(p, key, val, "nser");
+	read_dble(p, key, val, "rb");
+	read_dble(p, key, val, "a");
+	read_dble(p, key, val, "b");
 }
 
 static
 void keyval_to_brokenexp(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
-	BrokenExponentialProfile &be = static_cast<BrokenExponentialProfile &>(p);
-	read_double(key, val, "h1", be.h1);
-	read_double(key, val, "h2", be.h2);
-	read_double(key, val, "rb", be.rb);
-	read_double(key, val, "a",  be.a);
+	read_dble(p, key, val, "h1");
+	read_dble(p, key, val, "h2");
+	read_dble(p, key, val, "rb");
+	read_dble(p, key, val, "a");
 }
 
 static
 void keyval_to_king(Profile &p, const string &key, string &val) {
 	_keyval_to_radial(p, key, val);
-	KingProfile &k = static_cast<KingProfile &>(p);
-	read_double(key, val, "rt", k.rt);
-	read_double(key, val, "rc", k.rc);
-	read_double(key, val, "a",  k.a);
+	read_dble(p, key, val, "rt");
+	read_dble(p, key, val, "rc");
+	read_dble(p, key, val, "a");
 }
 
 static
 void keyval_to_sky(Profile &p, const string &key, string &val) {
-	SkyProfile &s = static_cast<SkyProfile &>(p);
-	read_double(key, val, "bg",  s.bg);
+	read_dble(p, key, val, "bg");
 }
 
 static
 void keyval_to_psf(Profile &p, const string &key, string &val) {
-	PsfProfile &s = static_cast<PsfProfile &>(p);
-	read_double(key, val, "xcen",  s.xcen);
-	read_double(key, val, "ycen",  s.ycen);
-	read_double(key, val, "mag",   s.mag);
+	read_dble(p, key, val, "xcen");
+	read_dble(p, key, val, "ycen");
+	read_dble(p, key, val, "mag");
 }
 
 typedef void (*keyval_to_param_t)(Profile &, const string& name, string &value);
@@ -245,7 +229,7 @@ void desc_to_profile(
 
 		const string &key = name_and_value[0];
 		string &val = name_and_value[1];
-		read_bool(key, val, "convolve", p.convolve);
+		read_bool(p, key, val, "convolve");
 		keyval_to_param(p, key, val);
 		if( !name_and_value[1].empty() ) {
 			cerr << "Ignoring unknown " << name << " profile parameter: " << name_and_value[0] << endl;

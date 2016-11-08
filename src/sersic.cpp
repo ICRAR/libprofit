@@ -351,4 +351,33 @@ SersicProfile::SersicProfile(const Model &model, const string &name) :
 	// no-op
 }
 
+bool SersicProfile::parameter_impl(const string &name, double val) {
+
+	if( RadialProfile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "re" )        { re = val; }
+	else if( name == "nser" ) { nser = val; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+bool SersicProfile::parameter_impl(const string &name, bool val) {
+
+	if( RadialProfile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "rescale_flux" ) {
+		rescale_flux = val;
+		return true;
+	}
+
+	return false;
+}
+
 } /* namespace profit */

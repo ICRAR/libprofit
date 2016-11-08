@@ -28,7 +28,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "profit/sersic.h"
+#include "profit/profit.h"
 
 using namespace profit;
 
@@ -41,14 +41,15 @@ private:
 		// 50x50 model, with profile centered at (25,25)
 		Model m;
 		m.width = m.height = 50;
-		auto &sersicp = static_cast<SersicProfile &>(m.add_profile("sersic"));
-		sersicp.xcen = sersicp.ycen = 25;
-		sersicp.box = box;
+		auto &sersicp = m.add_profile("sersic");
+		sersicp.parameter("xcen", 25.);
+		sersicp.parameter("ycen", 25.);
+		sersicp.parameter("box", box);
 
 		for(auto nser: {0.5, 1., 1.5, 2., 3., 4., 8., 16.}) {
 			// we don't assert anything yet, only check that the profile can be
 			// constructed successfully with the given values
-			sersicp.nser = nser;
+			sersicp.parameter("nser", nser);
 			m.evaluate();
 		}
 

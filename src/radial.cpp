@@ -283,4 +283,56 @@ RadialProfile::RadialProfile(const Model &model, const string &name) :
 	// no-op
 }
 
+bool RadialProfile::parameter_impl(const string &name, bool value) {
+
+	if( Profile::parameter_impl(name, value) ) {
+		return true;
+	}
+
+	if( name == "rough" )              { rough = value; }
+	else if( name == "adjust" )        { adjust = value; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+bool RadialProfile::parameter_impl(const string &name, double value) {
+
+	if( Profile::parameter_impl(name, value) ) {
+		return true;
+	}
+
+	if( name == "xcen" )               { xcen = value; }
+	else if( name == "ycen" )          { ycen = value; }
+	else if( name == "mag" )           { mag = value; }
+	else if( name == "ang" )           { ang = value; }
+	else if( name == "axrat" )         { axrat = value; }
+	else if( name == "box" )           { box = value; }
+	else if( name == "acc" )           { acc = value; }
+	else if( name == "rscale_switch" ) { rscale_switch = value; }
+	else if( name == "rscale_max" )    { rscale_max = value; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+bool RadialProfile::parameter_impl(const string &name, unsigned int value) {
+
+	if( Profile::parameter_impl(name, value) ) {
+		return true;
+	}
+
+	if( name == "max_recursions" )  { max_recursions = value; }
+	else if( name == "resolution" ) { resolution = value; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
 } /* namespace profit */

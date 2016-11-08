@@ -76,6 +76,7 @@ public:
 	 * Constructor
 	 *
 	 * @param model The model this profile belongs to
+	 * @param name The name of this profile
 	 */
 	Profile(const Model & model, const std::string &name);
 
@@ -103,6 +104,60 @@ public:
 	virtual void evaluate(std::vector<double> &image) = 0;
 
 	/**
+	 * Sets the parameter `name` to `value`.
+	 * @param name The parameter name
+	 * @param value The parameter value
+	 * @throws invalid_parameter if `name` corresponds with no known parameter
+	 * on this profile of type `bool`.
+	 */
+	void parameter(const std::string &name, bool value);
+
+	/**
+	 * Sets the parameter `name` to `value`.
+	 * @param name The parameter name
+	 * @param value The parameter value
+	 * @throws invalid_parameter if `name` corresponds with no known parameter
+	 * on this profile of type `double`.
+	 */
+	void parameter(const std::string &name, double value);
+
+	/**
+	 * Sets the parameter `name` to `value`.
+	 * @param name The parameter name
+	 * @param value The parameter value
+	 * @throws invalid_parameter if `name` corresponds with no known parameter
+	 * on this profile of type `unsigned int`.
+	 */
+	void parameter(const std::string &name, unsigned int value);
+
+	const std::string& get_name(void) const;
+
+	bool do_convolve(void) const;
+
+protected:
+
+	/**
+	 * Sets the parameter `name` to `value`. This method is meant to be
+	 * overwritten by classes, and therefore care should be taken to check
+	 * the return value from the parent class's implementation.
+	 *
+	 * @param name The parameter name
+	 * @param value The parameter value
+	 * @return Whether the parameter was set or not.
+	 */
+	virtual bool parameter_impl(const std::string &name, bool value);
+
+	/**
+	 * @see parameter_impl(const std::string, bool)
+	 */
+	virtual bool parameter_impl(const std::string &name, double value);
+
+	/**
+	 * @see parameter_impl(const std::string, bool)
+	 */
+	virtual bool parameter_impl(const std::string &name, unsigned int value);
+
+	/**
 	 * A (constant) reference to the model this profile belongs to
 	 */
 	const Model &model;
@@ -116,6 +171,11 @@ public:
 	 * Whether the resulting image of this profile should be convolved or not.
 	 */
 	bool convolve;
+
+private:
+
+	template <typename T>
+	void set_parameter(const std::string &name, T value);
 
 };
 

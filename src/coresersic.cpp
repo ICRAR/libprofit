@@ -146,5 +146,21 @@ CoreSersicProfile::CoreSersicProfile(const Model &model, const string &name) :
 {
 	// no-op
 }
+bool CoreSersicProfile::parameter_impl(const string &name, double val) {
 
+	if( RadialProfile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "re" )        { re = val; }
+	else if( name == "rb" )   { rb = val; }
+	else if( name == "nser" ) { nser = val; }
+	else if( name == "a" )    { a = val; }
+	else if( name == "b" )    { b = val; }
+	else {
+		return false;
+	}
+
+	return true;
+}
 } /* namespace profit */

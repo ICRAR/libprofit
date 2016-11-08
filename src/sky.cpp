@@ -63,4 +63,18 @@ SkyProfile::SkyProfile(const Model &model, const string &name) :
 	// no-op
 }
 
+bool SkyProfile::parameter_impl(const string &name, double val) {
+
+	if( Profile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "bg" ) {
+		this->bg = val;
+		return true;
+	}
+
+	return false;
+}
+
 } /* namespace profit */

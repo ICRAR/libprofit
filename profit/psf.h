@@ -57,6 +57,15 @@ public:
 	void validate() override;
 	void evaluate(std::vector<double> &image) override;
 
+protected:
+
+	/*
+	 * ----------------------
+	 * Inherited from Profile
+	 * ----------------------
+	 */
+	bool parameter_impl(const std::string &name, double value) override;
+
 	/*
 	 * -------------------------
 	 * Profile parameters follow

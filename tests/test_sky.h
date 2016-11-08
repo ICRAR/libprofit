@@ -26,7 +26,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "profit/sky.h"
+#include "profit/profit.h"
 
 using namespace profit;
 
@@ -40,8 +40,8 @@ public:
 		m.width = 2;
 		m.height = 2;
 
-		auto &skyprof = static_cast<SkyProfile &>(m.add_profile("sky"));
-		skyprof.bg = 1;
+		Profile &skyprof = m.add_profile("sky");
+		skyprof.parameter("bg", 1.);
 
 		std::vector<double> image = m.evaluate();
 		for(auto pixel: image) {
@@ -57,8 +57,8 @@ public:
 		m.height = 2;
 		m.calcmask = {true, true, true, false};
 
-		auto &skyprof = static_cast<SkyProfile &>(m.add_profile("sky"));
-		skyprof.bg = 5;
+		Profile &skyprof = m.add_profile("sky");
+		skyprof.parameter("bg", 5.);
 
 		std::vector<double> image = m.evaluate();
 		for(int idx: {0,1,2}) {

@@ -114,4 +114,20 @@ MoffatProfile::MoffatProfile(const Model &model, const string &name) :
 	// no-op
 }
 
+bool MoffatProfile::parameter_impl(const string &name, double val) {
+
+	if( RadialProfile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "fwhm" )     { fwhm = val; }
+	else if( name == "con" ) { con = val; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+
 } /* namespace profit */

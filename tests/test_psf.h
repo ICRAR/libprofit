@@ -27,7 +27,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "profit/psf.h"
+#include "profit/profit.h"
 
 using namespace profit;
 
@@ -45,10 +45,10 @@ public:
 		m.magzero = 0;
 		m.psf = {1,1,1,1};
 
-		auto &psfprof = static_cast<PsfProfile &>(m.add_profile("psf"));
-		psfprof.xcen = 2;
-		psfprof.ycen = 2;
-		psfprof.mag = 0;
+		Profile &psfprof = m.add_profile("psf");
+		psfprof.parameter("xcen", 2.);
+		psfprof.parameter("ycen", 2.);
+		psfprof.parameter("mag", 0.);
 
 		std::vector<double> image = m.evaluate();
 		for(auto j=0; j!=2; j++) {

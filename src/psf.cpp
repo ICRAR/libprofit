@@ -157,4 +157,20 @@ PsfProfile::PsfProfile(const Model &model, const string &name) :
 	// no-op
 }
 
+bool PsfProfile::parameter_impl(const string &name, double val) {
+
+	if( Profile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "xcen" )      { xcen = val; }
+	else if( name == "ycen" ) { ycen = val; }
+	else if( name == "mag" )  { mag = val; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
 } /* namespace profit */

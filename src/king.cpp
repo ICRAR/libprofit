@@ -34,7 +34,7 @@ using namespace std;
 namespace profit
 {
 
-/**
+/*
  * The evaluation of the king profile at king coordinates (x,y).
  *
  * The king profile has this form:
@@ -128,6 +128,22 @@ KingProfile::KingProfile(const Model &model, const string &name) :
 	rc(1), rt(3), a(2)
 {
 	// no-op
+}
+
+bool KingProfile::parameter_impl(const string &name, double val) {
+
+	if( RadialProfile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "rc" )      { rc = val; }
+	else if( name == "rt" ) { rt = val; }
+	else if( name == "a" )  { a = val; }
+	else {
+		return false;
+	}
+
+	return true;
 }
 
 } /* namespace profit */

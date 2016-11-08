@@ -137,4 +137,19 @@ FerrerProfile::FerrerProfile(const Model &model, const string &name) :
 	this->acc = 1;
 }
 
+bool FerrerProfile::parameter_impl(const string &name, double val) {
+
+	if( RadialProfile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "rout" )   { rout = val; }
+	else if( name == "a" ) { a = val; }
+	else if( name == "b" ) { b = val; }
+	else {
+		return false;
+	}
+
+	return true;
+}
 } /* namespace profit */

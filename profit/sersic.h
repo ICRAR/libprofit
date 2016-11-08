@@ -47,20 +47,6 @@ namespace profit
  */
 class SersicProfile : public RadialProfile {
 
-protected:
-
-	/* All these are inherited from RadialProfile */
-	void initial_calculations() override;
-	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec) override;
-	double get_pixel_scale() override;
-
-	double get_lumtot(double r_box) override;
-	double get_rscale() override;
-	double adjust_acc() override;
-	double adjust_rscale_switch() override;
-	double adjust_rscale_max() override;
-	eval_function_t get_evaluation_function() override;
-
 public:
 
 	/*
@@ -87,6 +73,32 @@ public:
 	SersicProfile(const Model &model, const std::string &name);
 
 	void validate() override;
+
+protected:
+
+	/*
+	 * ----------------------
+	 * Inherited from Profile
+	 * ----------------------
+	 */
+	bool parameter_impl(const std::string &name, double val) override;
+	bool parameter_impl(const std::string &name, bool val) override;
+
+	/*
+	 * ----------------------------
+	 * Inherited from RadialProfile
+	 * ----------------------------
+	 */
+	void initial_calculations() override;
+	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec) override;
+	double get_pixel_scale() override;
+
+	double get_lumtot(double r_box) override;
+	double get_rscale() override;
+	double adjust_acc() override;
+	double adjust_rscale_switch() override;
+	double adjust_rscale_max() override;
+	eval_function_t get_evaluation_function() override;
 
 	/*
 	 * -------------------------

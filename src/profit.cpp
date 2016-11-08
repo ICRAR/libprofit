@@ -81,6 +81,45 @@ const string& Profile::get_name() const {
 	return name;
 }
 
+template <typename T>
+void Profile::set_parameter(const string &name, T val) {
+	if( !parameter_impl(name, val) ) {
+		ostringstream os;
+		os << "Unknown " << typeid(val).name() << " parameter '" << name << "'";
+		throw invalid_parameter(os.str());
+	}
+}
+
+void Profile::parameter(const string &name, bool val) {
+	set_parameter<bool>(name, val);
+}
+
+void Profile::parameter(const string &name, double val) {
+	set_parameter<double>(name, val);
+}
+
+void Profile::parameter(const string &name, unsigned int val) {
+	set_parameter<unsigned int>(name, val);
+}
+
+bool Profile::parameter_impl(const string &name, bool val) {
+
+	if( name == "convolve" ) {
+		convolve = val;
+		return true;
+	}
+
+	return false;
+}
+
+bool Profile::parameter_impl(const string &name, double val) {
+	return false;
+}
+
+bool Profile::parameter_impl(const string &name, unsigned int val) {
+	return false;
+}
+
 Model::Model() :
 	width(0), height(0),
 	scale_x(1), scale_y(1),

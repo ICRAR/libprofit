@@ -28,7 +28,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "profit/sersic.h"
+#include "profit/profit.h"
 
 using namespace profit;
 
@@ -51,8 +51,9 @@ public:
 			// 100x100 model, with profile centered at (50,50)
 			Model m;
 			m.width = m.height = 100;
-			auto &radialp = static_cast<RadialProfile &>(m.add_profile(pname));
-			radialp.xcen = radialp.ycen = 50;
+			auto &radialp = m.add_profile(pname);
+			radialp.parameter("xcen", 50.);
+			radialp.parameter("ycen", 50.);
 
 			// we don't assert anything yet, only check that the profile can be
 			// constructed successfully with its default values
@@ -66,9 +67,10 @@ public:
 			// 100x100 model, with profile centered at (50,50), box=0.5
 			Model m;
 			m.width = m.height = 100;
-			auto &radialp = static_cast<RadialProfile &>(m.add_profile(pname));
-			radialp.xcen = radialp.ycen = 50;
-			radialp.box = 0.1;
+			auto &radialp = m.add_profile(pname);
+			radialp.parameter("xcen", 50.);
+			radialp.parameter("ycen", 50.);
+			radialp.parameter("box", 0.1);
 
 			// we don't assert anything yet, only check that the profile can be
 			// constructed successfully with its default values
@@ -86,13 +88,13 @@ public:
 		m.magzero = 0;
 		m.psf = {1,1,1,1};
 
-		auto &psfprof = static_cast<SersicProfile &>(m.add_profile("sersic"));
-		psfprof.xcen = 1;
-		psfprof.ycen = 1;
-		psfprof.re = 10;
-		psfprof.rscale_max = 10;
-		psfprof.mag = 0;
-		psfprof.adjust = false;
+		auto &sp = m.add_profile("sersic");
+		sp.parameter("xcen", 1.);
+		sp.parameter("ycen", 1.);
+		sp.parameter("re", 10.);
+		sp.parameter("rscale_max", 10.);
+		sp.parameter("mag", 0.);
+		sp.parameter("adjust", false);
 
 		/* Some on, some off */
 		m.calcmask = {false, true, true,

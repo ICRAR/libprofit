@@ -68,7 +68,34 @@ typedef double (*eval_function_t)(const RadialProfile &profile, double x, double
  */
 class RadialProfile : public Profile {
 
+public:
+
+	/**
+	 * Constructor
+	 *
+	 * @param model The model this profile belongs to
+	 * @param name The name of this profile
+	 */
+	RadialProfile(const Model &model, const std::string &name);
+
+	/*
+	 * ---------------------------------------------
+	 * Pure virtual functions implementations follow
+	 * ---------------------------------------------
+	 */
+	void validate() override;
+	void evaluate(std::vector<double> &image) override;
+
 protected:
+
+	/*
+	 * ----------------------
+	 * Inherited from Profile
+	 * ----------------------
+	 */
+	virtual bool parameter_impl(const std::string &name, bool value) override;
+	virtual bool parameter_impl(const std::string &name, double value) override;
+	virtual bool parameter_impl(const std::string &name, unsigned int value) override;
 
 	/**
 	 * Performs the initial calculations needed by this profile during the
@@ -138,40 +165,6 @@ protected:
 	 * (assuming box == 0) which can be reused to avoid some extra computations.
 	 */
 	virtual eval_function_t get_evaluation_function() = 0;
-
-	/* These are internally calculated at profile evaluation time */
-	double _ie;
-	double _cos_ang;
-	double _sin_ang;
-	eval_function_t _eval_function;
-
-private:
-
-	void _image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof);
-
-	double subsample_pixel(double x0, double x1,
-	                       double y0, double y1,
-	                       unsigned int recur_level,
-	                       unsigned int max_recursions,
-	                       unsigned int resolution);
-
-public:
-
-	/**
-	 * Constructor
-	 *
-	 * @param model The model this profile belongs to
-	 * @param name The name of this profile
-	 */
-	RadialProfile(const Model &model, const std::string &name);
-
-	/*
-	 * ---------------------------------------------
-	 * Pure virtual functions implementations follow
-	 * ---------------------------------------------
-	 */
-	void validate() override;
-	void evaluate(std::vector<double> &image) override;
 
 	/*
 	 * -------------------------
@@ -267,6 +260,22 @@ public:
 	/* record of how many subintegrations we've done */
 	std::map<int,int> n_integrations;
 #endif
+
+	/* These are internally calculated at profile evaluation time */
+	double _ie;
+	double _cos_ang;
+	double _sin_ang;
+	eval_function_t _eval_function;
+
+private:
+
+	void _image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof);
+
+	double subsample_pixel(double x0, double x1,
+	                       double y0, double y1,
+	                       unsigned int recur_level,
+	                       unsigned int max_recursions,
+	                       unsigned int resolution);
 
 };
 
