@@ -47,23 +47,19 @@ namespace profit
  *       r = (x^{2+B} + y^{2+B})^{1/(2+B)}
  *       B = box parameter
  */
-static
-double _king_for_xy_r(const RadialProfile &sp,
-                      double x, double y,
-                      double r, bool reuse_r) {
+double KingProfile::evaluate_at(double x, double y, double r, bool reuse_r) const {
 
-	const KingProfile &kp = static_cast<const KingProfile &>(sp);
-	if( !reuse_r && kp.box == 0 ) {
+	if( !reuse_r && box == 0 ) {
 		r = sqrt(x*x + y*y);
 	}
 	else if( !reuse_r ) { // && kp.box != 0
-		double box = kp.box + 2.;
+		double box = this->box + 2.;
 		r = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
 	}
 	// else reuse_r == true, so r is used as is
 
-	if( r < kp.rt ) {
-		return pow(1/pow(1 + pow(r/kp.rc, 2), 1/kp.a) - 1/pow(1 + pow(kp.rt/kp.rc, 2), 1/kp.a), kp.a);
+	if( r < rt ) {
+		return pow(1/pow(1 + pow(r/rc, 2), 1/a) - 1/pow(1 + pow(rt/rc, 2), 1/a), a);
 	}
 
 	return 0;
@@ -86,14 +82,15 @@ void KingProfile::validate() {
 }
 
 eval_function_t KingProfile::get_evaluation_function() {
-	return &_king_for_xy_r;
+	return [](const RadialProfile &rp, double x, double y, double r, bool reuse_r) -> double {
+		auto kp = static_cast<const KingProfile &>(rp);
+		return kp.evaluate_at(x, y, r, reuse_r);
+	};
 }
 
-static
-double king_int(double r, void *ex) {
-	KingProfile *kp = (KingProfile *)ex;
-	if( r < kp->rt ) {
-		return r * pow(1/pow(1 + pow(r/kp->rc, 2), 1/kp->a) - 1/pow(1 + pow(kp->rt/kp->rc, 2), 1/kp->a), kp->a);
+double KingProfile::integrate_at(double r) const {
+	if( r < rt ) {
+		return r * pow(1/pow(1 + pow(r/rc, 2), 1/a) - 1/pow(1 + pow(rt/rc, 2), 1/a), a);
 	}
 	return 0;
 }
@@ -103,7 +100,10 @@ double KingProfile::get_lumtot(double r_box) {
 	 * We numerically integrate r from 0 to rt
 	 * to get the total luminosity
 	 */
-	double magtot = integrate_qags(&king_int, 0, this->rt, this);
+	double magtot = integrate_qags([](double r, void *ctx) -> double {
+		auto kp = reinterpret_cast<KingProfile *>(ctx);
+		return kp->integrate_at(r);
+	}, 0, this->rt, this);
 	return 2*M_PI * axrat * magtot/r_box;
 }
 

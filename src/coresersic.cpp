@@ -47,36 +47,27 @@ namespace profit
  *           r = (x^{2+B} + y^{2+B})^{1/(2+B)}
  *           B = box parameter
  */
-static
-double _coresersic_for_xy_r(const RadialProfile &sp,
-                            double x, double y,
-                            double r, bool reuse_r) {
+double CoreSersicProfile::evaluate_at(double x, double y, double r, bool reuse_r) const {
 
-	const CoreSersicProfile &csp = static_cast<const CoreSersicProfile &>(sp);
-
-	if( csp.box == 0 && !reuse_r ) {
+	if( box == 0 && !reuse_r ) {
 		r = sqrt(x*x + y*y);
 	}
-	else if( csp.box != 0 ){
-		double box = csp.box + 2.;
+	else if( box != 0 ){
+		double box = this->box + 2.;
 		r = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
 	}
 	// else csp.box == 0 && reuse_r, so we leave r untouched
 
-	double rb = csp.rb;
-	double a = csp.a;
-	double b = csp.b;
-	double bn = csp._bn;
-	double re = csp.re;
-	double nser = csp.nser;
-
 	return pow(1 + pow(r/rb,-a), b/a) *
-	       exp(-bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
+	       exp(-_bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
 
 }
 
 eval_function_t CoreSersicProfile::get_evaluation_function() {
-	return &_coresersic_for_xy_r;
+	return [](const RadialProfile &rp, double x, double y, double r, bool reuse_r) -> double {
+		auto &csp = static_cast<const CoreSersicProfile &>(rp);
+		return csp.evaluate_at(x, y, r, reuse_r);
+	};
 }
 
 void CoreSersicProfile::validate() {
@@ -101,19 +92,10 @@ void CoreSersicProfile::validate() {
 
 }
 
-static
-double coresersic_int(double r, void *ex) {
-	CoreSersicProfile *csp = (CoreSersicProfile *)ex;
-	double rb = csp->rb;
-	double a = csp->a;
-	double b = csp->b;
-	double bn = csp->_bn;
-	double re = csp->re;
-	double nser = csp->nser;
+double CoreSersicProfile::integrate_at(double r) const {
 	return r * pow(1 + pow(r/rb,-a), b/a) *
-	       exp(-bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
+	       exp(-_bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
 }
-
 
 double CoreSersicProfile::get_lumtot(double r_box) {
 
@@ -121,7 +103,11 @@ double CoreSersicProfile::get_lumtot(double r_box) {
 	 * We numerically integrate r from 0 to infinity
 	 * to get the total luminosity
 	 */
-	double magtot = integrate_qagi(&coresersic_int, 0, this);
+	auto int_f = [](double r, void *ctx){
+		CoreSersicProfile *p = reinterpret_cast<CoreSersicProfile *>(ctx);
+		return p->integrate_at(r);
+	};
+	double magtot = integrate_qagi(int_f, 0, this);
 	return 2 * M_PI * axrat * magtot/r_box;
 }
 

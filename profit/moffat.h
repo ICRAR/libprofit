@@ -85,6 +85,8 @@ public:
 	 */
 	double con;
 
+	double evaluate_at(double x, double y, double r, bool reuse_r) const;
+
 };
 
 } /* namespace profit */

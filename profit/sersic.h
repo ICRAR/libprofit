@@ -63,6 +63,21 @@ protected:
 
 public:
 
+	/*
+	 * The nser parameter is a double; we need an enumeration of the known values
+	 * to optimize for to use in our templates
+	 */
+	enum nser_t {
+		general,
+		pointfive,
+		one,
+		two,
+		three,
+		four,
+		eight,
+		sixteen
+	};
+
 	/**
 	 * Constructor
 	 *
@@ -96,6 +111,16 @@ public:
 	/* These are internally calculated profile init */
 	double _bn;
 	double _rescale_factor;
+
+private:
+
+	template <bool boxy, nser_t t>
+	double evaluate_at(double x, double y, double r, bool reuse_r) const;
+
+	template <bool boxy, nser_t t>
+	eval_function_t get_evaluation_function_t();
+
+	double fluxfrac(double fraction) const;
 
 };
 
