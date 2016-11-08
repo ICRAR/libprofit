@@ -53,15 +53,15 @@ class RadialProfile;
 typedef double (*eval_function_t)(const RadialProfile &profile, double x, double y, double r, bool reuse_r);
 
 /**
- * The case class for radial profiles.
+ * The base class for radial profiles.
  *
  * This class implements the common aspects of all radial profiles, namely:
  *  * High-level evaluation logic
  *  * Region masking
- *  * Translation, rotation, axis ratio and boxing
+ *  * Translation, rotation, axis ratio and boxing handling
  *  * Pixel subsampling
  *
- * Subclasses are expected to implement a handfull of methods that convey
+ * Subclasses are expected to implement a handful of methods that convey
  * profile-specific information, such as the evaluation function for an given
  * x/y profile coordinate and the calculation of the total luminosity of the
  * profile, among others.

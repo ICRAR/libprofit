@@ -34,17 +34,15 @@ namespace profit
 /**
  * A King profile
  *
- * The King profile has parameters ``rc``, ``rt`` and ``a`` is
- * calculated as follows for coordinates x/y::
+ * The King profile has parameters `rc`, `rt` and `a` is
+ * calculated as follows at radius `r`:
  *
- *    temp=1/(1+(rt/rc)^2)^(1/a)
- *    inten = (1-temp)^(-a)*
- *            (1/(1+(r/rc)^2)^(1/a)-temp)^a
- *
- * with::
- *
- *           r = (x^{2+B} + y^{2+B})^{1/(2+B)}
- *           B = box parameter
+ * @f[
+ *    \left(
+ *      \frac{1}{ \left[1 + \left(\frac{r}{r_c}\right)^{2}\right]^{\frac{1}{a}} } -
+ *      \frac{1}{ \left[1 + \left(\frac{r_t}{r_c}\right)^{2}\right]^{\frac{1}{a}} }
+ *    \right)^{a}
+ * @f]
  */
 class KingProfile : public RadialProfile {
 

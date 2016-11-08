@@ -35,16 +35,17 @@ namespace profit
  * A Moffat profile
  *
  * The moffat profile has parameters ``fwhm`` and ``con``, and is calculated as
- * follows for coordinates x/y::
+ * follows at radius `r`:
  *
- *   (1+r_factor)^(-c)
+ * @f[
+ *   \left[ 1 + \left(\frac{r}{r_d}\right)\right]^{-con}
+ * @f]
  *
- * with::
+ * with:
  *
- *   r_factor = (r/rscale)^2
- *     rscale = fwhm/(2*sqrt( 2^(1/con) - 1))
- *          r = (x^{2+b} + y^{2+b})^{1/(2+b)}
- *          b = box parameter
+ * @f[
+ *   r_d = \frac{fwhm}{2 \sqrt{2^{\frac{1}{con}} - 1}}
+ * @f]
  */
 class MoffatProfile : public RadialProfile {
 

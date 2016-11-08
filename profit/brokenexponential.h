@@ -34,16 +34,12 @@ namespace profit
 /**
  * A Broken Exponential profile
  *
- * The Broken Exponential profile has parameters ``h1``, ``h2``, ``rb`` and ``a`` is
- * calculated as follows for coordinates x/y::
+ * The Broken Exponential profile has parameters `h1`, `h2`, `rb` and `a` is
+ * calculated as follows at radius `r`:
  *
- *    inten = exp(-r/h1)*
- *            (1+exp(a*(r-rb)))^((1/a)*(1/h1-1/h2))
- *
- * with::
- *
- *           r = (x^{2+B} + y^{2+B})^{1/(2+B)}
- *           B = box parameter
+ * @f[
+ *     e^{-r/h_1} \left[1 + e^{a (r-r_b)})\right]^{\frac{1}{a} \left(\frac{1}{h_1} - \frac{1}{h_2}\right)}
+ * @f]
  */
 class BrokenExponentialProfile : public RadialProfile {
 

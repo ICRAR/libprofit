@@ -34,16 +34,12 @@ namespace profit
 /**
  * A Sersic profile
  *
- * The ferrer profile has parameters ``nser`` and ``re`` and is calculated as
- * follows for coordinates x/y::
+ * The sersic profile has parameters `nser` and `re` and is calculated as
+ * follows at radius `r`:
  *
- *   e^{-bn * (r_factor - 1)}
- *
- * with::
- *  r_factor = (r/re)^{1/nser}
- *         r = (x^{2+b} + y^{2+b})^{1/(2+b)}
- *         b = box parameter
- *        bn = qgamma(0.5, 2*nser)
+ * @f[
+ *   \exp \left\{ -b_n \left[ \left(\frac{r}{r_e}\right)^{\frac{1}{n_{ser}}} - 1 \right] \right\}
+ * @f]
  */
 class SersicProfile : public RadialProfile {
 

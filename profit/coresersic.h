@@ -34,16 +34,14 @@ namespace profit
 /**
  * A CoreSersic profile
  *
- * The CoreSersic profile has parameters ``re``, ``rb``, ``nser``, ``a`` and ``b`` and is
- * calculated as follows for coordinates x/y::
+ * The CoreSersic profile has parameters `re`, `rb`, `nser`, `a` and `b` and is
+ * calculated as follows at radius `r`:
  *
- *    (1+(r/rb)^(-a))^(b/a)*
- *        exp(-bn*(((r^a+rb^a)/re^a))^(1/(nser*a)))
+ * @f[
+ *    \left[1+\left(\frac{r}{r_b}\right)^{-a}\right]^{\frac{b}{a}}
+ *        \exp \left[ -b_n \left( \frac{r^a+{r_b}^a}{{r_e}^a}\right)^{\frac{1}{a n_{ser}}} \right]
+ * @f]
  *
- * with::
- *
- *           r = (x^{2+B} + y^{2+B})^{1/(2+B)}
- *           B = box parameter
  */
 class CoreSersicProfile : public RadialProfile {
 

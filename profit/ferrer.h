@@ -34,16 +34,12 @@ namespace profit
 /**
  * A Ferrer profile
  *
- * The ferrer profile has parameters ``rout``, ``a`` and ``b`` and is
- * calculated as follows for coordinates x/y::
+ * The ferrer profile has parameters `rout`, `a` and `b` and is
+ * calculated as follows at radius `r`:
  *
- *    (1-r_factor)^(a)
- *
- * with::
- *
- *    r_factor = (r/rout)^(2-b)
- *           r = (x^{2+B} + y^{2+B})^{1/(2+B)}
- *           B = box parameter
+ * @f[
+ *    \left[ 1 - \left(\frac{r}{r_{out}}\right)^{(2-b)} \right]^{a}
+ * @f]
  */
 class FerrerProfile : public RadialProfile {
 
