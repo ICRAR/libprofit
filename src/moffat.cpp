@@ -27,7 +27,10 @@
 #include <cmath>
 #include <algorithm>
 
+#include "profit/common.h"
+#include "profit/exceptions.h"
 #include "profit/moffat.h"
+
 
 using namespace std;
 

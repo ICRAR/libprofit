@@ -26,7 +26,7 @@
 #ifndef _PSF_H_
 #define _PSF_H_
 
-#include "profit/profit.h"
+#include "profit/profile.h"
 
 namespace profit
 {

@@ -1,5 +1,5 @@
 /**
- * libprofit main entry-point routines
+ * Model class implementation
  *
  * ICRAR - International Centre for Radio Astronomy Research
  * (c) UWA - The University of Western Australia, 2016
@@ -24,101 +24,26 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <memory>
 #include <sstream>
-#include <string>
-#include <vector>
 
+#include "profit/common.h"
 #include "profit/brokenexponential.h"
 #include "profit/convolve.h"
 #include "profit/coresersic.h"
+#include "profit/exceptions.h"
 #include "profit/ferrer.h"
 #include "profit/king.h"
+#include "profit/model.h"
 #include "profit/moffat.h"
-#include "profit/profit.h"
 #include "profit/psf.h"
 #include "profit/sersic.h"
 #include "profit/sky.h"
 #include "profit/utils.h"
 
+
 using namespace std;
 
 namespace profit {
-
-invalid_parameter::invalid_parameter(const string &what_arg) :
-	exception(),
-	m_what(what_arg)
-{
-	// no-op
-}
-
-invalid_parameter::~invalid_parameter() throw () {
-	// no-op
-}
-
-const char *invalid_parameter::what() const throw() {
-	return m_what.c_str();
-}
-
-Profile::Profile(const Model &model, const string &name) :
-	model(model),
-	name(name),
-	convolve(false)
-{
-	// no-op
-}
-
-Profile::~Profile()
-{
-	// no-op
-}
-
-bool Profile::do_convolve() const {
-	return convolve;
-}
-
-const string& Profile::get_name() const {
-	return name;
-}
-
-template <typename T>
-void Profile::set_parameter(const string &name, T val) {
-	if( !parameter_impl(name, val) ) {
-		ostringstream os;
-		os << "Unknown " << typeid(val).name() << " parameter '" << name << "'";
-		throw invalid_parameter(os.str());
-	}
-}
-
-void Profile::parameter(const string &name, bool val) {
-	set_parameter<bool>(name, val);
-}
-
-void Profile::parameter(const string &name, double val) {
-	set_parameter<double>(name, val);
-}
-
-void Profile::parameter(const string &name, unsigned int val) {
-	set_parameter<unsigned int>(name, val);
-}
-
-bool Profile::parameter_impl(const string &name, bool val) {
-
-	if( name == "convolve" ) {
-		convolve = val;
-		return true;
-	}
-
-	return false;
-}
-
-bool Profile::parameter_impl(const string &name, double val) {
-	return false;
-}
-
-bool Profile::parameter_impl(const string &name, unsigned int val) {
-	return false;
-}
 
 Model::Model() :
 	width(0), height(0),
@@ -129,6 +54,12 @@ Model::Model() :
 	calcmask(), profiles()
 {
 	// no-op
+}
+
+Model::~Model() {
+	for(auto profile: this->profiles) {
+		delete profile;
+	}
 }
 
 bool Model::has_profiles() const {
@@ -195,7 +126,7 @@ vector<double> Model::evaluate() {
 	for(auto profile: this->profiles) {
 		if( profile->do_convolve() ) {
 			if( this->psf.empty() ) {
-				stringstream ss;
+				ostringstream ss;
 				ss << "Profile " << profile->get_name() << " requires convolution but no psf was provided";
 				throw invalid_parameter(ss.str());
 			}
@@ -270,12 +201,6 @@ vector<double> Model::evaluate() {
 
 	/* Done! Good job :-) */
 	return image;
-}
-
-Model::~Model() {
-	for(auto profile: this->profiles) {
-		delete profile;
-	}
 }
 
 } /* namespace profit */

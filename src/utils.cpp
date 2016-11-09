@@ -30,6 +30,7 @@
 #include <numeric>
 #include <vector>
 
+#include "profit/common.h"
 #include "profit/utils.h"
 
 /*
@@ -79,12 +80,13 @@
 	#error("No high-level library (GSL or R) provided")
 #endif
 
+
 using namespace std;
 
 namespace profit {
 
 void add_images(vector<double> &dest, const vector<double> &src) {
-	transform(src.begin(), src.end(), dest.begin(), dest.begin(), std::plus<double>());
+	transform(src.begin(), src.end(), dest.begin(), dest.begin(), plus<double>());
 }
 
 void normalize(vector<double> &image) {

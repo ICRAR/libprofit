@@ -26,8 +26,11 @@
 
 #include <cmath>
 
+#include "profit/common.h"
 #include "profit/coresersic.h"
+#include "profit/exceptions.h"
 #include "profit/utils.h"
+
 
 using namespace std;
 

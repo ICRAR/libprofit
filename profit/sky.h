@@ -27,7 +27,7 @@
 #ifndef _SKY_H_
 #define _SKY_H_
 
-#include "profit/profit.h"
+#include "profit/profile.h"
 
 namespace profit
 {

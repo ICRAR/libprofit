@@ -27,8 +27,12 @@
 #include <cmath>
 #include <algorithm>
 
+#include "profit/common.h"
+#include "profit/exceptions.h"
+#include "profit/model.h"
 #include "profit/sersic.h"
 #include "profit/utils.h"
+
 
 using namespace std;
 

@@ -41,8 +41,9 @@
 
 #include "profit/profit.h"
 
-using namespace profit;
+
 using namespace std;
+using namespace profit;
 
 class invalid_cmdline : exception {
 public:
@@ -52,7 +53,7 @@ public:
 	const char *what() const throw() { return m_what.c_str(); }
 
 private:
-	std::string m_what;
+	string m_what;
 };
 
 /**
@@ -188,7 +189,7 @@ void keyval_to_psf(Profile &p, const string &key, string &val) {
 }
 
 typedef void (*keyval_to_param_t)(Profile &, const string& name, string &value);
-static std::map<string, keyval_to_param_t> reader_functions = {
+static map<string, keyval_to_param_t> reader_functions = {
 	{"sersic",     &keyval_to_sersic},
 	{"moffat",     &keyval_to_moffat},
 	{"ferrer",     &keyval_to_ferrer},
@@ -433,7 +434,7 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	/* Append .fits if not in the name yet */
 	size_t fname_size = fname.size();
 	if( fname_size <= 5 || fname.rfind(".fits", fname_size - 6) != string::npos ) {
-		stringstream ss;
+		ostringstream ss;
 		ss << fname << ".fits";
 		fname = ss.str();
 	}

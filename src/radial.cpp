@@ -28,8 +28,12 @@
 #include <cmath>
 #include <vector>
 
+#include "profit/common.h"
+#include "profit/exceptions.h"
+#include "profit/model.h"
 #include "profit/radial.h"
 #include "profit/utils.h"
+
 
 using namespace std;
 

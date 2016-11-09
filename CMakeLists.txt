@@ -96,10 +96,12 @@ set(PROFIT_SRC
    src/brokenexponential.cpp
    src/convolve.cpp
    src/coresersic.cpp
+   src/exceptions.cpp
    src/ferrer.cpp
    src/king.cpp
+   src/model.cpp
    src/moffat.cpp
-   src/profit.cpp
+   src/profile.cpp
    src/psf.cpp
    src/radial.cpp
    src/sersic.cpp
@@ -117,7 +119,14 @@ target_link_libraries(profit-cli profit)
 install(TARGETS profit profit-cli
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/profit DESTINATION include)
+install(FILES
+        profit/common.h
+        profit/convolve.h
+        profit/exceptions.h
+        profit/model.h
+        profit/profile.h
+        profit/profit.h
+        DESTINATION include/profit)
 
 
 # Tests

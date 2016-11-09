@@ -31,7 +31,7 @@
 #endif
 
 
-#include "profit/profit.h"
+#include "profit/profile.h"
 
 namespace profit
 {
