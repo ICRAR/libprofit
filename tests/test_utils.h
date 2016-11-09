@@ -32,9 +32,8 @@
 
 #include "profit/utils.h"
 
+using namespace std;
 using namespace profit;
-using std::isinf;
-using std::isnan;
 
 class TestUtils : public CxxTest::TestSuite {
 
