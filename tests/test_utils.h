@@ -24,15 +24,17 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #include <cmath>
 #include <iostream>
 
 #include <cxxtest/TestSuite.h>
-#include <gsl/gsl_errno.h>
+#ifdef HAVE_GSL
+	#include <gsl/gsl_errno.h>
+#endif
 
 #include "profit/utils.h"
 
-using namespace std;
 using namespace profit;
 
 class TestUtils : public CxxTest::TestSuite {
@@ -48,7 +50,7 @@ public:
 	void test_gamma(void) {
 		// not defined for negative integers and 0
 		for(double x: {-100., -50., -1., 0.}) {
-			TS_ASSERT(isnan(gammafn(x)));
+			TS_ASSERT(std::isnan(gammafn(x)));
 		}
 		// normally approximates to 0 for large negative numbers (non-integer)
 		for(double x: {-1000.1, -2000.5}) {
@@ -58,11 +60,11 @@ public:
 		// defined for values up to ~171
 		for(double x: {-100.1, -50.1, -1.1, 0.1, 1., 2., 3.1, 10., 50., 70., 100.}) {
 			double result = gammafn(x);
-			TS_ASSERT(!isnan(result) && !isinf(result));
+			TS_ASSERT(!std::isnan(result) && !std::isinf(result));
 		}
 		// and returns +Inf for big positives
 		for(double x: {200., 2500., 10000.}) {
-			TS_ASSERT(isinf(gammafn(x)));
+			TS_ASSERT(std::isinf(gammafn(x)));
 		}
 	}
 
@@ -72,20 +74,20 @@ public:
 		for(double x: {-100., -10., -5., -4.5, -1., -0.1}) {
 			double result1 = beta(1, x);
 			double result2 = beta(x, 1);
-			TS_ASSERT(isnan(result1));
-			TS_ASSERT(isnan(result2));
+			TS_ASSERT(std::isnan(result1));
+			TS_ASSERT(std::isnan(result2));
 		}
 
 		// returns +Inf for a or b == 0
-		TS_ASSERT(isinf(beta(0, 1)));
-		TS_ASSERT(isinf(beta(1, 0)));
+		TS_ASSERT(std::isinf(beta(0, 1)));
+		TS_ASSERT(std::isinf(beta(1, 0)));
 
 		// normal values...
 		for(double a: {1., 2., 3., 4., 10., 100., 200.}) {
 			for(double b: {1., 2., 3., 4., 10., 100., 200.}) {
 				double result = beta(a,b);
-				TS_ASSERT(!isinf(result));
-				TS_ASSERT(!isnan(result));
+				TS_ASSERT(!std::isinf(result));
+				TS_ASSERT(!std::isnan(result));
 				TS_ASSERT_DIFFERS(0., result)
 			}
 		}
