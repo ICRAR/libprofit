@@ -34,16 +34,9 @@ are appended to the model, which is then evaluated.
 
 The basic usage pattern then is as follows:
 
-#. Add the necessary includes::
+#. Add the profit include::
 
-	 /* Mandatory */
 	 #include <profit/profit.h>
-	 /* Depending on which profiles you will use... */
-	 #include <profit/sersic.h>
-	 #include <profit/ferrer.h>
-	 #include <profit/moffat.h>
-	 #include <profit/sky.h>
-	 #include <profit/psf.h>
 
 #. First obtain a model instance::
 
@@ -57,16 +50,16 @@ The basic usage pattern then is as follows:
 	 Profile &sersic_profile = model.add_profile("sersic");
 
 #. Customize your profile.
-   An explicit cast must be performed on the :class:`Profile` to turn it
-   into the specific profile sub-class.
-   By convention these sub-types are named after the profile they represent,
-   like this::
+   To set the different parameters on your profile call
+   :member:`Profile::parameter` with the parameter name and value::
 
-	 SersicProfile &sp = static_cast<SersicProfile &>(sersic_profile);
-	 sp.xcen = 34.67;
-	 sp.ycen = 9.23;
-	 sp.axrat = 0.345;
+	 sersic_profile.parameter("xcen", 34.67);
+	 sersic_profile.parameter("ycen", 9.23);
+	 sersic_profile.parameter("axrat", 0.345);
 	 // ...
+
+   A complete list of parameters can be found on and :doc:`profiles` and
+   :doc:`api`.
 
 #. Repeat the previous two steps for all profiles
    you want to include in your model.

@@ -21,7 +21,7 @@ In all steps below,
 a completely artificial ``example`` profile is being added,
 This new profile takes three parameters:
 ``param1`` and ``param2`` are double numbers,
-while ``param3`` is an integer.
+while ``param3`` is an unsigned integer.
 The profile fills the image by taking the X and Y coordinates
 and filling the pixel
 with the value ``|(param1 - param2) * param3 * (x - y)|``
@@ -48,10 +48,10 @@ So far, it should look like this:
 .. code-block:: cpp
 
  class ExampleProfile : public Profile {
- public:
+ private:
      double param1;
      double param2;
-     int param3;
+     unsigned int param3;
  };
 
 Methods
@@ -67,13 +67,57 @@ that need to be written:
 The two latter are imposed by the base class,
 and must be called :func:`validate <Profile::validate>` and
 :func:`evaluate <Profile::evaluate>`.
-The method implementations should live all
-in the same file ``.cpp`` so they can easily see each other.
+
+In addition, to be able to receive parameters given by the user,
+the :func:`parameter <Profile::parameter>` methods
+must be overwritten.
+
+Parameters
+^^^^^^^^^^
+
+To receive parameters given by the user
+the new class must overwrite the necessary
+:func:`parameter <Profile::parameter>` methods from the parent class.
+There are several flavours of this methods,
+depending on the parameter data type,
+so only the necessary ones are required.
+
+In our example we only have parameters
+of type `double` and `unsigned int`
+so we only need to overwrite those two methods.
+This method must call its parent method
+to check if it already set a parameter with that name,
+in which case it should short-cut and return `true`;
+it then should check the parameter name
+against its own parameters,
+and return either `true` or `false`
+if the parameter was set or not.
+
+In our example, `double` parameters are set like this:
+
+.. code-block:: cpp
+
+ void ExampleProfile::parameter(const std::string &name, double value) {
+
+     if( Profile::parameter(name, value) ) {
+        return true;
+     }
+
+     if( name == "param1" )      { param1 = value; }
+     else if( name == "param2" ) { param2 = value; }
+     else {
+        return false;
+     }
+
+     return true;
+
+ }
 
 Validation
 ^^^^^^^^^^
 
-We will start by looking at the validation function.
+After parameters are all set,
+*libprofit* will call the validation function.
 The validation function's responsibility,
 as its name implies,
 is to validate the inputs of the profile,
@@ -127,7 +171,7 @@ with an empty body.
 Evaluation
 ^^^^^^^^^^
 
-Next, we loop to the :func:`evaluate <Profile::evaluate>` method.
+Next, we look to the :func:`evaluate <Profile::evaluate>` method.
 Its ``image`` argument
 corresponds to the surface where the pixels must be drawn.
 Each profile in the model receives a different image surface,
@@ -206,25 +250,24 @@ Its signature looks like this:
 
 .. code-block:: cpp
 
- ExampleProfile();
+ ExampleProfile(const Model &model, const std::string &name);
 
-The constructor is in charge of populating the profile
+The constructor arguments must be passed down to the parent class.
+The constructor is also in charge of populating the profile
 with its default values.
 For this example the code would look like this:
 
 .. code-block:: cpp
 
- ExampleProfile::ExampleProfile() :
-     Profile(),
-	  param1(1.),
-	  param2(2.),
-	  param3(3)
+ ExampleProfile::ExampleProfile(const Model &model, const std::string &name) :
+     Profile(model, name),
+     param1(1.),
+     param2(2.),
+     param3(3)
  {
    // no-op
  }
 
-
-Take care of course of calling the parent constructor.
 
 .. _wiring_up:
 

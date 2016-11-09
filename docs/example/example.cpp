@@ -1,17 +1,46 @@
 /* copyright statement, etc */
 
 #include <cmath>
-#include "profit/example.h"
+#include "example.h"
+#include "profit/model.h"
 
 namespace profit {
 
-ExampleProfile::ExampleProfile() :
-    Profile(),
+ExampleProfile::ExampleProfile(const Model &model, const std::string &name) :
+    Profile(model, name),
 	 param1(1.),
 	 param2(2.),
 	 param3(3)
 {
 	// no-op
+}
+
+bool ExampleProfile::parameter(const std::string &name, double value) {
+
+	if( Profile::parameter(name, value) ) {
+		return true;
+	}
+
+	if( name == "param1" )      { param1 = value; }
+	else if( name == "param2" ) { param2 = value; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+bool ExampleProfile::parameter(const std::string &name, unsigned int value) {
+	if( Profile::parameter(name, value) ) {
+		return true;
+	}
+
+	if( name == "param3" ) { param3 = value; }
+	else {
+		return false;
+	}
+
+	return true;
 }
 
 void ExampleProfile::validate() {
