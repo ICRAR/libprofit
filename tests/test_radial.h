@@ -101,8 +101,8 @@ public:
 		              false, true, false,
 		              true, true, false};
 		std::vector<double> image = m.evaluate();
-		for(auto j=0; j!=m.width; j++) {
-			for(auto i=0; i!=m.height; i++) {
+		for(auto j=0u; j!=m.width; j++) {
+			for(auto i=0u; i!=m.height; i++) {
 				auto idx = i + j*m.width;
 				if( m.calcmask[idx] ) {
 					TS_ASSERT_DIFFERS(0, image[idx]);
@@ -118,8 +118,8 @@ public:
 		              true, true, true,
 		              true, true, true};
 		image = m.evaluate();
-		for(auto j=0; j!=m.width; j++) {
-			for(auto i=0; i!=m.height; i++) {
+		for(auto j=0u; j!=m.width; j++) {
+			for(auto i=0u; i!=m.height; i++) {
 				auto idx = i + j*m.width;
 				TS_ASSERT_DIFFERS(0, image[idx]);
 			}
@@ -128,8 +128,8 @@ public:
 		/* No mask */
 		m.calcmask = {};
 		image = m.evaluate();
-		for(auto j=0; j!=m.width; j++) {
-			for(auto i=0; i!=m.height; i++) {
+		for(auto j=0u; j!=m.width; j++) {
+			for(auto i=0u; i!=m.height; i++) {
 				auto idx = i + j*m.width;
 				TS_ASSERT_DIFFERS(0, image[idx]);
 			}
