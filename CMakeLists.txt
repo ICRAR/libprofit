@@ -133,7 +133,6 @@ install(FILES
 if( LIBPROFIT_TEST )
 	find_package(CxxTest)
 	if( CXXTEST_FOUND )
-		include_directories(${CXXTEST_INCLUDE_DIR})
 		enable_testing()
 		add_subdirectory(tests)
 	endif()
