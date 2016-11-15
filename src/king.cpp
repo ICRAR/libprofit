@@ -76,7 +76,7 @@ void KingProfile::validate() {
 		throw invalid_parameter("rc <= 0, must have rc > 0");
 	}
 	if ( rt <= 0 ) {
-		throw invalid_parameter("rt <= 0, must have rc > 0");
+		throw invalid_parameter("rt <= 0, must have rt > 0");
 	}
 	if ( a < 0 ) {
 		throw invalid_parameter("a < 0, must have a >=0");
