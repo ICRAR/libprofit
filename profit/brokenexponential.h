@@ -23,8 +23,8 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _BROKENEXPONENTIAL_H_
-#define _BROKENEXPONENTIAL_H_
+#ifndef PROFIT_BROKENEXPONENTIAL_H
+#define PROFIT_BROKENEXPONENTIAL_H
 
 #include "profit/radial.h"
 
@@ -114,4 +114,4 @@ private:
 
 } /* namespace profit */
 
-#endif /* _BROKENEXPONENTIAL_H_ */
+#endif /* PROFIT_BROKENEXPONENTIAL_H */

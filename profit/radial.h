@@ -23,8 +23,8 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _RADIAL_H_
-#define _RADIAL_H_
+#ifndef PROFIT_RADIAL_H
+#define PROFIT_RADIAL_H
 
 #ifdef PROFIT_DEBUG
 #include <map>
@@ -285,4 +285,4 @@ private:
 
 } /* namespace profit */
 
-#endif /* _RADIAL_H_ */
+#endif /* PROFIT_RADIAL_H */

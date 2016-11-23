@@ -23,8 +23,8 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _CORESERSIC_H_
-#define _CORESERSIC_H_
+#ifndef PROFIT_CORESERSIC_H
+#define PROFIT_CORESERSIC_H
 
 #include "profit/radial.h"
 
@@ -125,4 +125,4 @@ private:
 
 } /* namespace profit */
 
-#endif /* _CORESERSIC_H_ */
+#endif /* PROFIT_CORESERSIC_H */

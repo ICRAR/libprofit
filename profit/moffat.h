@@ -23,8 +23,8 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _MOFFAT_H_
-#define _MOFFAT_H_
+#ifndef PROFIT_MOFFAT_H
+#define PROFIT_MOFFAT_H
 
 #include "profit/radial.h"
 
@@ -110,4 +110,4 @@ private:
 
 } /* namespace profit */
 
-#endif /* _MOFFAT_H_ */
+#endif /* PROFIT_MOFFAT_H */

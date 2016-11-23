@@ -23,8 +23,8 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _FERRER_H_
-#define _FERRER_H_
+#ifndef PROFIT_FERRER_H
+#define PROFIT_FERRER_H
 
 #include "profit/radial.h"
 
@@ -108,4 +108,4 @@ private:
 
 } /* namespace profit */
 
-#endif /* _FERRER_H_ */
+#endif /* PROFIT_FERRER_H */
