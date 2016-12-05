@@ -195,19 +195,10 @@ inline double _invexp<false>(const double nser, const double exponent)
  * The main sersic evaluation function for a given X/Y coordinate
  */
 template <bool boxy, SersicProfile::nser_t t>
-double SersicProfile::evaluate_at(double x, double y, double r, bool reuse_r) const {
-
-	double r_factor;
-	if( reuse_r && box == 0. ){
-		r_factor = pow(r/re, 1/nser);
-	}
-	else {
-		double base;
-		double exponent = box + 2;
-		base = _base<boxy>(x, y, re, exponent);
-		r_factor = _r_factor<boxy,t>(base,_invexp<boxy>(nser,exponent));
-	}
-
+double SersicProfile::evaluate_at(double x, double y) const {
+	double exponent = box + 2;
+	double base = _base<boxy>(x, y, re, exponent);
+	double r_factor = _r_factor<boxy,t>(base,_invexp<boxy>(nser,exponent));
 	return exp(-_bn * (r_factor - 1));
 }
 
@@ -226,9 +217,9 @@ void SersicProfile::validate() {
 
 template <bool boxy, SersicProfile::nser_t t>
 eval_function_t SersicProfile::get_evaluation_function_t() {
-	return [](const RadialProfile &rp, double x, double y, double r, bool reuse_r) -> double {
+	return [](const RadialProfile &rp, double x, double y) -> double {
 		auto sp = static_cast<const SersicProfile &>(rp);
-		return sp.evaluate_at<boxy, t>(x, y, r, reuse_r);
+		return sp.evaluate_at<boxy, t>(x, y);
 	};
 }
 

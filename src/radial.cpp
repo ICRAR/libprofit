@@ -81,11 +81,11 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 			y += half_ybin;
 
 			this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
-			subval = this->_eval_function(*this, x_prof, y_prof, 0, false);
+			subval = this->_eval_function(*this, x_prof, y_prof);
 
 			if( recurse ) {
 				double delta_y_prof = (-xbin*this->_sin_ang + ybin*this->_cos_ang)/this->axrat;
-				testval = this->_eval_function(*this, abs(x_prof), abs(y_prof) + abs(delta_y_prof), 0, false);
+				testval = this->_eval_function(*this, abs(x_prof), abs(y_prof) + abs(delta_y_prof));
 				if( abs(testval/subval - 1.0) > this->acc ) {
 					subval = this->subsample_pixel(x - half_xbin, x + half_xbin,
 					                               y - half_ybin, y + half_ybin,
@@ -249,7 +249,7 @@ void RadialProfile::evaluate(vector<double> &image) {
 				pixel_val = 0.;
 			}
 			else if( this->rough || r_prof/this->rscale > this->rscale_switch ) {
-				pixel_val = this->_eval_function(*this, x_prof, y_prof, r_prof, true);
+				pixel_val = this->_eval_function(*this, x_prof, y_prof);
 			}
 			else {
 

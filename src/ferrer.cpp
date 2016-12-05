@@ -49,21 +49,10 @@ namespace profit
  *              r = (x^{2+B} + y^{2+B})^{1/(2+B)}
  *              B = box parameter
  */
-double FerrerProfile::evaluate_at(double x, double y, double r, bool reuse_r) const {
-
-	double r_factor;
-	if( reuse_r && box == 0 ) {
-		r_factor = r;
-	}
-	else if( box == 0 ) {
-		r_factor = sqrt(x*x + y*y);
-	}
-	else {
-		double box = this->box + 2.;
-		r_factor = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
-	}
-
-	r_factor /= rscale;
+double FerrerProfile::evaluate_at(double x, double y) const {
+	double box = this->box + 2.;
+	double r = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
+	double r_factor = r/rscale;
 	if( r_factor < 1 ) {
 		return pow(1 - pow(r_factor, 2 - b), a);
 	}
@@ -87,9 +76,9 @@ void FerrerProfile::validate() {
 }
 
 eval_function_t FerrerProfile::get_evaluation_function() {
-	return [](const RadialProfile &rp, double x, double y, double r, bool reuse_r) -> double {
+	return [](const RadialProfile &rp, double x, double y) -> double {
 		auto fp = static_cast<const FerrerProfile &>(rp);
-		return fp.evaluate_at(x, y, r, reuse_r);
+		return fp.evaluate_at(x, y);
 	};
 }
 

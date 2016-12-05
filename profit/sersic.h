@@ -127,7 +127,7 @@ protected:
 private:
 
 	template <bool boxy, nser_t t>
-	double evaluate_at(double x, double y, double r, bool reuse_r) const;
+	double evaluate_at(double x, double y) const;
 
 	template <bool boxy, nser_t t>
 	eval_function_t get_evaluation_function_t();

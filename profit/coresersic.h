@@ -119,7 +119,7 @@ protected:
 private:
 
 	double integrate_at(double r) const;
-	double evaluate_at(double x, double y, double r, bool reuse_r) const;
+	double evaluate_at(double x, double y) const;
 
 };
 

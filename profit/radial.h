@@ -48,11 +48,9 @@ class RadialProfile;
  * @param profile The profile to evaluate
  * @param x The X profile coordinate to evaluate
  * @param y The Y profile coordinate to evaluate
- * @param r The pre-calculated radius of the profile for coordinate `(x,y)`
- * @param reuse_r Whether the value of `r` is valid (and can be reused) or not.
  * @return The value of the profile at the given point
  */
-typedef double (*eval_function_t)(const RadialProfile &profile, double x, double y, double r, bool reuse_r);
+typedef double (*eval_function_t)(const RadialProfile &profile, double x, double y);
 
 /**
  * The base class for radial profiles.
