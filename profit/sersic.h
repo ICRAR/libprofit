@@ -123,12 +123,12 @@ protected:
 	// @}
 
 	/* these are internally calculated when the profile is evaluated */
-	double _bn = 0;
-	double _rescale_factor = 0;
+	double _bn;
+	double _rescale_factor;
 
 private:
 
-	double (*m_eval_function)(double x, double y, double box, double re, double nser, double bn) = 0;
+	double (*m_eval_function)(double x, double y, double box, double re, double nser, double bn);
 
 	template <bool boxy, SersicProfile::nser_t t>
 	void init_eval_function();
