@@ -74,7 +74,7 @@ protected:
 	double adjust_acc() override;
 	double adjust_rscale_switch() override;
 	double adjust_rscale_max() override;
-	eval_function_t get_evaluation_function() override;
+	double evaluate_at(double x, double y) const override;
 
 	/*
 	 * -------------------------
@@ -108,7 +108,6 @@ protected:
 private:
 
 	double integrate_at(double r) const;
-	double evaluate_at(double x, double y) const;
 
 };
 

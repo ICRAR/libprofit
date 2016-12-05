@@ -75,13 +75,6 @@ void BrokenExponentialProfile::validate() {
 
 }
 
-eval_function_t BrokenExponentialProfile::get_evaluation_function() {
-	return [](const RadialProfile &rp, double x, double y) -> double {
-		auto &bep = static_cast<const BrokenExponentialProfile &>(rp);
-		return bep.evaluate_at(x, y);
-	};
-}
-
 double BrokenExponentialProfile::integrate_at(double r) const {
 	return r * exp(-r/h1)*pow(1+exp(a*(r-rb)),(1/a)*(1/h1-1/h2));
 }

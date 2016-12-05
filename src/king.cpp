@@ -78,13 +78,6 @@ void KingProfile::validate() {
 
 }
 
-eval_function_t KingProfile::get_evaluation_function() {
-	return [](const RadialProfile &rp, double x, double y) -> double {
-		auto kp = static_cast<const KingProfile &>(rp);
-		return kp.evaluate_at(x, y);
-	};
-}
-
 double KingProfile::integrate_at(double r) const {
 	if( r < rt ) {
 		return r * pow(1/pow(1 + pow(r/rc, 2), 1/a) - 1/pow(1 + pow(rt/rc, 2), 1/a), a);

@@ -71,13 +71,6 @@ void MoffatProfile::validate() {
 
 }
 
-eval_function_t MoffatProfile::get_evaluation_function() {
-	return [](const RadialProfile &rp, double x, double y) -> double {
-		auto mp = static_cast<const MoffatProfile &>(rp);
-		return mp.evaluate_at(x, y);
-	};
-}
-
 double MoffatProfile::get_lumtot(double r_box) {
 	double con = this->con;
 	return pow(this->rscale, 2) * M_PI * axrat/(con-1)/r_box;

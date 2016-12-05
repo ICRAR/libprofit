@@ -57,13 +57,6 @@ double CoreSersicProfile::evaluate_at(double x, double y) const {
 	       exp(-_bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
 }
 
-eval_function_t CoreSersicProfile::get_evaluation_function() {
-	return [](const RadialProfile &rp, double x, double y) -> double {
-		auto &csp = static_cast<const CoreSersicProfile &>(rp);
-		return csp.evaluate_at(x, y);
-	};
-}
-
 void CoreSersicProfile::validate() {
 
 	RadialProfile::validate();

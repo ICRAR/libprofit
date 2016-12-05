@@ -85,6 +85,7 @@ protected:
 	 * Inherited from RadialProfile
 	 * ----------------------------
 	 */
+	void evaluate(std::vector<double> &image) override;
 	void initial_calculations() override;
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec) override;
 	double get_pixel_scale() override;
@@ -94,7 +95,8 @@ protected:
 	double adjust_acc() override;
 	double adjust_rscale_switch() override;
 	double adjust_rscale_max() override;
-	eval_function_t get_evaluation_function() override;
+	double evaluate_at(double x, double y) const override;
+
 
 	/*
 	 * -------------------------
@@ -121,16 +123,15 @@ protected:
 	// @}
 
 	/* these are internally calculated when the profile is evaluated */
-	double _bn;
-	double _rescale_factor;
+	double _bn = 0;
+	double _rescale_factor = 0;
 
 private:
 
-	template <bool boxy, nser_t t>
-	double evaluate_at(double x, double y) const;
+	double (*m_eval_function)(double x, double y, double box, double re, double nser, double bn) = 0;
 
-	template <bool boxy, nser_t t>
-	eval_function_t get_evaluation_function_t();
+	template <bool boxy, SersicProfile::nser_t t>
+	void init_eval_function();
 
 	double fluxfrac(double fraction) const;
 

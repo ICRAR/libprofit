@@ -80,7 +80,7 @@ protected:
 	double adjust_acc() override;
 	double adjust_rscale_switch() override;
 	double adjust_rscale_max() override;
-	eval_function_t get_evaluation_function() override;
+	double evaluate_at(double x, double y) const override;
 
 	/*
 	 * -------------------------
@@ -101,10 +101,6 @@ protected:
 	 */
 	double con;
 	// @}
-
-private:
-
-	double evaluate_at(double x, double y) const;
 
 };
 

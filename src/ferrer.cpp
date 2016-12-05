@@ -75,13 +75,6 @@ void FerrerProfile::validate() {
 
 }
 
-eval_function_t FerrerProfile::get_evaluation_function() {
-	return [](const RadialProfile &rp, double x, double y) -> double {
-		auto fp = static_cast<const FerrerProfile &>(rp);
-		return fp.evaluate_at(x, y);
-	};
-}
-
 double FerrerProfile::get_lumtot(double r_box) {
 
 	/*
