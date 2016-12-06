@@ -33,16 +33,34 @@ sudo: required
 matrix:
  include:
   - compiler: gcc
+    env: COMPILER=g++-4.6
+  - compiler: gcc
     addons:
      apt:
-      sources:
-       - ubuntu-toolchain-r-test
-      packages:
-       - g++-4.9
+      sources: ubuntu-toolchain-r-test
+      packages: g++-4.7
+    env: COMPILER=g++-4.7
+  - compiler: gcc
+    addons:
+     apt:
+      sources: ubuntu-toolchain-r-test
+      packages: g++-4.9
+    env: COMPILER=g++-4.9
+  - compiler: gcc
+    addons:
+     apt:
+      sources: ubuntu-toolchain-r-test
+      packages: g++-5
+    env: COMPILER=g++-5
+  - compiler: gcc
+    addons:
+     apt:
+      sources: ubuntu-toolchain-r-test
+      packages: g++-6
     env:
       - CXXFLAGS="-coverage"
       - LDFLAGS="-coverage"
-      - COMPILER=g++-4.9
+      - COMPILER=g++-6
   - compiler: clang
     env: COMPILER=clang++
 
@@ -69,4 +87,4 @@ script:
  - make test
 
 after_success:
- - if [ "$COMPILER" == "g++-4.9" ]; then cd ${TRAVIS_BUILD_DIR}; cpp-coveralls --gcov `which gcov-4.9` -r . -i build/CMakeFiles/profit.dir/src/ -i src/ -i profit/; fi
+ - if [ "$COMPILER" == "g++-6" ]; then cd ${TRAVIS_BUILD_DIR}; cpp-coveralls --gcov `which gcov-6` -r . -i build/CMakeFiles/profit.dir/src/ -i src/ -i profit/; fi
