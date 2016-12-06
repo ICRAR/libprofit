@@ -71,13 +71,13 @@ protected:
 	 * Inherited from RadialProfile
 	 * ----------------------------
 	 */
-	void initial_calculations() override;
 	double get_lumtot(double r_box) override;
 	double get_rscale() override;
 	double adjust_acc() override;
 	double adjust_rscale_switch() override;
 	double adjust_rscale_max() override;
-	double evaluate_at(double x, double y) const override;
+	void initial_calculations() override;
+	eval_function_t get_evaluation_function() override;
 
 	/*
 	 * -------------------------
@@ -119,6 +119,7 @@ protected:
 private:
 
 	double integrate_at(double r) const;
+	double evaluate_at(double x, double y, double r, bool reuse_r) const;
 
 };
 
