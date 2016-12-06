@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+#include <tuple>
 
 #include "profit/common.h"
 #include "profit/exceptions.h"
@@ -73,6 +74,7 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 #endif
 
 	/* The middle X/Y value is used for each pixel */
+	vector<tuple<double, double>> subsample_points;
 	x = x0;
 	for(i=0; i < resolution; i++) {
 		x += half_xbin;
@@ -87,10 +89,7 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 				double delta_y_prof = (-xbin*this->_sin_ang + ybin*this->_cos_ang)/this->axrat;
 				testval = this->evaluate_at(abs(x_prof), abs(y_prof) + abs(delta_y_prof));
 				if( abs(testval/subval - 1.0) > this->acc ) {
-					subval = this->subsample_pixel(x - half_xbin, x + half_xbin,
-					                               y - half_ybin, y + half_ybin,
-					                               recur_level + 1, max_recursions,
-					                               resolution);
+					subsample_points.push_back(make_tuple(x, y));
 				}
 			}
 
@@ -99,6 +98,13 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 		}
 
 		x += half_xbin;
+	}
+
+	for(auto &point: subsample_points) {
+		total += this->subsample_pixel(get<0>(point) - half_xbin, get<0>(point) + half_xbin,
+		                               get<1>(point) - half_ybin, get<1>(point) + half_ybin,
+		                               recur_level + 1, max_recursions,
+		                               resolution);
 	}
 
 	/* Average and return */
