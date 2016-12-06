@@ -33,7 +33,7 @@ sudo: required
 matrix:
  include:
   - compiler: gcc
-    env: COMPILER=g++-4.6
+    env: COMPILER=g++-4.6 CXXFLAGS="-std=c++0x"
   - compiler: gcc
     addons:
      apt:
@@ -57,10 +57,7 @@ matrix:
      apt:
       sources: ubuntu-toolchain-r-test
       packages: g++-6
-    env:
-      - CXXFLAGS="-coverage"
-      - LDFLAGS="-coverage"
-      - COMPILER=g++-6
+    env: COMPILER=g++-6 CXXFLAGS="-coverage" LDFLAGS="-coverage"
   - compiler: clang
     env: COMPILER=clang++
 
