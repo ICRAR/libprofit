@@ -41,6 +41,7 @@ using namespace std;
 namespace profit
 {
 
+inline
 void RadialProfile::_image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof) {
 	x -= this->xcen;
 	y -= this->ycen;
@@ -76,28 +77,44 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 	/* The middle X/Y value is used for each pixel */
 	vector<tuple<double, double>> subsample_points;
 	x = x0;
-	for(i=0; i < resolution; i++) {
-		x += half_xbin;
-		y = y0;
-		for(j=0; j < resolution; j++) {
-			y += half_ybin;
 
-			this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
-			subval = this->evaluate_at(x_prof, y_prof);
+	vector<unsigned int> idxs(resolution * resolution);
+	if( recurse ) {
+		for(i=0; i < resolution; i++) {
+			x += half_xbin;
+			y = y0;
+			for(j=0; j < resolution; j++) {
+				y += half_ybin;
 
-			if( recurse ) {
+				this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
+				subval = this->evaluate_at(x_prof, y_prof);
+
 				double delta_y_prof = (-xbin*this->_sin_ang + ybin*this->_cos_ang)/this->axrat;
 				testval = this->evaluate_at(abs(x_prof), abs(y_prof) + abs(delta_y_prof));
 				if( abs(testval/subval - 1.0) > this->acc ) {
 					subsample_points.push_back(make_tuple(x, y));
 				}
+
+				total += subval;
+				y += half_ybin;
 			}
 
-			total += subval;
-			y += half_ybin;
+			x += half_xbin;
 		}
-
-		x += half_xbin;
+	}
+	else {
+		for(i=0; i < resolution; i++) {
+			x += half_xbin;
+			y = y0;
+			for(j=0; j < resolution; j++) {
+				y += half_ybin;
+				this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
+				subval = this->evaluate_at(x_prof, y_prof);
+				total += subval;
+				y += half_ybin;
+			}
+			x += half_xbin;
+		}
 	}
 
 	for(auto &point: subsample_points) {
