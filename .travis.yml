@@ -27,6 +27,11 @@
 language: cpp
 sudo: required
 
+# safelist
+branches:
+ only:
+  - master
+
 # We try with both GNU and LLVM
 # When running with gcc we also collect coverage information
 # and upload it to coveralls
