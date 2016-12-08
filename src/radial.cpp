@@ -94,8 +94,9 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 				if( abs(testval/subval - 1.0) > this->acc ) {
 					subsample_points.push_back(make_tuple(x, y));
 				}
-
-				total += subval;
+				else {
+					total += subval;
+				}
 				y += half_ybin;
 			}
 
@@ -109,8 +110,7 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 			for(j=0; j < resolution; j++) {
 				y += half_ybin;
 				this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
-				subval = this->evaluate_at(x_prof, y_prof);
-				total += subval;
+				total += this->evaluate_at(x_prof, y_prof);
 				y += half_ybin;
 			}
 			x += half_xbin;
@@ -118,8 +118,10 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 	}
 
 	for(auto &point: subsample_points) {
-		total += this->subsample_pixel(get<0>(point) - half_xbin, get<0>(point) + half_xbin,
-		                               get<1>(point) - half_ybin, get<1>(point) + half_ybin,
+		double x = get<0>(point);
+		double y = get<1>(point);
+		total += this->subsample_pixel(x - half_xbin, x + half_xbin,
+		                               y - half_ybin, y + half_ybin,
 		                               recur_level + 1, max_recursions,
 		                               resolution);
 	}
