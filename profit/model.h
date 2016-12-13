@@ -154,6 +154,12 @@ public:
 	 */
 	std::vector<bool> calcmask;
 
+	/**
+	 * Whether the actual evaluation of profiles should be skipped or not.
+	 * Profile validation still occurs.
+	 */
+	bool dry_run;
+
 private:
 
 	/**

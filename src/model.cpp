@@ -51,7 +51,8 @@ Model::Model() :
 	magzero(0),
 	psf(), psf_width(0), psf_height(0),
 	psf_scale_x(1), psf_scale_y(1),
-	calcmask(), profiles()
+	calcmask(), profiles(),
+	dry_run(false)
 {
 	// no-op
 }
@@ -154,6 +155,11 @@ vector<double> Model::evaluate() {
 	 */
 	for(auto profile: this->profiles) {
 		profile->validate();
+	}
+
+	/* so long folks! */
+	if( dry_run ) {
+		return image;
 	}
 
 	/*
