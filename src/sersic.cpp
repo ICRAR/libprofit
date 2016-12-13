@@ -166,7 +166,7 @@ template<> inline double _r_factor<false, SersicProfile::sixteen>(double b, doub
 template<bool boxy>
 inline double _base(double x, double y, double re, double exponent)
 {
-	return pow(fabs(x/re), exponent) + pow(fabs(y/re), exponent);
+	return pow(abs(x/re), exponent) + pow(abs(y/re), exponent);
 }
 
 template<>
