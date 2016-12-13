@@ -73,10 +73,52 @@ private:
 
 	}
 
+	void test_param_values(const std::string &profile_name,
+	                       const std::string &param_name,
+	                       const std::vector<double> &allowed_values,
+	                       const std::vector<double> &invalid_values) {
+
+		Model m;
+		m.width = 10;
+		m.height = 10;
+		auto &p = m.add_profile(profile_name);
+
+		// check that by default all profiles generate valid images
+		m.evaluate();
+
+		// allowed values don't throw exceptions
+		for(auto v: allowed_values) {
+			p.parameter(param_name, v);
+			m.evaluate();
+		}
+
+		// invalid values do
+		for(auto v: invalid_values) {
+			p.parameter(param_name, v);
+			TS_ASSERT_THROWS(m.evaluate(), const invalid_parameter &);
+		}
+	}
+
+	void test_param_positive(const std::string &profile_name,
+	                         const std::string &param_name) {
+		test_param_values(profile_name, param_name, {0.1, 0.2, 1, 4}, {-20, -10, -1, -0.001, 0});
+	}
+
+	void test_param_positive_and_zero(const std::string &profile_name,
+	                                  const std::string &param_name) {
+		test_param_values(profile_name, param_name, {0, 0.1, 0.2, 1, 4}, {-20, -10, -1, -0.001});
+	}
+
 	void test_radial_params(const std::string &profile_name) {
 		test_params_i(profile_name, {"Xcen", "yCen", "magnitude", "axisrat"},
-	              {"adjust", "rough"}, {"max_recursions", "resolution"},
-	              {"xcen", "ycen", "mag", "ang", "axrat", "box", "acc", "rscale_switch", "rscale_max"});
+		                            {"adjust", "rough"}, {"max_recursions", "resolution"},
+		                            {"xcen", "ycen", "mag", "ang", "axrat", "box", "acc", "rscale_switch", "rscale_max"});
+		test_param_values(profile_name, "axrat",
+		                  {0.1, 0.2, 0.5, 0.99, 1},
+		                  {-1000, -100, -10, -1, -0.1, 0, 1.001, 2, 4, 8, 16, 1000});
+		test_param_values(profile_name, "box",
+		                  {-1.5, -1, 0, 0.5},
+		                  {-100, -10, -5, -2.001, -2});
 	}
 
 public:
@@ -88,6 +130,9 @@ public:
 				{},
 				{},
 				{"a", "h1", "h2", "rb"});
+		test_param_values("brokenexp", "rb", {0.1, 0.2, 1, 4}, {-20, -10, -1, -0.001, 0});
+
+		// TODO: test h1 and h2, which relate to each other
 	}
 
 	void test_coresersic_parameters() {
@@ -97,6 +142,12 @@ public:
 				{},
 				{},
 				{"a", "b", "nser", "rb", "re"});
+
+		test_param_positive("coresersic", "re");
+		test_param_positive("coresersic", "rb");
+		test_param_positive("coresersic", "nser");
+		test_param_positive("coresersic", "a");
+		test_param_values("coresersic", "b", {-2, -1, 0, 1, 1.8, 1.9}, {2, 3, 4, 10});
 	}
 
 	void test_ferrer_parameters() {
@@ -106,6 +157,9 @@ public:
 				{},
 				{},
 				{"a", "b", "rout"});
+		test_param_positive("ferrer", "rout");
+		test_param_positive_and_zero("ferrer", "a");
+		test_param_values("ferrer", "b", {-2, -1, 0, 1, 1.8, 1.9, 2}, {2.1, 3, 4, 10});
 	}
 
 	void test_king_parameters() {
@@ -115,6 +169,9 @@ public:
 				{},
 				{},
 				{"a", "rc", "rt"});
+		test_param_positive("king", "rc");
+		test_param_positive("king", "rt");
+		test_param_positive_and_zero("king", "a");
 	}
 
 	void test_moffat_parameters() {
@@ -124,6 +181,8 @@ public:
 				{},
 				{},
 				{"con", "fwhm"});
+		test_param_positive("moffat", "fwhm");
+		test_param_positive_and_zero("moffat", "con");
 	}
 
 	void test_psf_parameters() {
@@ -133,6 +192,7 @@ public:
 				{},
 				{"xcen", "ycen", "mag"});
 	}
+
 	void test_sky_parameters() {
 		test_params_i("sky",
 				{"bg2", "bg1", "BG", "unknown"},
@@ -148,5 +208,8 @@ public:
 				{"rescale_flux"},
 				{},
 				{"nser", "re"});
+		test_param_positive("sersic", "nser");
+		test_param_positive("sersic", "re");
 	}
+
 };
