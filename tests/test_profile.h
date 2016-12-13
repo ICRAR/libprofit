@@ -78,7 +78,7 @@ private:
 	                       const std::string &param_name,
 	                       const std::vector<double> &allowed_values,
 	                       const std::vector<double> &invalid_values,
-	                       const std::vector<std::pair<std::string, double>> &fixed_vals = {}) {
+	                       const std::vector<std::pair<std::string, double>> &fixed_vals = std::vector<std::pair<std::string, double>>()) {
 
 		Model m;
 		m.dry_run = true;
