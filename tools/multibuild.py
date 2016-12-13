@@ -114,6 +114,6 @@ if __name__ == '__main__':
         make(args.jobs)
     elif args.benchmark:
         # -- is there? it shouldn't...
-        if args.args[0] == '--':
+        if len(args.args) > 0 and args.args[0] == '--':
             args.args = args.args[1:]
         benchmark(args.args)
