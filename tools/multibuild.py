@@ -74,7 +74,7 @@ def cmake(jobs):
 
 def _make_c(c):
     dirname = os.path.join(root, 'builds', c.comp, str(c.version), c.name)
-    subprocess.check_call(['make', '-j4'], cwd=dirname)
+    subprocess.check_call(['make'], cwd=dirname)
 
 def make(jobs):
     p = multiprocessing.Pool(jobs)
