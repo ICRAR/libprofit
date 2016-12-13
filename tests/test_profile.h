@@ -24,6 +24,7 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <utility>
 #include <cxxtest/TestSuite.h>
 
 #include "profit/profit.h"
@@ -76,15 +77,22 @@ private:
 	void test_param_values(const std::string &profile_name,
 	                       const std::string &param_name,
 	                       const std::vector<double> &allowed_values,
-	                       const std::vector<double> &invalid_values) {
+	                       const std::vector<double> &invalid_values,
+	                       const std::vector<std::pair<std::string, double>> &fixed_vals = {}) {
 
 		Model m;
+		m.dry_run = true;
 		m.width = 10;
 		m.height = 10;
 		auto &p = m.add_profile(profile_name);
 
 		// check that by default all profiles generate valid images
 		m.evaluate();
+
+		// set the fixed vals before any any param_name test
+		for(auto &fixed_val: fixed_vals) {
+			p.parameter(std::get<0>(fixed_val), std::get<1>(fixed_val));
+		}
 
 		// allowed values don't throw exceptions
 		for(auto v: allowed_values) {
@@ -130,9 +138,10 @@ public:
 				{},
 				{},
 				{"a", "h1", "h2", "rb"});
-		test_param_values("brokenexp", "rb", {0.1, 0.2, 1, 4}, {-20, -10, -1, -0.001, 0});
-
-		// TODO: test h1 and h2, which relate to each other
+		test_param_positive("brokenexp", "rb");
+		// h2 should be <= h1, so whenever we test h2 we should also set h1 and viceversa
+		test_param_values("brokenexp", "h1", {0.1, 1, 5, 10}, {-10, -5, -2, -1, 0}, {std::make_pair("h2", 0.09)});
+		test_param_values("brokenexp", "h2", {0.1, 1, 5, 10}, {-10, -5, -2, -1, 0}, {std::make_pair("h1", 1000.)});
 	}
 
 	void test_coresersic_parameters() {
