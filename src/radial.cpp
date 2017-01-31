@@ -66,11 +66,11 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 
 #ifdef PROFIT_DEBUG
 	/* record how many sub-integrations we've done */
-	if( sp->n_integrations.find(recur_level) != sp->n_integrations.end() ) {
-		sp->n_integrations[recur_level] += 1;
+	if( n_integrations.find(recur_level) != n_integrations.end() ) {
+		n_integrations[recur_level] += 1;
 	}
 	else {
-		sp->n_integrations[recur_level] = 1;
+		n_integrations[recur_level] = 1;
 	}
 #endif
 
@@ -245,6 +245,10 @@ void RadialProfile::evaluate(vector<double> &image) {
 	 */
 	this->initial_calculations();
 
+#ifdef PROFIT_DEBUG
+	n_integrations.clear();
+#endif
+
 	double scale = this->get_pixel_scale();
 
 	/* The middle X/Y value is used for each pixel */
@@ -309,6 +313,12 @@ RadialProfile::RadialProfile(const Model &model, const string &name) :
 {
 	// no-op
 }
+
+#ifdef PROFIT_DEBUG
+std::map<int,int> RadialProfile::get_integrations() {
+	return n_integrations;
+}
+#endif
 
 bool RadialProfile::parameter_impl(const string &name, bool value) {
 

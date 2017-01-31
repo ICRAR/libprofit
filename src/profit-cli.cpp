@@ -646,6 +646,23 @@ int parse_and_run(int argc, char *argv[]) {
 
 		case performance:
 			printf("Ran %d iterations in %.3f [s] (%.3f [ms] per iteration)\n", iterations, (double)duration/1000000., (double)duration/1000./iterations);
+#ifdef PROFIT_DEBUG
+			for(const auto &profile_integrations: m.get_profile_integrations()) {
+				int total = 0;
+				if( get<1>(profile_integrations).size() > 0 ) {
+					cout << "Integrations per recursion level for profile " << get<0>(profile_integrations) << endl;
+					for(const auto level_integrations: get<1>(profile_integrations)) {
+						auto integrations = get<1>(level_integrations);
+						total += integrations;
+						cout << " Level " << get<0>(level_integrations) << ": " << integrations << " integrations" << endl;
+					}
+					cout << " Total: " << total << " integrations" << endl;
+				}
+				else {
+					cout << "Profile " << get<0>(profile_integrations) << " didn't run into any recursion" << endl;
+				}
+			}
+#endif
 			break;
 
 		default:

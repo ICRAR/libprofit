@@ -27,6 +27,10 @@
 #ifndef PROFIT_MODEL_H
 #define PROFIT_MODEL_H
 
+#ifdef PROFIT_DEBUG
+#include <map>
+#endif
+
 #include <string>
 #include <vector>
 
@@ -94,6 +98,10 @@ public:
 	 *          ``image[y*width + x]``
 	 */
 	std::vector<double> evaluate();
+
+#ifdef PROFIT_DEBUG
+	std::map<std::string, std::map<int, int>> get_profile_integrations();
+#endif
 
 	/**
 	 * The width of the model to generate

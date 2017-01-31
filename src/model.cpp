@@ -209,4 +209,17 @@ vector<double> Model::evaluate() {
 	return image;
 }
 
+#ifdef PROFIT_DEBUG
+map<string, map<int, int>> Model::get_profile_integrations() {
+	map<string, map<int, int>> profile_integrations;
+	for(auto p: profiles) {
+		RadialProfile *rp = dynamic_cast<RadialProfile *>(p);
+		if( rp ) {
+			profile_integrations[rp->get_name()] = rp->get_integrations();
+		}
+	}
+	return profile_integrations;
+}
+#endif
+
 } /* namespace profit */

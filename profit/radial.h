@@ -72,6 +72,10 @@ public:
 	void validate() override;
 	void evaluate(std::vector<double> &image) override;
 
+#ifdef PROFIT_DEBUG
+	std::map<int,int> get_integrations();
+#endif
+
 protected:
 
 	/*
@@ -244,11 +248,6 @@ protected:
 	 */
 	double rscale;
 
-#ifdef PROFIT_DEBUG
-	/* record of how many subintegrations we've done */
-	std::map<int,int> n_integrations;
-#endif
-
 	/* These are internally calculated at profile evaluation time */
 	double _ie;
 	double _cos_ang;
@@ -263,6 +262,11 @@ private:
 	                       unsigned int recur_level,
 	                       unsigned int max_recursions,
 	                       unsigned int resolution);
+
+#ifdef PROFIT_DEBUG
+	/* record of how many subintegrations we've done */
+	std::map<int,int> n_integrations;
+#endif
 
 };
 
