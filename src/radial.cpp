@@ -396,8 +396,8 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 	}
 
 	cl::Event kernel_evt;
-	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
 	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, 0, &kernel_evt);
+	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
 
 	if( is_float<FT>::value ) {
 		vector<FT> image_from_kernel(image.size());
