@@ -86,6 +86,11 @@ if( NOT GSL_FOUND )
 	endif()
 endif()
 
+# Include debugging stuff?
+if( LIBPROFIT_DEBUG )
+	add_definitions(-DPROFIT_DEBUG)
+endif()
+
 
 # Common definitions for the shared lib and the binary
 add_definitions(-DPROFIT_VERSION="${PROFIT_VERSION}")
