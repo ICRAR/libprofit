@@ -32,7 +32,7 @@ project(libprofit VERSION ${PROFIT_VERSION} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules/)
 
-# Macros to check for presence of GSL and R/Rmath
+# Macros to check for presence of GSL, R/Rmath and OpenCL
 macro(find_gsl)
 
 	# Try with FindGSL.cmake first, if found
@@ -65,6 +65,15 @@ macro(find_r_and_rmath)
 	endif( PKG_CONFIG_FOUND )
 endmacro()
 
+macro(find_opencl)
+	find_package(OpenCL)
+	if( OpenCL_FOUND )
+		include_directories(${OpenCL_INCLUDE_DIRS})
+		add_definitions(-DPROFIT_OPENCL)
+		set(profit_LIBS ${profit_LIBS} ${OpenCL_LIBRARIES})
+	endif()
+endmacro()
+
 # Depending on the user's preference we check GSL or R/Rmath first
 # We default to use GSL
 if( LIBPROFIT_USE_R )
@@ -84,6 +93,11 @@ if( NOT GSL_FOUND )
 	if( NOT R_FOUND OR NOT RMATH_FOUND )
 		message(FATAL_ERROR "Neither GSL nor R/Rmath were found, cannot continue")
 	endif()
+endif()
+
+# Check if there's OpenCL (users might opt out)
+if( NOT LIBPROFIT_NO_OPENCL )
+	find_opencl()
 endif()
 
 # Include debugging stuff?
@@ -106,6 +120,7 @@ set(PROFIT_SRC
    src/king.cpp
    src/model.cpp
    src/moffat.cpp
+   src/opencl.cpp
    src/profile.cpp
    src/psf.cpp
    src/radial.cpp
