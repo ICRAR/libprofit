@@ -378,11 +378,21 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 	kernel.setArg(11, (int)rough);
 	kernel.setArg(12, (FT)box);
 	kernel.setArg(13, (FT)scale);
-	add_kernel_parameters_float(14, kernel);
+	add_kernel_parameters<FT>(14, kernel);
 
 	cl::Event kernel_evt;
 	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, 0, &kernel_evt);
 	read_image_from_kernel<FT>(image, kernel_evt, buffer_image);
+}
+
+template <>
+void RadialProfile::add_kernel_parameters<float>(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters_float(index, kernel);
+}
+
+template <>
+void RadialProfile::add_kernel_parameters<double>(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters_double(index, kernel);
 }
 
 template <typename FT>
