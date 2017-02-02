@@ -405,7 +405,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 		copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
 	}
 	else {
-		cl::vector<cl::Event> read_waiting_evts{kernel_evt};
 		env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(double)*image.size(), image.data(), &read_waiting_evts, NULL);
 	}
 }
