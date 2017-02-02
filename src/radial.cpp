@@ -257,7 +257,7 @@ void RadialProfile::evaluate(vector<double> &image) {
 	 * We fallback to the CPU implementation if no OpenCL context has been
 	 * given, or if there is no OpenCL kernel implementing the profile
 	 */
-	OpenCL_env *env = model.opencl_env;
+	auto env = model.opencl_env;
 	if( !env ) {
 		evaluate_cpu(image);
 	}
@@ -369,7 +369,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 	double half_ybin = model.scale_x/2.;
 	unsigned int imsize = model.width * model.height;
 
-	OpenCL_env *env = model.opencl_env;
+	auto env = model.opencl_env;
 	double scale = this->get_pixel_scale();
 
 	cl::Buffer buffer_image(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);

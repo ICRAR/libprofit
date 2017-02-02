@@ -30,6 +30,7 @@
 #ifdef PROFIT_OPENCL
 
 #include <map>
+#include <memory>
 #include <string>
 
 namespace profit
@@ -45,9 +46,7 @@ typedef struct _OpenCL_env {
 
 std::map<std::pair<int, std::string>, std::map<int, std::string>> get_opencl_info();
 
-OpenCL_env *get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double);
-
-void free_opencl_environment(OpenCL_env *env);
+std::shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double);
 
 } /* namespace profit */
 

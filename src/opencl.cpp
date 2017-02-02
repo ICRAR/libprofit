@@ -70,7 +70,7 @@ map<pair<int, string>, map<int, string>> get_opencl_info() {
 	return pinfo;
 }
 
-OpenCL_env *get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
+shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
 
 	vector<cl::Platform> all_platforms;
 	if( cl::Platform::get(&all_platforms) != CL_SUCCESS ) {
@@ -133,13 +133,7 @@ OpenCL_env *get_opencl_environment(unsigned int platform_idx, unsigned int devic
 
 	cl::CommandQueue queue(context, device);
 
-	OpenCL_env *env = new OpenCL_env();
-	env->context = context;
-	env->device = device;
-	env->queue = queue;
-	env->program = program;
-	env->use_double = use_double;
-	return env;
+	return make_shared<OpenCL_env>(OpenCL_env{context, device, queue, program, use_double});
 }
 
 void free_opencl_environment(OpenCL_env *env) {

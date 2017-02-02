@@ -31,6 +31,7 @@
 #include <map>
 #endif
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -67,14 +68,6 @@ public:
 	Model();
 
 	/**
-	 * Destructor.
-	 *
-	 * It frees all the resources used by the given model, after which it cannot
-	 * be used anymore.
-	 */
-	~Model();
-
-	/**
 	 * Creates a new profile for the given name and adds it to the given model.
 	 * On success, the new profile is created, added to the model,
 	 * and its reference is returned for further customization.
@@ -82,9 +75,9 @@ public:
 	 * exception is thrown.
 	 *
 	 * @param profile_name The name of the profile that should be created
-	 * @returns A new profile that corresponds to the given name
+	 * @returns A shared pointer to the new profile that corresponds to the given name
 	 */
-	Profile &add_profile(const std::string &profile_name);
+	std::shared_ptr<Profile> add_profile(const std::string &profile_name);
 
 	/**
 	 * Whether this model contains any profiles or not.
@@ -174,7 +167,7 @@ public:
 	bool dry_run;
 
 #ifdef PROFIT_OPENCL
-	OpenCL_env *opencl_env;
+	std::shared_ptr<OpenCL_env> opencl_env;
 #endif /* PROFIT_OPENCL */
 
 private:
@@ -183,7 +176,7 @@ private:
 	 * A list of pointers to the individual profiles used to generate the
 	 * model's image
 	 */
-	std::vector<Profile *> profiles;
+	std::vector<std::shared_ptr<Profile>> profiles;
 
 };
 

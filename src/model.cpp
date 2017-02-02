@@ -54,48 +54,42 @@ Model::Model() :
 	calcmask(), profiles(),
 	dry_run(false)
 #ifdef PROFIT_OPENCL
-	,opencl_env(NULL)
+	,opencl_env()
 #endif /* PROFIT_OPENCL */
 {
 	// no-op
-}
-
-Model::~Model() {
-	for(auto profile: this->profiles) {
-		delete profile;
-	}
 }
 
 bool Model::has_profiles() const {
 	return this->profiles.size() > 0;
 }
 
-Profile &Model::add_profile(const string &profile_name) {
+shared_ptr<Profile> Model::add_profile(const string &profile_name) {
 
-	Profile * profile = nullptr;
+	shared_ptr<Profile> profile;
 	if( profile_name == "sky" ) {
-		profile = static_cast<Profile *>(new SkyProfile(*this, profile_name));
+		profile = make_shared<SkyProfile>(*this, profile_name);
 	}
 	else if ( profile_name == "sersic" ) {
-		profile = static_cast<Profile *>(new SersicProfile(*this, profile_name));
+		profile = make_shared<SersicProfile>(*this, profile_name);
 	}
 	else if ( profile_name == "moffat" ) {
-		profile = static_cast<Profile *>(new MoffatProfile(*this, profile_name));
+		profile = make_shared<MoffatProfile>(*this, profile_name);
 	}
 	else if ( profile_name == "ferrer" || profile_name == "ferrers" ) {
-		profile = static_cast<Profile *>(new FerrerProfile(*this, profile_name));
+		profile = make_shared<FerrerProfile>(*this, profile_name);
 	}
 	else if ( profile_name == "coresersic" ) {
-		profile = static_cast<Profile *>(new CoreSersicProfile(*this, profile_name));
+		profile = make_shared<CoreSersicProfile>(*this, profile_name);
 	}
 	else if ( profile_name == "king" ) {
-		profile = static_cast<Profile *>(new KingProfile(*this, profile_name));
+		profile = make_shared<KingProfile>(*this, profile_name);
 	}
 	else if ( profile_name == "brokenexp" ) {
-		profile = static_cast<Profile *>(new BrokenExponentialProfile(*this, profile_name));
+		profile = make_shared<BrokenExponentialProfile>(*this, profile_name);
 	}
 	else if ( profile_name == "psf" ) {
-		profile = static_cast<Profile *>(new PsfProfile(*this, profile_name));
+		profile = make_shared<PsfProfile>(*this, profile_name);
 	}
 	else {
 		ostringstream ss;
@@ -104,7 +98,7 @@ Profile &Model::add_profile(const string &profile_name) {
 	}
 
 	this->profiles.push_back(profile);
-	return *profile;
+	return profile;
 }
 
 vector<double> Model::evaluate() {
@@ -216,7 +210,7 @@ vector<double> Model::evaluate() {
 map<string, map<int, int>> Model::get_profile_integrations() {
 	map<string, map<int, int>> profile_integrations;
 	for(auto p: profiles) {
-		RadialProfile *rp = dynamic_cast<RadialProfile *>(p);
+		RadialProfile *rp = dynamic_cast<RadialProfile *>(p.get());
 		if( rp ) {
 			profile_integrations[rp->get_name()] = rp->get_integrations();
 		}

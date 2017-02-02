@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <sstream>
@@ -215,7 +216,7 @@ void desc_to_profile(
 
 	string tok;
 
-	Profile &p = model.add_profile(name);
+	shared_ptr<Profile> p = model.add_profile(name);
 	keyval_to_param_t keyval_to_param = reader_functions[name];
 
 	if( description.size() == 0 ) {
@@ -236,8 +237,8 @@ void desc_to_profile(
 
 		const string &key = name_and_value[0];
 		string &val = name_and_value[1];
-		read_bool(p, key, val, "convolve");
-		keyval_to_param(p, key, val);
+		read_bool(*p, key, val, "convolve");
+		keyval_to_param(*p, key, val);
 		if( !name_and_value[1].empty() ) {
 			cerr << "Ignoring unknown " << name << " profile parameter: " << name_and_value[0] << endl;
 		}
@@ -684,7 +685,7 @@ int parse_and_run(int argc, char *argv[]) {
 #ifdef PROFIT_OPENCL
 	/* Get an OpenCL environment */
 	if( use_opencl ) {
-		OpenCL_env *opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double);
+		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double);
 		m.opencl_env = opencl_env;
 	}
 #endif /* PROFIT_OPENCL */
@@ -698,12 +699,6 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 	gettimeofday(&end, NULL);
 	duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
-
-#ifdef PROFIT_OPENCL
-	if( use_opencl ) {
-		free_opencl_environment(m.opencl_env);
-	}
-#endif /* PROFIT_OPENCL */
 
 	switch(output) {
 
