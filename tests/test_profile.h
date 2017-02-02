@@ -27,6 +27,7 @@
 #include <utility>
 #include <cxxtest/TestSuite.h>
 
+#undef PROFIT_OPENCL
 #include "profit/profit.h"
 
 using namespace profit;
@@ -42,34 +43,34 @@ private:
 	                   const std::vector<std::string> &double_names) {
 
 		profit::Model m;
-		auto &prof = m.add_profile(profile_name);
+		auto prof = m.add_profile(profile_name);
 
 		// invalid parameters
 		for(auto name: unknown_names) {
-			TS_ASSERT_THROWS(prof.parameter(name, true), const invalid_parameter &);
-			TS_ASSERT_THROWS(prof.parameter(name, 1u), const invalid_parameter &);
-			TS_ASSERT_THROWS(prof.parameter(name, 1.), const invalid_parameter &);
+			TS_ASSERT_THROWS(prof->parameter(name, true), const invalid_parameter &);
+			TS_ASSERT_THROWS(prof->parameter(name, 1u), const invalid_parameter &);
+			TS_ASSERT_THROWS(prof->parameter(name, 1.), const invalid_parameter &);
 		}
 
 		// valid boolean parameters
 		for(auto name: bool_names) {
-			prof.parameter(name, true);
-			TS_ASSERT_THROWS(prof.parameter(name, 1u), const invalid_parameter &);
-			TS_ASSERT_THROWS(prof.parameter(name, 1.), const invalid_parameter &);
+			prof->parameter(name, true);
+			TS_ASSERT_THROWS(prof->parameter(name, 1u), const invalid_parameter &);
+			TS_ASSERT_THROWS(prof->parameter(name, 1.), const invalid_parameter &);
 		}
 
 		// valid uint parameters
 		for(auto name: uint_names) {
-			TS_ASSERT_THROWS(prof.parameter(name, true), const invalid_parameter &);
-			prof.parameter(name, 1u);
-			TS_ASSERT_THROWS(prof.parameter(name, 1.), const invalid_parameter &);
+			TS_ASSERT_THROWS(prof->parameter(name, true), const invalid_parameter &);
+			prof->parameter(name, 1u);
+			TS_ASSERT_THROWS(prof->parameter(name, 1.), const invalid_parameter &);
 		}
 
 		// valid double parameters
 		for(auto name: double_names) {
-			TS_ASSERT_THROWS(prof.parameter(name, true), const invalid_parameter &);
-			TS_ASSERT_THROWS(prof.parameter(name, 1u), const invalid_parameter &);
-			prof.parameter(name, 1.);
+			TS_ASSERT_THROWS(prof->parameter(name, true), const invalid_parameter &);
+			TS_ASSERT_THROWS(prof->parameter(name, 1u), const invalid_parameter &);
+			prof->parameter(name, 1.);
 		}
 
 	}
@@ -84,25 +85,25 @@ private:
 		m.dry_run = true;
 		m.width = 10;
 		m.height = 10;
-		auto &p = m.add_profile(profile_name);
+		auto p = m.add_profile(profile_name);
 
 		// check that by default all profiles generate valid images
 		m.evaluate();
 
 		// set the fixed vals before any any param_name test
 		for(auto &fixed_val: fixed_vals) {
-			p.parameter(std::get<0>(fixed_val), std::get<1>(fixed_val));
+			p->parameter(std::get<0>(fixed_val), std::get<1>(fixed_val));
 		}
 
 		// allowed values don't throw exceptions
 		for(auto v: allowed_values) {
-			p.parameter(param_name, v);
+			p->parameter(param_name, v);
 			m.evaluate();
 		}
 
 		// invalid values do
 		for(auto v: invalid_values) {
-			p.parameter(param_name, v);
+			p->parameter(param_name, v);
 			TS_ASSERT_THROWS(m.evaluate(), const invalid_parameter &);
 		}
 	}

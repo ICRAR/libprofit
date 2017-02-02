@@ -26,6 +26,7 @@
 
 #include <cxxtest/TestSuite.h>
 
+#undef PROFIT_OPENCL
 #include "profit/profit.h"
 
 using namespace profit;
@@ -103,8 +104,8 @@ public:
 		m.evaluate();
 
 		// add a profile, ask to convolve it, but don't give a psf
-		auto &skyp = m.add_profile("sky");
-		skyp.parameter("convolve", true);
+		auto skyp = m.add_profile("sky");
+		skyp->parameter("convolve", true);
 		TS_ASSERT_THROWS(m.evaluate(), const invalid_parameter &);
 
 		// Give a psf, but still without dimensions information

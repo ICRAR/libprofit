@@ -27,6 +27,7 @@
 
 #include <cxxtest/TestSuite.h>
 
+#undef PROFIT_OPENCL
 #include "profit/profit.h"
 
 using namespace profit;
@@ -45,10 +46,10 @@ public:
 		m.magzero = 0;
 		m.psf = {1,1,1,1};
 
-		Profile &psfprof = m.add_profile("psf");
-		psfprof.parameter("xcen", 2.);
-		psfprof.parameter("ycen", 2.);
-		psfprof.parameter("mag", 0.);
+		auto psfprof = m.add_profile("psf");
+		psfprof->parameter("xcen", 2.);
+		psfprof->parameter("ycen", 2.);
+		psfprof->parameter("mag", 0.);
 
 		std::vector<double> image = m.evaluate();
 		for(auto j=0; j!=2; j++) {
