@@ -110,16 +110,17 @@ OpenCL_env *get_opencl_environment(unsigned int platform_idx, unsigned int devic
 	}
 
 	// kernel calculates sersic profile for each stuff
+	const char *sersic_float =
+#include "profit/cl/sersic-float.cl"
+	;
+	const char *sersic_double =
+#include "profit/cl/sersic-double.cl"
+	;
+
 	cl::Program::Sources sources;
-	vector<string> fnames = {"sersic-float.cl"};
+	sources.push_back(sersic_float);
 	if( use_double ) {
-		fnames.push_back("sersic-double.cl");
-	}
-	for(auto fname: fnames) {
-		ifstream sersic_kernel_f("/home/rtobar/scm/git/libprofit/src/" + fname);
-		string kernel_code((istreambuf_iterator<char>(sersic_kernel_f)),
-		                    istreambuf_iterator<char>());
-		sources.push_back(kernel_code.c_str());
+		sources.push_back(sersic_double);
 	}
 
 	cl::Context context(device);

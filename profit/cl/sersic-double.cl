@@ -1,3 +1,4 @@
+R"===(
 /**
  * Double-precision Sersic profile OpenCL kernel implementation for libprofit
  *
@@ -69,3 +70,4 @@ kernel void sersic_double(global double *image,
 	image[i] = scale * pixel_val;
 
 }
+)==="
