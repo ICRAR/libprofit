@@ -37,6 +37,11 @@
 namespace profit
 {
 
+#ifdef PROFIT_OPENCL
+struct _OpenCL_env;
+typedef struct _OpenCL_env OpenCL_env;
+#endif /* PROFIT_OPENCL */
+
 /* Forward declaration */
 class Profile;
 
@@ -167,6 +172,10 @@ public:
 	 * Profile validation still occurs.
 	 */
 	bool dry_run;
+
+#ifdef PROFIT_OPENCL
+	OpenCL_env *opencl_env;
+#endif /* PROFIT_OPENCL */
 
 private:
 

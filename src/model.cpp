@@ -53,6 +53,9 @@ Model::Model() :
 	psf_scale_x(1), psf_scale_y(1),
 	calcmask(), profiles(),
 	dry_run(false)
+#ifdef PROFIT_OPENCL
+	,opencl_env(NULL)
+#endif /* PROFIT_OPENCL */
 {
 	// no-op
 }
