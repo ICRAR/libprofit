@@ -349,6 +349,16 @@ void RadialProfile::evaluate_cpu(vector<double> &image) {
 
 #ifdef PROFIT_OPENCL
 
+/* Small trait */
+template <typename T>
+static struct is_float {
+	const static bool value = false;
+};
+template <>
+static struct is_float<float> {
+	const static bool value = true;
+};
+
 template <typename FT>
 void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_name) {
 
@@ -378,35 +388,26 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 	kernel.setArg(11, (int)rough);
 	kernel.setArg(12, (FT)box);
 	kernel.setArg(13, (FT)scale);
-	add_kernel_parameters<FT>(14, kernel);
+	if( is_float<FT>::value ) {
+		add_kernel_parameters_float(14, kernel);
+	}
+	else {
+		add_kernel_parameters_double(14, kernel);
+	}
 
 	cl::Event kernel_evt;
+	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
 	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, 0, &kernel_evt);
-	read_image_from_kernel<FT>(image, kernel_evt, buffer_image);
-}
 
-template <>
-void RadialProfile::add_kernel_parameters<float>(unsigned int index, cl::Kernel &kernel) const {
-	add_kernel_parameters_float(index, kernel);
-}
-
-template <>
-void RadialProfile::add_kernel_parameters<double>(unsigned int index, cl::Kernel &kernel) const {
-	add_kernel_parameters_double(index, kernel);
-}
-
-template <typename FT>
-void RadialProfile::read_image_from_kernel(vector<double> &image, cl::Event &kernel_evt, cl::Buffer &buffer_image) const {
-	vector<FT> image_from_kernel(image.size());
-	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
-	model.opencl_env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(FT)*image.size(), image_from_kernel.data(), &read_waiting_evts, NULL);
-	copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
-}
-
-template <>
-void RadialProfile::read_image_from_kernel<double>(vector<double> &image, cl::Event &kernel_evt, cl::Buffer &buffer_image) const {
-	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
-	model.opencl_env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(double)*image.size(), image.data(), &read_waiting_evts, NULL);
+	if( is_float<FT>::value ) {
+		vector<FT> image_from_kernel(image.size());
+		env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(FT)*image.size(), image_from_kernel.data(), &read_waiting_evts, NULL);
+		copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
+	}
+	else {
+		cl::vector<cl::Event> read_waiting_evts{kernel_evt};
+		env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(double)*image.size(), image.data(), &read_waiting_evts, NULL);
+	}
 }
 
 #endif /* PROFIT_OPENCL */

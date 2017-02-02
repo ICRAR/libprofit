@@ -285,10 +285,6 @@ private:
 	template <typename FT>
 	void evaluate_opencl(std::vector<double> &image, const char *kernel_name);
 
-	/* Reads the resulting image from the kernel execution into `image` */
-	template <typename FT>
-	void read_image_from_kernel(std::vector<double> &image, cl::Event &kernel_evt, cl::Buffer &buffer_image) const;
-
 	/* Add extra parameters to the given kernel, starts with parameter `index` */
 	template <typename FT>
 	void add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const;
@@ -298,10 +294,6 @@ protected:
 	/* Return the name of the OpenCL kernel to be executed depending on the datatype to use */
 	virtual const char * get_opencl_kernel_name_float() const;
 	virtual const char * get_opencl_kernel_name_double() const;
-
-	/* Non-templated version of the method above */
-	virtual void add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const;
-	virtual void add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const;
 
 #endif /* PROFIT_OPENCL */
 
