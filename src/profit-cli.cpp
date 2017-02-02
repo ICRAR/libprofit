@@ -39,6 +39,12 @@
 #include <string>
 #include <sstream>
 
+#ifdef PROFIT_OPENCL
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_TARGET_OPENCL_VERSION  120
+#define CL_HPP_MINIMUM_OPENCL_VERSION 120
+#include <CL/cl2.hpp>
+#endif /* PROFIT_OPENCL */
 #include "profit/profit.h"
 
 
@@ -316,6 +322,10 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -b        Output image as binary content on stdout\n");
 	fprintf(file,"  -f <file> Output image as fits file\n");
 	fprintf(file,"  -i <n>    Output performance information after evaluating the model n times\n");
+#ifdef PROFIT_OPENCL
+	fprintf(file,"  -C <p,d>  Use OpenCL with platform p and device d (int). See -c\n");
+	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
+#endif /* PROFIT_OPENCL */
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
 	fprintf(file,"  -y        Image height. Defaults to 100\n");
 	fprintf(file,"  -w        Width in pixels. Defaults to 100\n");
@@ -341,6 +351,29 @@ void usage(FILE *file, char *argv[]) {
                            resolution, acc, rscale_max, adjust\n\n");
 	fprintf(file,"For more information visit https://libprofit.readthedocs.io.\n\n");
 }
+
+#ifdef PROFIT_OPENCL
+void print_opencl_info() {
+
+	const auto info = get_opencl_info();
+
+	if( info.size() > 0 ) {
+		cout << "OpenCL information" << endl;
+		cout << "==================" << endl << endl;
+		for(auto platform_info: info) {
+			auto plat_id = get<0>(platform_info);
+			auto devices_info = get<1>(platform_info);
+			cout << "Platform " << get<0>(plat_id) << ": " << get<1>(plat_id) << endl;
+			for(auto device_info: devices_info) {
+				cout << "  Device " << get<0>(device_info) << ": " << get<1>(device_info) << endl;
+			}
+		}
+	}
+	else {
+		cout << "No OpenCL installation found" << endl;
+	}
+}
+#endif /* PROFIT_OPENCL */
 
 static inline
 bool is_little_endian() {
@@ -519,7 +552,19 @@ int parse_and_run(int argc, char *argv[]) {
 	Model m;
 	struct stat stat_buf;
 
-	while( (opt = getopt(argc, argv, "h?vP:p:w:H:x:y:X:Y:m:tbf:i:")) != -1 ) {
+#ifdef PROFIT_OPENCL
+	bool use_opencl = false;
+	unsigned int clplat_idx = 0, cldev_idx = 0;
+	vector<string> tokens;
+#endif /* PROFIT_OPENCL */
+
+#ifdef PROFIT_OPENCL
+	const char *options = "h?vP:p:w:H:x:y:X:Y:m:tbf:i:C:c";
+#else
+	const char *options = "h?vP:p:w:H:x:y:X:Y:m:tbf:i:";
+#endif /* PROFIT_OPENCL */
+
+	while( (opt = getopt(argc, argv, options)) != -1 ) {
 		switch(opt) {
 
 			case 'h':
@@ -528,12 +573,35 @@ int parse_and_run(int argc, char *argv[]) {
 				return 0;
 
 			case 'v':
-				printf("libprofit version %s\n", PROFIT_VERSION);
+				cout << "libprofit version " << PROFIT_VERSION << endl;
+				cout << "OpenCL support: ";
+#ifdef PROFIT_OPENCL
+				cout << "Yes";
+#else
+				cout << "No";
+#endif
+				cout << endl;
 				return 0;
 
 			case 'p':
 				parse_profile(m, optarg);
 				break;
+
+#ifdef PROFIT_OPENCL
+			case 'c':
+				print_opencl_info();
+				return 0;
+
+			case 'C':
+				use_opencl = true;
+				tokenize(optarg, tokens, ",");
+				if( tokens.size() != 2 ) {
+					throw invalid_cmdline("-C argument must be of the form 'p,d' (e.g., -C 0,1)");
+				}
+				clplat_idx = (unsigned int)atoi(tokens[0].c_str());
+				cldev_idx = (unsigned int)atoi(tokens[1].c_str());
+				break;
+#endif /* PROFIT_OPENCL */
 
 			case 'P':
 				if( !stat(optarg, &stat_buf) ) {
@@ -612,6 +680,14 @@ int parse_and_run(int argc, char *argv[]) {
 	m.scale_y = scale_y;
 	m.magzero = magzero;
 
+#ifdef PROFIT_OPENCL
+	/* Get an OpenCL environment */
+	if( use_opencl ) {
+		OpenCL_env *opencl_env = get_opencl_environment(clplat_idx, cldev_idx, false);
+		m.opencl_env = opencl_env;
+	}
+#endif /* PROFIT_OPENCL */
+
 	/* This means that we evaluated the model once, but who cares */
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
@@ -621,6 +697,12 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 	gettimeofday(&end, NULL);
 	duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
+
+#ifdef PROFIT_OPENCL
+	if( use_opencl ) {
+		free_opencl_environment(m.opencl_env);
+	}
+#endif /* PROFIT_OPENCL */
 
 	switch(output) {
 
@@ -676,11 +758,19 @@ int parse_and_run(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
 	try {
 		return parse_and_run(argc, argv);
-	} catch (invalid_cmdline &e) {
+	}
+	catch (invalid_cmdline &e) {
 		cerr << "Error on command line: " << e.what() << endl;
 		return 1;
-	} catch (invalid_parameter &e) {
+	}
+	catch (invalid_parameter &e) {
 		cerr << "Error while calculating model: " << e.what() << endl;
 		return 1;
 	}
+#ifdef PROFIT_OPENCL
+	catch (opencl_error &e) {
+		cerr << "Error in OpenCL operation: " << e.what() << endl;
+		return 1;
+	}
+#endif /* PROFIT_OPENCL */
 }
