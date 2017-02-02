@@ -1,8 +1,8 @@
 /**
- * Header file with public definitions to use libprofit
+ * Header file for OpenCL functionality
  *
  * ICRAR - International Centre for Radio Astronomy Research
- * (c) UWA - The University of Western Australia, 2016
+ * (c) UWA - The University of Western Australia, 2017
  * Copyright by UWA (in the framework of the ICRAR)
  * All rights reserved
  *
@@ -24,14 +24,33 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROFIT_PROFIT_H
-#define PROFIT_PROFIT_H
+#ifndef PROFIT_OPENCL_H
+#define PROFIT_OPENCL_H
 
-#include "profit/common.h"
-#include "profit/convolve.h"
-#include "profit/exceptions.h"
-#include "profit/model.h"
-#include "profit/opencl.h"
-#include "profit/profile.h"
+#ifdef PROFIT_OPENCL
 
-#endif /* PROFIT_PROFIT_H */
+#include <map>
+#include <string>
+
+namespace profit
+{
+
+typedef struct _OpenCL_env {
+	cl::Context context;
+	cl::Device device;
+	cl::CommandQueue queue;
+	cl::Program program;
+	bool use_double;
+} OpenCL_env;
+
+std::map<std::pair<int, std::string>, std::map<int, std::string>> get_opencl_info();
+
+OpenCL_env *get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double);
+
+void free_opencl_environment(OpenCL_env *env);
+
+} /* namespace profit */
+
+#endif /* PROFIT_OPENCL */
+
+#endif /* PROFIT_MODEL_H */
