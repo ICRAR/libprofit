@@ -351,11 +351,11 @@ void RadialProfile::evaluate_cpu(vector<double> &image) {
 
 /* Small trait */
 template <typename T>
-static struct is_float {
+struct is_float {
 	const static bool value = false;
 };
 template <>
-static struct is_float<float> {
+struct is_float<float> {
 	const static bool value = true;
 };
 
