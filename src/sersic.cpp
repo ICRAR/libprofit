@@ -33,6 +33,12 @@
 #include "profit/sersic.h"
 #include "profit/utils.h"
 
+#ifdef PROFIT_OPENCL
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_TARGET_OPENCL_VERSION  120
+#define CL_HPP_MINIMUM_OPENCL_VERSION 120
+#include <CL/cl2.hpp>
+#endif /* PROFIT_OPENCL */
 
 using namespace std;
 
@@ -377,5 +383,29 @@ bool SersicProfile::parameter_impl(const string &name, bool val) {
 
 	return false;
 }
+
+#ifdef PROFIT_OPENCL
+const char * SersicProfile::get_opencl_kernel_name_float() const {
+	return "sersic_float";
+}
+
+const char * SersicProfile::get_opencl_kernel_name_double() const {
+	return "sersic_double";
+}
+
+void SersicProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters<float>(index, kernel);
+}
+
+void SersicProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters<double>(index, kernel);
+}
+
+template <typename FT>
+void SersicProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
+	kernel.setArg(index++, (FT)nser);
+	kernel.setArg(index++, (FT)_bn);
+}
+#endif /* PROFIT_OPENCL */
 
 } /* namespace profit */

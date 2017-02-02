@@ -35,6 +35,13 @@
 #include "profit/radial.h"
 #include "profit/utils.h"
 
+#ifdef PROFIT_OPENCL
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_TARGET_OPENCL_VERSION  120
+#define CL_HPP_MINIMUM_OPENCL_VERSION 120
+#include <CL/cl2.hpp>
+#include "profit/opencl.h"
+#endif /* PROFIT_OPENCL */
 
 using namespace std;
 
@@ -230,12 +237,6 @@ void RadialProfile::subsampling_params(double x, double y,
  */
 void RadialProfile::evaluate(vector<double> &image) {
 
-	unsigned int i, j;
-	double x, y, pixel_val;
-	double x_prof, y_prof, r_prof;
-	double half_xbin = model.scale_x/2.;
-	double half_ybin = model.scale_x/2.;
-
 	/*
 	 * Perform all the pre-calculations needed by the radial profiles
 	 * (e.g., Ie, cos/sin ang, etc).
@@ -248,6 +249,54 @@ void RadialProfile::evaluate(vector<double> &image) {
 #ifdef PROFIT_DEBUG
 	n_integrations.clear();
 #endif
+
+#ifndef PROFIT_OPENCL
+	evaluate_cpu(image);
+#else
+	/*
+	 * We fallback to the CPU implementation if no OpenCL context has been
+	 * given, or if there is no OpenCL kernel implementing the profile
+	 */
+	OpenCL_env *env = model.opencl_env;
+	if( !env ) {
+		evaluate_cpu(image);
+	}
+	else {
+
+		const char *kernel_name;
+		if( env->use_double ) {
+			kernel_name = get_opencl_kernel_name_double();
+		}
+		else {
+			kernel_name = get_opencl_kernel_name_float();
+		}
+
+		if( strlen(kernel_name) == 0 ) {
+			evaluate_cpu(image);
+		}
+
+		try {
+			if( env->use_double ) {
+				evaluate_opencl<double>(image, kernel_name);
+			}
+			else {
+				evaluate_opencl<float>(image, kernel_name);
+			}
+		} catch (const cl::Error &e) {
+			throw opencl_error(e.what());
+		}
+	}
+#endif /* PROFIT_OPENCL */
+
+}
+
+void RadialProfile::evaluate_cpu(vector<double> &image) {
+
+	unsigned int i, j;
+	double x, y, pixel_val;
+	double x_prof, y_prof, r_prof;
+	double half_xbin = model.scale_x/2.;
+	double half_ybin = model.scale_x/2.;
 
 	double scale = this->get_pixel_scale();
 
@@ -297,6 +346,60 @@ void RadialProfile::evaluate(vector<double> &image) {
 	}
 
 }
+
+#ifdef PROFIT_OPENCL
+
+template <typename FT>
+void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_name) {
+
+	unsigned int i, j;
+	double x, y, pixel_val;
+	double x_prof, y_prof, r_prof;
+	double half_xbin = model.scale_x/2.;
+	double half_ybin = model.scale_x/2.;
+	unsigned int imsize = model.width * model.height;
+
+	OpenCL_env *env = model.opencl_env;
+	double scale = this->get_pixel_scale();
+
+	cl::Buffer buffer_image(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
+	cl::Kernel kernel = cl::Kernel(env->program, kernel_name);
+	kernel.setArg(0,  buffer_image);
+	kernel.setArg(1,  model.width);
+	kernel.setArg(2,  model.height);
+	kernel.setArg(3,  (FT)xcen);
+	kernel.setArg(4,  (FT)ycen);
+	kernel.setArg(5,  (FT)_cos_ang);
+	kernel.setArg(6,  (FT)_sin_ang);
+	kernel.setArg(7,  (FT)axrat);
+	kernel.setArg(8,  (FT)rscale);
+	kernel.setArg(9,  (FT)rscale_switch);
+	kernel.setArg(10, (FT)rscale_max);
+	kernel.setArg(11, (int)rough);
+	kernel.setArg(12, (FT)box);
+	kernel.setArg(13, (FT)scale);
+	add_kernel_parameters_float(14, kernel);
+
+	cl::Event kernel_evt;
+	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, 0, &kernel_evt);
+	read_image_from_kernel<FT>(image, kernel_evt, buffer_image);
+}
+
+template <typename FT>
+void RadialProfile::read_image_from_kernel(vector<double> &image, cl::Event &kernel_evt, cl::Buffer &buffer_image) const {
+	vector<FT> image_from_kernel(image.size());
+	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
+	model.opencl_env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(FT)*image.size(), image_from_kernel.data(), &read_waiting_evts, NULL);
+	copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
+}
+
+template <>
+void RadialProfile::read_image_from_kernel<double>(vector<double> &image, cl::Event &kernel_evt, cl::Buffer &buffer_image) const {
+	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
+	model.opencl_env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(double)*image.size(), image.data(), &read_waiting_evts, NULL);
+}
+
+#endif /* PROFIT_OPENCL */
 
 /**
  * Constructor with sane defaults
@@ -371,5 +474,23 @@ bool RadialProfile::parameter_impl(const string &name, unsigned int value) {
 
 	return true;
 }
+
+#ifdef PROFIT_OPENCL
+const char * RadialProfile::get_opencl_kernel_name_float() const {
+	return "";
+}
+
+const char * RadialProfile::get_opencl_kernel_name_double() const {
+	return "";
+}
+
+void RadialProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {
+	return;
+}
+
+void RadialProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const {
+	return;
+}
+#endif /* PROFIT_OPENCL */
 
 } /* namespace profit */
