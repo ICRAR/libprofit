@@ -27,8 +27,16 @@ cmake_minimum_required(VERSION 3.1)
 # We have the version here
 file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION PROFIT_VERSION)
 
+# We have only C++ sources, but until cmake 3.4 the check_symbol_exists
+# macro didn't work properly if only defining C++ as the project language
+if( ${CMAKE_MAJOR_VERSION} EQUAL 3 AND ${CMAKE_MINOR_VERSION} LESS 4 )
+	set(PROFIT_LANGS C CXX)
+else()
+	set(PROFIT_LANGS CXX)
+endif()
+
 # Our project...
-project(libprofit VERSION ${PROFIT_VERSION} LANGUAGES CXX)
+project(libprofit VERSION ${PROFIT_VERSION} LANGUAGES ${PROFIT_LANGS})
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules/)
 
