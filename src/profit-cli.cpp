@@ -323,7 +323,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -f <file> Output image as fits file\n");
 	fprintf(file,"  -i <n>    Output performance information after evaluating the model n times\n");
 #ifdef PROFIT_OPENCL
-	fprintf(file,"  -C <p,d>  Use OpenCL with platform p and device d (int). See -c\n");
+	fprintf(file,"  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)\n");
 	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
 #endif /* PROFIT_OPENCL */
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
@@ -553,7 +553,7 @@ int parse_and_run(int argc, char *argv[]) {
 	struct stat stat_buf;
 
 #ifdef PROFIT_OPENCL
-	bool use_opencl = false;
+	bool use_opencl = false, use_double = false;
 	unsigned int clplat_idx = 0, cldev_idx = 0;
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
@@ -595,11 +595,12 @@ int parse_and_run(int argc, char *argv[]) {
 			case 'C':
 				use_opencl = true;
 				tokenize(optarg, tokens, ",");
-				if( tokens.size() != 2 ) {
-					throw invalid_cmdline("-C argument must be of the form 'p,d' (e.g., -C 0,1)");
+				if( tokens.size() != 3 ) {
+					throw invalid_cmdline("-C argument must be of the form 'p,d,D' (e.g., -C 0,1,0)");
 				}
 				clplat_idx = (unsigned int)atoi(tokens[0].c_str());
 				cldev_idx = (unsigned int)atoi(tokens[1].c_str());
+				use_double = (bool)atoi(tokens[2].c_str());
 				break;
 #endif /* PROFIT_OPENCL */
 
@@ -683,7 +684,7 @@ int parse_and_run(int argc, char *argv[]) {
 #ifdef PROFIT_OPENCL
 	/* Get an OpenCL environment */
 	if( use_opencl ) {
-		OpenCL_env *opencl_env = get_opencl_environment(clplat_idx, cldev_idx, false);
+		OpenCL_env *opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double);
 		m.opencl_env = opencl_env;
 	}
 #endif /* PROFIT_OPENCL */
