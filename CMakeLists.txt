@@ -76,8 +76,14 @@ endmacro()
 macro(find_opencl)
 	find_package(OpenCL)
 	if( OpenCL_FOUND )
+		if( NOT ${OpenCL_VERSION_MAJOR} EQUAL 2 )
+			message(FATAL_ERROR
+			        "OpenCL < 2.0 found (${OpenCL_VERSION_STRING}), "
+					  "but libprofit currently supports only OpenCL >= 2.0. "
+			        "Try with -DLIBPROFIT_NO_OPENCL=1 to disable OpenCL support.")
+		endif()
 		include_directories(${OpenCL_INCLUDE_DIRS})
-		add_definitions(-DPROFIT_OPENCL)
+		add_definitions(-DPROFIT_OPENCL -DPROFIT_OPENCL_MAJOR_VERSION=${OpenCL_VERSION_MAJOR})
 		set(profit_LIBS ${profit_LIBS} ${OpenCL_LIBRARIES})
 	endif()
 endmacro()
@@ -115,7 +121,7 @@ endif()
 
 
 # Common definitions for the shared lib and the binary
-add_definitions(-DPROFIT_VERSION="${PROFIT_VERSION}")
+add_definitions(-DPROFIT_BUILD -DPROFIT_VERSION="${PROFIT_VERSION}")
 include_directories(${CMAKE_SOURCE_DIR})
 
 # The shared library
