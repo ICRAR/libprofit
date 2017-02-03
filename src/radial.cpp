@@ -31,17 +31,10 @@
 
 #include "profit/common.h"
 #include "profit/exceptions.h"
+#include "profit/opencl.h"
 #include "profit/model.h"
 #include "profit/radial.h"
 #include "profit/utils.h"
-
-#ifdef PROFIT_OPENCL
-#define CL_HPP_ENABLE_EXCEPTIONS
-#define CL_HPP_TARGET_OPENCL_VERSION  120
-#define CL_HPP_MINIMUM_OPENCL_VERSION 120
-#include <CL/cl2.hpp>
-#include "profit/opencl.h"
-#endif /* PROFIT_OPENCL */
 
 using namespace std;
 

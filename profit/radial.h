@@ -30,17 +30,8 @@
 #include <map>
 #endif
 
-
+#include "profit/opencl.h"
 #include "profit/profile.h"
-
-#ifdef PROFIT_OPENCL
-/* Forward declaration */
-namespace cl {
-	class Buffer;
-	class Event;
-	class Kernel;
-}
-#endif /* PROFIT_OPENCL */
 
 namespace profit
 {

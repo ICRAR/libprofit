@@ -24,14 +24,30 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef PROFIT_OPENCL
+
 #ifndef PROFIT_OPENCL_H
 #define PROFIT_OPENCL_H
-
-#ifdef PROFIT_OPENCL
 
 #include <map>
 #include <memory>
 #include <string>
+
+/*
+ * OpenCL 1.x uses a different include file, we don't support it yet
+ * Also we only give specific inputs to CL/cl2.hpp when building
+ * the library, but not when including this file from an external program
+ */
+#if (PROFIT_OPENCL_MAJOR_VERSION >= 2)
+# if defined(PROFIT_BUILD)
+#  define CL_HPP_ENABLE_EXCEPTIONS
+#  define CL_HPP_TARGET_OPENCL_VERSION  110
+#  define CL_HPP_MINIMUM_OPENCL_VERSION 110
+# endif
+# include <CL/cl2.hpp>
+#else
+# error "We currently support only the OpenCL 2.0 C++ API"
+#endif /* PROFIT_OPENCL_MAJOR_VERSION */
 
 namespace profit
 {
@@ -50,6 +66,6 @@ std::shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, un
 
 } /* namespace profit */
 
-#endif /* PROFIT_OPENCL */
-
 #endif /* PROFIT_MODEL_H */
+
+#endif /* PROFIT_OPENCL */
