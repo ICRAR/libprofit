@@ -30,12 +30,12 @@
 /* M_PI is not part of C/C++, but usually there */
 #include <cmath>
 #ifndef M_PI
-#  define M_PI 3.14159265358979323846
+# define M_PI 3.14159265358979323846
 #endif
 
 /* The override keyword is not supported until gcc 4.7 */
 #if defined(__GNUG__) && (__GNUC__ <= 4) && (__GNUC_MINOR__ < 7)
-#define override
+# define override
 #endif
 
 #endif /* PROFIT_COMMON_H */
