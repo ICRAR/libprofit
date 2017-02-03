@@ -46,6 +46,7 @@
 #define CL_HPP_MINIMUM_OPENCL_VERSION 120
 #include <CL/cl2.hpp>
 #endif /* PROFIT_OPENCL */
+
 #include "profit/profit.h"
 
 

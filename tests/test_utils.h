@@ -33,7 +33,6 @@
 	#include <gsl/gsl_errno.h>
 #endif
 
-#undef PROFIT_OPENCL
 #include "profit/utils.h"
 
 using namespace profit;
