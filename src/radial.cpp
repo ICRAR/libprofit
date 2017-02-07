@@ -253,31 +253,31 @@ void RadialProfile::evaluate(vector<double> &image) {
 	auto env = model.opencl_env;
 	if( !env ) {
 		evaluate_cpu(image);
+		return;
+	}
+
+	const char *kernel_name;
+	if( env->use_double ) {
+		kernel_name = get_opencl_kernel_name_double();
 	}
 	else {
+		kernel_name = get_opencl_kernel_name_float();
+	}
 
-		const char *kernel_name;
+	if( strlen(kernel_name) == 0 ) {
+		evaluate_cpu(image);
+		return;
+	}
+
+	try {
 		if( env->use_double ) {
-			kernel_name = get_opencl_kernel_name_double();
+			evaluate_opencl<double>(image, kernel_name);
 		}
 		else {
-			kernel_name = get_opencl_kernel_name_float();
+			evaluate_opencl<float>(image, kernel_name);
 		}
-
-		if( strlen(kernel_name) == 0 ) {
-			evaluate_cpu(image);
-		}
-
-		try {
-			if( env->use_double ) {
-				evaluate_opencl<double>(image, kernel_name);
-			}
-			else {
-				evaluate_opencl<float>(image, kernel_name);
-			}
-		} catch (const cl::Error &e) {
-			throw opencl_error(e.what());
-		}
+	} catch (const cl::Error &e) {
+		throw opencl_error(e.what());
 	}
 #endif /* PROFIT_OPENCL */
 
