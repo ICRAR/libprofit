@@ -365,27 +365,28 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 	auto env = model.opencl_env;
 	double scale = this->get_pixel_scale();
 
-	cl::Buffer buffer_image(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
+	unsigned int arg = 0;
+	cl::Buffer image_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
 	cl::Kernel kernel = cl::Kernel(env->program, kernel_name);
-	kernel.setArg(0,  buffer_image);
-	kernel.setArg(1,  model.width);
-	kernel.setArg(2,  model.height);
-	kernel.setArg(3,  (FT)xcen);
-	kernel.setArg(4,  (FT)ycen);
-	kernel.setArg(5,  (FT)_cos_ang);
-	kernel.setArg(6,  (FT)_sin_ang);
-	kernel.setArg(7,  (FT)axrat);
-	kernel.setArg(8,  (FT)rscale);
-	kernel.setArg(9,  (FT)rscale_switch);
-	kernel.setArg(10, (FT)rscale_max);
-	kernel.setArg(11, (int)rough);
-	kernel.setArg(12, (FT)box);
-	kernel.setArg(13, (FT)scale);
+	kernel.setArg(arg++, image_buffer);
+	kernel.setArg(arg++, model.width);
+	kernel.setArg(arg++, model.height);
+	kernel.setArg(arg++, static_cast<FT>(xcen));
+	kernel.setArg(arg++, static_cast<FT>(ycen));
+	kernel.setArg(arg++, static_cast<FT>(_cos_ang));
+	kernel.setArg(arg++, static_cast<FT>(_sin_ang));
+	kernel.setArg(arg++, static_cast<FT>(axrat));
+	kernel.setArg(arg++, static_cast<FT>(rscale));
+	kernel.setArg(arg++, static_cast<FT>(rscale_switch));
+	kernel.setArg(arg++, static_cast<FT>(rscale_max));
+	kernel.setArg(arg++, static_cast<int>(rough));
+	kernel.setArg(arg++, static_cast<FT>(box));
+	kernel.setArg(arg++, static_cast<FT>(scale));
 	if( is_float<FT>::value ) {
-		add_kernel_parameters_float(14, kernel);
+		add_kernel_parameters_float(arg, kernel);
 	}
 	else {
-		add_kernel_parameters_double(14, kernel);
+		add_kernel_parameters_double(arg, kernel);
 	}
 
 	cl::Event kernel_evt;
@@ -394,11 +395,11 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 
 	if( is_float<FT>::value ) {
 		vector<FT> image_from_kernel(image.size());
-		env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(FT)*image.size(), image_from_kernel.data(), &read_waiting_evts, NULL);
+		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(FT)*imsize, image_from_kernel.data(), &read_waiting_evts, NULL);
 		copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
 	}
 	else {
-		env->queue.enqueueReadBuffer(buffer_image, CL_TRUE, 0, sizeof(double)*image.size(), image.data(), &read_waiting_evts, NULL);
+		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(double)*imsize, image.data(), &read_waiting_evts, NULL);
 	}
 }
 
