@@ -60,11 +60,11 @@ kernel void sersic_double(global double *image,
 		pixel_val = 0.;
 	}
 	else if( rough || (r_prof/rscale) > rscale_switch ) {
-		pixel_val = evaluate_sersic_double(x, y, box, nser, rscale, bn);
+		pixel_val = evaluate_sersic_double(x_prof, y_prof, box, nser, rscale, bn);
 	}
 	else {
 		// subsample
-		pixel_val = evaluate_sersic_double(x, y, box, nser, rscale, bn);
+		pixel_val = evaluate_sersic_double(x_prof, y_prof, box, nser, rscale, bn);
 	}
 
 	image[i] = scale * pixel_val;

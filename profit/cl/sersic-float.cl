@@ -56,11 +56,11 @@ kernel void sersic_float(global float *image,
 		pixel_val = 0.f;
 	}
 	else if( rough || (r_prof/rscale) > rscale_switch ) {
-		pixel_val = evaluate_sersic_float(x, y, box, nser, rscale, bn);
+		pixel_val = evaluate_sersic_float(x_prof, y_prof, box, nser, rscale, bn);
 	}
 	else {
 		// subsample
-		pixel_val = evaluate_sersic_float(x, y, box, nser, rscale, bn);
+		pixel_val = evaluate_sersic_float(x_prof, y_prof, box, nser, rscale, bn);
 	}
 
 	image[i] = scale * pixel_val;
