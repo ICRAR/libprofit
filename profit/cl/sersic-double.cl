@@ -60,7 +60,6 @@ kernel void sersic_double(
 	global d_point_t *to_subsample,
 	int width, int height,
 	int rough,
-	double pixel_scale,
 	double scale_x, double scale_y,
 	double xcen, double ycen,
 	double cos_ang, double sin_ang, double axrat,
@@ -76,27 +75,27 @@ kernel void sersic_double(
 	d_image_to_profile_coordiates(x, y, &x_prof, &y_prof, xcen, ycen, cos_ang, sin_ang, axrat);
 
 	private double r_prof = sqrt(x_prof*x_prof + y_prof*y_prof);
-	private double pixel_val;
 
 	if( rscale_max > 0 && (r_prof/rscale) > rscale_max ) {
-		pixel_val = 0.;
 #if __OPENCL_C_VERSION__ <= 120
+		image[i] = 0;
 		to_subsample[i].x = -1;
 #endif /* __OPENCL_C_VERSION__ */
 	}
 	else if( rough || (r_prof/rscale) > rscale_switch ) {
-		pixel_val = d_evaluate_sersic(x_prof, y_prof, box, nser, rscale, bn);
+		image[i] = d_evaluate_sersic(x_prof, y_prof, box, nser, rscale, bn);
 #if __OPENCL_C_VERSION__ <= 120
 		to_subsample[i].x = -1;
 #endif /* __OPENCL_C_VERSION__ */
 	}
 	else {
+#if __OPENCL_C_VERSION__ <= 120
+		image[i] = 0;
+#endif /* __OPENCL_C_VERSION__ */
 		// subsample
 		to_subsample[i].x = x;
 		to_subsample[i].y = y;
 	}
-
-	image[i] = pixel_scale * pixel_val;
 
 }
 
@@ -104,7 +103,6 @@ kernel void sersic_subsample_double(
 	global double *image,
    global d_subsampling_info *all_info,
 	double acc,
-	double pixel_scale,
 	double xcen, double ycen,
 	double cos_ang, double sin_ang, double axrat,
 	double rscale, double rscale_switch, double rscale_max,
@@ -133,7 +131,7 @@ kernel void sersic_subsample_double(
 	}
 	// else we already have the correct coordinates for the next subsampling
 
-	image[i] = pixel_scale * val;
+	image[i] = val;
 
 }
 )==="

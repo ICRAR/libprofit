@@ -387,7 +387,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	kernel.setArg(arg++, model.width);
 	kernel.setArg(arg++, model.height);
 	kernel.setArg(arg++, (int)rough);
-	kernel.setArg(arg++, static_cast<FT>(scale));
 	kernel.setArg(arg++, static_cast<FT>(model.scale_x));
 	kernel.setArg(arg++, static_cast<FT>(model.scale_y));
 	add_common_kernel_parameters<FT>(arg, kernel);
@@ -395,6 +394,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	// OpenCL 1.2 allows to do this; otherwise the work has to be done in the kernel
 	// (which we do)
 	if( env->version >= 120 ) {
+		env->queue.enqueueFillBuffer<FT>(image_buffer, 0, 0, sizeof(FT)*imsize);
 		env->queue.enqueueFillBuffer<point_t>(subsampling_points_buffer, {static_cast<FT>(-1), static_cast<FT>(-1)}, 0, sizeof(point_t)*imsize);
 	}
 
@@ -414,6 +414,11 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 	vector<point_t> to_subsample_points(image.size());
 	env->queue.enqueueReadBuffer(subsampling_points_buffer, CL_TRUE, 0, sizeof(point_t)*imsize, to_subsample_points.data(), &read_waiting_evts, NULL);
+
+	// the image needs to be multiplied by the pixel scale
+	transform(image.begin(), image.end(), image.begin(), [scale](double pixel) {
+		return pixel * scale;
+	});
 
 	// enrich the points to subsample with their subsampling information
 	vector<subsampling_info> to_subsample(image.size());
@@ -482,7 +487,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 		subsample_kernel.setArg(arg++, subimage_buffer);
 		subsample_kernel.setArg(arg++, points_buffer);
 		subsample_kernel.setArg(arg++, static_cast<FT>(acc));
-		subsample_kernel.setArg(arg++, static_cast<FT>(scale));
 		add_common_kernel_parameters<FT>(arg, subsample_kernel);
 
 		cl::Event kernel_evt;
