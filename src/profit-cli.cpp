@@ -357,11 +357,16 @@ void print_opencl_info() {
 		cout << "==================" << endl << endl;
 		for(auto platform_info: info) {
 			auto plat_id = get<0>(platform_info);
-			auto devices_info = get<1>(platform_info);
-			cout << "Platform " << get<0>(plat_id) << ": " << get<1>(plat_id) << endl;
-			for(auto device_info: devices_info) {
-				cout << "  Device " << get<0>(device_info) << ": " << get<1>(device_info) << endl;
+			auto plat_info = get<1>(platform_info);
+			cout << "Platform [" << plat_id << "]" << endl;
+			cout << "  Name           : " << plat_info.name << endl;
+			cout << "  OpenCL version : " << plat_info.supported_opencl_version/100. << endl;
+			for(auto device_info: plat_info.dev_info) {
+				cout << "  Device [" << get<0>(device_info) << "]" << endl;
+				cout << "    Name         : " << get<1>(device_info).name << endl;
+				cout << "    Double       : " << (get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
 			}
+			cout << endl;
 		}
 	}
 	else {
@@ -546,9 +551,11 @@ int parse_and_run(int argc, char *argv[]) {
 	output_t output = none;
 	Model m;
 	struct stat stat_buf;
+	struct timeval start, end;
 
 #ifdef PROFIT_OPENCL
 	bool use_opencl = false, use_double = false;
+	long opencl_duration;
 	unsigned int clplat_idx = 0, cldev_idx = 0;
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
@@ -679,13 +686,18 @@ int parse_and_run(int argc, char *argv[]) {
 #ifdef PROFIT_OPENCL
 	/* Get an OpenCL environment */
 	if( use_opencl ) {
+		gettimeofday(&start, NULL);
 		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double);
+		gettimeofday(&end, NULL);
+		opencl_duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
 		m.opencl_env = opencl_env;
+#ifdef PROFIT_DEBUG
+		cout << "OpenCL environment created in " << opencl_duration/1000. << " [ms]" << endl;
+#endif
 	}
 #endif /* PROFIT_OPENCL */
 
 	/* This means that we evaluated the model once, but who cares */
-	struct timeval start, end;
 	gettimeofday(&start, NULL);
 	vector<double> image;
 	for(i=0; i!=iterations; i++) {

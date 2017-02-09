@@ -53,6 +53,7 @@ namespace profit
 {
 
 typedef struct _OpenCL_env {
+	unsigned int version; /* major*100 + minor*10 (e.g., 120 for OpenCL 1.2) */
 	cl::Context context;
 	cl::Device device;
 	cl::CommandQueue queue;
@@ -60,7 +61,19 @@ typedef struct _OpenCL_env {
 	bool use_double;
 } OpenCL_env;
 
-std::map<std::pair<int, std::string>, std::map<int, std::string>> get_opencl_info();
+
+typedef struct _OpenCL_dev_info {
+	std::string name;
+	bool double_support;
+} OpenCL_dev_info;
+
+typedef struct _OpenCL_plat_info {
+	std::string name;
+	unsigned int supported_opencl_version;
+	std::map<int, OpenCL_dev_info> dev_info;
+} OpenCL_plat_info;
+
+std::map<int, OpenCL_plat_info> get_opencl_info();
 
 std::shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double);
 

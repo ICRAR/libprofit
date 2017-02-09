@@ -39,27 +39,52 @@ using namespace std;
 
 namespace profit {
 
-map<pair<int, string>, map<int, string>> get_opencl_info() {
+static unsigned int get_opencl_version(const cl::Platform &platform) {
+
+	string version = platform.getInfo<CL_PLATFORM_VERSION>();
+
+	// Version string should be of type "OpenCL<space><major_version.minor_version><space><platform-specific information>"
+
+	if( version.find("OpenCL ") != 0) {
+		throw opencl_error(string("OpenCL version string doesn't start with 'OpenCL ': ") + version);
+	}
+
+	auto next_space = version.find(" ", 7);
+	auto opencl_version = version.substr(7, next_space);
+	auto dot_idx = opencl_version.find(".");
+	if( dot_idx == opencl_version.npos ) {
+		throw opencl_error("OpenCL version doesn't contain a dot: " + opencl_version);
+	}
+
+	unsigned long major = stoul(opencl_version.substr(0, dot_idx));
+	unsigned long minor = stoul(opencl_version.substr(dot_idx+1, opencl_version.npos));
+	return major*100u + minor*10u;
+}
+
+map<int, OpenCL_plat_info> get_opencl_info() {
 
 	vector<cl::Platform> all_platforms;
 	if( cl::Platform::get(&all_platforms) != CL_SUCCESS ) {
 		throw opencl_error("Error while getting OpenCL platforms");
 	}
 
-	map<pair<int, string>, map<int, string>> pinfo;
+	map<int, OpenCL_plat_info> pinfo;
 	unsigned int pidx = 0;
 	for(auto platform: all_platforms) {
 		vector<cl::Device> devices;
 		platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
 
-		map<int, string> dinfo;
+		map<int, OpenCL_dev_info> dinfo;
 		unsigned int didx = 0;
 		for(auto device: devices) {
-			dinfo[didx] = device.getInfo<CL_DEVICE_NAME>();
+			dinfo[didx] = OpenCL_dev_info{
+				device.getInfo<CL_DEVICE_NAME>(),
+				device.getInfo<CL_DEVICE_DOUBLE_FP_CONFIG>() != 0
+			};
 		}
 
 		string name = platform.getInfo<CL_PLATFORM_NAME>();
-		pinfo[make_pair(pidx++, name)] = dinfo;
+		pinfo[pidx++] = OpenCL_plat_info{name, get_opencl_version(platform), dinfo};
 	}
 
 	return pinfo;
@@ -129,7 +154,7 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 
 	cl::CommandQueue queue(context, device);
 
-	return make_shared<OpenCL_env>(OpenCL_env{context, device, queue, program, use_double});
+	return make_shared<OpenCL_env>(OpenCL_env{get_opencl_version(platform), context, device, queue, program, use_double});
 }
 
 shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
