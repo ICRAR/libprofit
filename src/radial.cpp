@@ -31,8 +31,6 @@
 #include <tuple>
 #include <vector>
 
-#include <iostream>
-
 #include "profit/common.h"
 #include "profit/exceptions.h"
 #include "profit/opencl.h"
@@ -467,7 +465,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 		size_t subsamples = subsampling_points.size();
 		if( !subsamples ) {
-			cout << "Nothing to subsample anymore at level " << recur_level << endl;
 			break;
 		}
 
