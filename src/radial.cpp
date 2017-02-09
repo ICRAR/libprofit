@@ -252,30 +252,17 @@ void RadialProfile::evaluate(vector<double> &image) {
 	 * given, or if there is no OpenCL kernel implementing the profile
 	 */
 	auto env = model.opencl_env;
-	if( !env ) {
-		evaluate_cpu(image);
-		return;
-	}
-
-	const char *kernel_name;
-	if( env->use_double ) {
-		kernel_name = get_opencl_kernel_name_double();
-	}
-	else {
-		kernel_name = get_opencl_kernel_name_float();
-	}
-
-	if( strlen(kernel_name) == 0 ) {
+	if( !env || !supports_opencl() ) {
 		evaluate_cpu(image);
 		return;
 	}
 
 	try {
 		if( env->use_double ) {
-			evaluate_opencl<double>(image, kernel_name);
+			evaluate_opencl<double>(image);
 		}
 		else {
-			evaluate_opencl<float>(image, kernel_name);
+			evaluate_opencl<float>(image);
 		}
 	} catch (const cl::Error &e) {
 		ostringstream os;
@@ -347,16 +334,26 @@ void RadialProfile::evaluate_cpu(vector<double> &image) {
 
 /* Small trait */
 template <typename T>
-struct is_float {
-	const static bool value = false;
+struct float_traits {
+	const static bool is_float = false;
+	const static bool is_double = false;
+	constexpr const static char * name = "unknown";
 };
 template <>
-struct is_float<float> {
-	const static bool value = true;
+struct float_traits<float> {
+	const static bool is_float = true;
+	const static bool is_double = false;
+	constexpr const static char * name = "float";
+};
+template <>
+struct float_traits<double> {
+	const static bool is_float = false;
+	const static bool is_double = true;
+	constexpr const static char * name = "double";
 };
 
 template <typename FT>
-void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_name) {
+void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 	unsigned int i, j;
 	double x, y, pixel_val;
@@ -370,7 +367,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 
 	unsigned int arg = 0;
 	cl::Buffer image_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
-	cl::Kernel kernel = cl::Kernel(env->program, kernel_name);
+	cl::Kernel kernel = cl::Kernel(env->program, string(name + "_" + float_traits<FT>::name).c_str());
 	kernel.setArg(arg++, image_buffer);
 	kernel.setArg(arg++, model.width);
 	kernel.setArg(arg++, model.height);
@@ -404,6 +401,8 @@ void RadialProfile::evaluate_opencl(vector<double> &image, const char *kernel_na
 	else {
 		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(double)*imsize, image.data(), &read_waiting_evts, NULL);
 	}
+bool RadialProfile::supports_opencl() const {
+	return false;
 }
 
 #endif /* PROFIT_OPENCL */
@@ -483,14 +482,6 @@ bool RadialProfile::parameter_impl(const string &name, unsigned int value) {
 }
 
 #ifdef PROFIT_OPENCL
-const char * RadialProfile::get_opencl_kernel_name_float() const {
-	return "";
-}
-
-const char * RadialProfile::get_opencl_kernel_name_double() const {
-	return "";
-}
-
 void RadialProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {
 	return;
 }

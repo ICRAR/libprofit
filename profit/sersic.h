@@ -138,10 +138,9 @@ private:
 #ifdef PROFIT_OPENCL
 
 protected:
-	virtual const char * get_opencl_kernel_name_float() const override;
-	virtual const char * get_opencl_kernel_name_double() const override;
 	virtual void add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const override;
 	virtual void add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const override;
+	virtual bool supports_opencl() const override;
 
 private:
 	template <typename FT>

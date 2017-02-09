@@ -379,14 +379,6 @@ bool SersicProfile::parameter_impl(const string &name, bool val) {
 }
 
 #ifdef PROFIT_OPENCL
-const char * SersicProfile::get_opencl_kernel_name_float() const {
-	return "sersic_float";
-}
-
-const char * SersicProfile::get_opencl_kernel_name_double() const {
-	return "sersic_double";
-}
-
 void SersicProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {
 	add_kernel_parameters<float>(index, kernel);
 }
@@ -400,6 +392,11 @@ void SersicProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel
 	kernel.setArg(index++, (FT)nser);
 	kernel.setArg(index++, (FT)_bn);
 }
+
+bool SersicProfile::supports_opencl() const {
+	return true;
+}
+
 #endif /* PROFIT_OPENCL */
 
 } /* namespace profit */

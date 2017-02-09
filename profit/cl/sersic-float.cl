@@ -31,7 +31,8 @@ inline float evaluate_sersic_float(float x, float y, float box, float nser, floa
 	return exp(-bn * (r_factor - 1));
 }
 
-kernel void sersic_float(global float *image,
+kernel void sersic_float(
+	global float *image,
 	int width, int height,
 	float xcen, float ycen,
 	float cos_ang, float sin_ang, float axrat,

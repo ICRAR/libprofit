@@ -35,7 +35,8 @@ inline double evaluate_sersic_double(double x, double y, double box, double nser
 	return exp(-bn * (r_factor - 1));
 }
 
-kernel void sersic_double(global double *image,
+kernel void sersic_double(
+	global double *image,
 	int width, int height,
 	double xcen, double ycen,
 	double cos_ang, double sin_ang, double axrat,
