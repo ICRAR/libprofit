@@ -329,7 +329,7 @@ void SersicProfile::subsampling_params(double x, double y,
 
 	RadialProfile::subsampling_params(x, y, resolution, max_recursions);
 
-	/* Higher subsampling params for central pixel if nser < 1 */
+	/* Higher subsampling params for central pixel if nser > 1 */
 	bool center_pixel = abs(x - this->xcen) < this->model.scale_x && abs(y - this->ycen) < this->model.scale_y;
 	if( center_pixel && this->nser > 1 ) {
 		resolution = 8;
