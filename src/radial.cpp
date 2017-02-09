@@ -26,8 +26,9 @@
 
 #include <algorithm>
 #include <cmath>
-#include <vector>
+#include <sstream>
 #include <tuple>
+#include <vector>
 
 #include "profit/common.h"
 #include "profit/exceptions.h"
@@ -277,7 +278,9 @@ void RadialProfile::evaluate(vector<double> &image) {
 			evaluate_opencl<float>(image, kernel_name);
 		}
 	} catch (const cl::Error &e) {
-		throw opencl_error(e.what());
+		ostringstream os;
+		os << "OpenCL error: " << e.what() << ". OpenCL error code: " << e.err();
+		throw opencl_error(os.str());
 	}
 #endif /* PROFIT_OPENCL */
 

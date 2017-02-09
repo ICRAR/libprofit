@@ -65,7 +65,8 @@ map<pair<int, string>, map<int, string>> get_opencl_info() {
 	return pinfo;
 }
 
-shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
+static
+shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
 
 	vector<cl::Platform> all_platforms;
 	if( cl::Platform::get(&all_platforms) != CL_SUCCESS ) {
@@ -131,8 +132,16 @@ shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigne
 	return make_shared<OpenCL_env>(OpenCL_env{context, device, queue, program, use_double});
 }
 
-void free_opencl_environment(OpenCL_env *env) {
-	delete env;
+shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
+
+	// Wrap cl::Error exceptions
+	try {
+		return _get_opencl_environment(platform_idx, device_idx, use_double);
+	} catch(const cl::Error &e) {
+		ostringstream os;
+		os << "OpenCL error: " << e.what() << ". OpenCL error code: " << e.err();
+		throw opencl_error(os.str());
+	}
 }
 
 }
