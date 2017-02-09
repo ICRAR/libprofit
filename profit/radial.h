@@ -276,6 +276,9 @@ private:
 	template <typename FT>
 	void evaluate_opencl(std::vector<double> &image);
 
+	template <typename FT>
+	void add_common_kernel_parameters(unsigned int argIdx, cl::Kernel &kernel) const;
+
 protected:
 
 	virtual bool supports_opencl() const;

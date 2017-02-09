@@ -26,9 +26,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <sstream>
 #include <tuple>
 #include <vector>
+
+#include <iostream>
 
 #include "profit/common.h"
 #include "profit/exceptions.h"
@@ -358,19 +361,147 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	unsigned int i, j;
 	double x, y, pixel_val;
 	double x_prof, y_prof, r_prof;
-	double half_xbin = model.scale_x/2.;
-	double half_ybin = model.scale_x/2.;
 	unsigned int imsize = model.width * model.height;
 
 	auto env = model.opencl_env;
 	double scale = this->get_pixel_scale();
 
+	typedef struct _point {
+		FT x;
+		FT y;
+	} point_t;
+
+	typedef struct _subsampling_info {
+		point_t point;
+		FT xbin;
+		FT ybin;
+		unsigned int resolution;
+		unsigned int max_recursion;
+	} subsampling_info;
+
+	/* Prepare the initial evaluation kernel */
 	unsigned int arg = 0;
 	cl::Buffer image_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
+	cl::Buffer subsampling_points_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(point_t)*imsize);
 	cl::Kernel kernel = cl::Kernel(env->program, string(name + "_" + float_traits<FT>::name).c_str());
 	kernel.setArg(arg++, image_buffer);
+	kernel.setArg(arg++, subsampling_points_buffer);
 	kernel.setArg(arg++, model.width);
 	kernel.setArg(arg++, model.height);
+	kernel.setArg(arg++, (int)rough);
+	kernel.setArg(arg++, static_cast<FT>(scale));
+	kernel.setArg(arg++, static_cast<FT>(model.scale_x));
+	kernel.setArg(arg++, static_cast<FT>(model.scale_y));
+	add_common_kernel_parameters<FT>(arg, kernel);
+
+	// OpenCL 1.2 allows to do this; otherwise the work has to be done in the kernel
+	// (which we do)
+	if( env->version >= 120 ) {
+		env->queue.enqueueFillBuffer<point_t>(subsampling_points_buffer, {static_cast<FT>(-1), static_cast<FT>(-1)}, 0, sizeof(point_t)*imsize);
+	}
+
+	// Enqueue the kernel, and read back the resulting image + set of points to subsample
+	cl::Event kernel_evt;
+	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, 0, &kernel_evt);
+	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
+
+	if( float_traits<FT>::is_double ) {
+		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(double)*imsize, image.data(), &read_waiting_evts, NULL);
+	}
+	else {
+		vector<FT> image_from_kernel(image.size());
+		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(FT)*imsize, image_from_kernel.data(), &read_waiting_evts, NULL);
+		copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
+	}
+
+	vector<point_t> to_subsample_points(image.size());
+	env->queue.enqueueReadBuffer(subsampling_points_buffer, CL_TRUE, 0, sizeof(point_t)*imsize, to_subsample_points.data(), &read_waiting_evts, NULL);
+
+	// enrich the points to subsample with their subsampling information
+	vector<subsampling_info> to_subsample(image.size());
+	FT half_xbin = static_cast<FT>(model.scale_x)/2;
+	FT half_ybin = static_cast<FT>(model.scale_y)/2;
+	transform(to_subsample_points.begin(), to_subsample_points.end(), to_subsample.begin(), [half_xbin, half_ybin, this](const point_t &point){
+		unsigned int resolution, max_recursions;
+		subsampling_params(point.x, point.y, resolution, max_recursions);
+		return subsampling_info{{point.x, point.y}, static_cast<FT>(model.scale_x), static_cast<FT>(model.scale_y), resolution, max_recursions};
+	});
+
+	// Preparing for the recursive subsampling
+	vector<subsampling_info> subsampling_points;
+	unsigned int recur_level = 0;
+
+	cl::Kernel subsample_kernel = cl::Kernel(env->program, string(name + "_subsample_" + float_traits<FT>::name).c_str());
+
+	unsigned int top_recursions = max_element(to_subsample.begin(),
+	                                          to_subsample.end(),
+	                                          [](const subsampling_info &i1, const subsampling_info &i2){
+	                                             return i1.max_recursion < i2.max_recursion;
+	                                          })->max_recursion;
+
+	while( recur_level < top_recursions ) {
+
+		unsigned int n_to_subsample = 0;
+		subsampling_points.clear();
+
+		for(auto info: to_subsample) {
+
+			if( info.point.x == -1 || recur_level >= info.max_recursion) {
+				continue;
+			}
+
+			FT x0 = info.point.x - info.xbin/2;
+			FT y0 = info.point.y - info.ybin/2;
+			FT ss_res_x = info.xbin / info.resolution;
+			FT ss_res_y = info.ybin / info.resolution;
+			n_to_subsample++;
+			for(unsigned int i=0; i!=info.resolution*info.resolution; i++) {
+				subsampling_points.push_back({
+					{x0 + (i%resolution + 0.5f)*ss_res_x, y0 + (i/resolution + 0.5f)*ss_res_y},
+					ss_res_x, ss_res_y,
+					info.resolution, info.max_recursion
+			});
+			}
+
+		}
+
+		size_t subsamples = subsampling_points.size();
+		if( !subsamples ) {
+			cout << "Nothing to subsample anymore at level " << recur_level << endl;
+			break;
+		}
+
+#ifdef PROFIT_DEBUG
+		/* record how many sub-integrations we've done */
+		n_integrations[recur_level] = n_to_subsample;
+#endif
+
+		to_subsample.resize(subsamples);
+
+		cl::Buffer subimage_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*subsamples);
+		cl::Buffer points_buffer(env->context, CL_MEM_READ_WRITE, sizeof(subsampling_info)*subsamples);
+
+		arg = 0;
+		subsample_kernel.setArg(arg++, subimage_buffer);
+		subsample_kernel.setArg(arg++, points_buffer);
+		subsample_kernel.setArg(arg++, static_cast<FT>(acc));
+		subsample_kernel.setArg(arg++, static_cast<FT>(scale));
+		add_common_kernel_parameters<FT>(arg, subsample_kernel);
+
+		cl::Event kernel_evt;
+		vector<FT> image_from_kernel(subsamples);
+		env->queue.enqueueWriteBuffer(points_buffer, CL_TRUE, 0, sizeof(subsampling_info)*subsamples, subsampling_points.data());
+		env->queue.enqueueNDRangeKernel(subsample_kernel, cl::NullRange, cl::NDRange(subsamples), cl::NullRange, 0, &kernel_evt);
+		cl::vector<cl::Event> read_waiting_evts{kernel_evt};
+		env->queue.enqueueReadBuffer(subimage_buffer, CL_TRUE, 0, sizeof(FT)*subsamples, image_from_kernel.data(), &read_waiting_evts, NULL);
+		env->queue.enqueueReadBuffer(points_buffer, CL_TRUE, 0, sizeof(subsampling_info)*subsamples, to_subsample.data(), &read_waiting_evts, NULL);
+
+		recur_level++;
+	}
+}
+
+template <typename FT>
+void RadialProfile::add_common_kernel_parameters(unsigned int arg, cl::Kernel &kernel) const {
 	kernel.setArg(arg++, static_cast<FT>(xcen));
 	kernel.setArg(arg++, static_cast<FT>(ycen));
 	kernel.setArg(arg++, static_cast<FT>(_cos_ang));
@@ -379,28 +510,15 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	kernel.setArg(arg++, static_cast<FT>(rscale));
 	kernel.setArg(arg++, static_cast<FT>(rscale_switch));
 	kernel.setArg(arg++, static_cast<FT>(rscale_max));
-	kernel.setArg(arg++, static_cast<int>(rough));
 	kernel.setArg(arg++, static_cast<FT>(box));
-	kernel.setArg(arg++, static_cast<FT>(scale));
-	if( is_float<FT>::value ) {
+	if( float_traits<FT>::is_float ) {
 		add_kernel_parameters_float(arg, kernel);
 	}
 	else {
 		add_kernel_parameters_double(arg, kernel);
 	}
+}
 
-	cl::Event kernel_evt;
-	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, 0, &kernel_evt);
-	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
-
-	if( is_float<FT>::value ) {
-		vector<FT> image_from_kernel(image.size());
-		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(FT)*imsize, image_from_kernel.data(), &read_waiting_evts, NULL);
-		copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
-	}
-	else {
-		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(double)*imsize, image.data(), &read_waiting_evts, NULL);
-	}
 bool RadialProfile::supports_opencl() const {
 	return false;
 }
