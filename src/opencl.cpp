@@ -39,7 +39,7 @@ using namespace std;
 
 namespace profit {
 
-static unsigned int get_opencl_version(const cl::Platform &platform) {
+static cl_ver_t get_opencl_version(const cl::Platform &platform) {
 
 	string version = platform.getInfo<CL_PLATFORM_VERSION>();
 
@@ -154,7 +154,7 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 
 	cl::CommandQueue queue(context, device);
 
-	return make_shared<OpenCL_env>(OpenCL_env{get_opencl_version(platform), context, device, queue, program, use_double});
+	return make_shared<OpenCL_env>(OpenCL_env{device, get_opencl_version(platform), context, queue, program, use_double});
 }
 
 shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
