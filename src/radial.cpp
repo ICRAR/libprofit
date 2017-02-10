@@ -356,13 +356,9 @@ struct float_traits<double> {
 template <typename FT>
 void RadialProfile::evaluate_opencl(vector<double> &image) {
 
-	unsigned int i, j;
-	double x, y, pixel_val;
-	double x_prof, y_prof, r_prof;
 	unsigned int imsize = model.width * model.height;
 
 	auto env = model.opencl_env;
-	double scale = this->get_pixel_scale();
 
 	typedef struct _point {
 		FT x;
@@ -414,11 +410,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 	vector<point_t> to_subsample_points(image.size());
 	env->queue.enqueueReadBuffer(subsampling_points_buffer, CL_TRUE, 0, sizeof(point_t)*imsize, to_subsample_points.data(), &read_waiting_evts, NULL);
-
-	// the image needs to be multiplied by the pixel scale
-	transform(image.begin(), image.end(), image.begin(), [scale](double pixel) {
-		return pixel * scale;
-	});
 
 	// enrich the points to subsample with their subsampling information
 	vector<subsampling_info> to_subsample(image.size());
@@ -499,6 +490,13 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 		recur_level++;
 	}
+
+	// the image needs to be multiplied by the pixel scale
+	double scale = this->get_pixel_scale();
+	transform(image.begin(), image.end(), image.begin(), [scale](double pixel) {
+		return pixel * scale;
+	});
+
 }
 
 template <typename FT>
