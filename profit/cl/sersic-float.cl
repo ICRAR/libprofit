@@ -122,8 +122,14 @@ kernel void sersic_subsample_float(
 	val = f_evaluate_sersic(x_prof, y_prof, box, nser, rscale, bn);
 	testval = f_evaluate_sersic(x_prof, fabs(y_prof) + fabs(delta_y_prof), box, nser, rscale, bn);
 
+	// As we keep closing to the center we cannot distinguish that well anymore between
+	// the different profile values, so we need to adjust our accuracy to give up earlier
+	private float r = pow( pow(fabs(x_prof), 2+box) + pow(fabs(x_prof), 2+box), 2+box);
+	private float acc_scale = log10(fabs(log10(r)))/nser/2;
+	acc_scale = (acc_scale < 1 ? 1 : acc_scale);
+
 	// no need for subsampling
-	if( fabs(testval/val - 1.0f) <= acc ) {
+	if( fabs(testval/val - 1.0f) <= acc*acc_scale ) {
 		all_info[i].point.x = -1.f;
 		all_info[i].point.y = -1.f;
 	}
