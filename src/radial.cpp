@@ -356,6 +356,8 @@ struct float_traits<double> {
 template <typename FT>
 void RadialProfile::evaluate_opencl(vector<double> &image) {
 
+#define AS_FT(x) static_cast<FT>(x)
+
 	unsigned int imsize = model.width * model.height;
 
 	auto env = model.opencl_env;
@@ -383,15 +385,15 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	kernel.setArg(arg++, model.width);
 	kernel.setArg(arg++, model.height);
 	kernel.setArg(arg++, (int)rough);
-	kernel.setArg(arg++, static_cast<FT>(model.scale_x));
-	kernel.setArg(arg++, static_cast<FT>(model.scale_y));
+	kernel.setArg(arg++, AS_FT(model.scale_x));
+	kernel.setArg(arg++, AS_FT(model.scale_y));
 	add_common_kernel_parameters<FT>(arg, kernel);
 
 	// OpenCL 1.2 allows to do this; otherwise the work has to be done in the kernel
 	// (which we do)
 	if( env->version >= 120 ) {
 		env->queue.enqueueFillBuffer<FT>(image_buffer, 0, 0, sizeof(FT)*imsize);
-		env->queue.enqueueFillBuffer<point_t>(subsampling_points_buffer, {static_cast<FT>(-1), static_cast<FT>(-1)}, 0, sizeof(point_t)*imsize);
+		env->queue.enqueueFillBuffer<point_t>(subsampling_points_buffer, {-1, -1}, 0, sizeof(point_t)*imsize);
 	}
 
 	// Enqueue the kernel, and read back the resulting image + set of points to subsample
@@ -413,12 +415,12 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 	// enrich the points to subsample with their subsampling information
 	vector<subsampling_info> to_subsample(image.size());
-	FT half_xbin = static_cast<FT>(model.scale_x)/2;
-	FT half_ybin = static_cast<FT>(model.scale_y)/2;
+	FT half_xbin = AS_FT(model.scale_x)/2;
+	FT half_ybin = AS_FT(model.scale_y)/2;
 	transform(to_subsample_points.begin(), to_subsample_points.end(), to_subsample.begin(), [half_xbin, half_ybin, this](const point_t &point){
 		unsigned int resolution, max_recursions;
 		subsampling_params(point.x, point.y, resolution, max_recursions);
-		return subsampling_info{{point.x, point.y}, static_cast<FT>(model.scale_x), static_cast<FT>(model.scale_y), resolution, max_recursions};
+		return subsampling_info{{point.x, point.y}, AS_FT(model.scale_x), AS_FT(model.scale_y), resolution, max_recursions};
 	});
 
 	// Preparing for the recursive subsampling
@@ -492,7 +494,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 			arg = 0;
 			subsample_kernel.setArg(arg++, subimage_buffer);
 			subsample_kernel.setArg(arg++, points_buffer);
-			subsample_kernel.setArg(arg++, static_cast<FT>(acc));
+			subsample_kernel.setArg(arg++, AS_FT(acc));
 			add_common_kernel_parameters<FT>(arg, subsample_kernel);
 
 			cl::Event kernel_evt, write_subsampling_info_event;
