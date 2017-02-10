@@ -128,10 +128,14 @@ kernel void sersic_subsample_double(
 	if( fabs(testval/val - 1.0) <= acc ) {
 		all_info[i].point.x = -1.;
 		all_info[i].point.y = -1.;
+		image[i] = val;
 	}
 	// else we already have the correct coordinates for the next subsampling
-
-	image[i] = val;
+#if __OPENCL_C_VERSION__ <= 120
+	else {
+		image[i] = 0;
+	}
+#endif /* __OPENCL_C_VERSION__ */
 
 }
 )==="

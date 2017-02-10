@@ -132,10 +132,14 @@ kernel void sersic_subsample_float(
 	if( fabs(testval/val - 1.0f) <= acc*acc_scale ) {
 		all_info[i].point.x = -1.f;
 		all_info[i].point.y = -1.f;
+		image[i] = val;
 	}
 	// else we already have the correct coordinates for the next subsampling
-
-	image[i] = val;
+#if __OPENCL_C_VERSION__ <= 120
+	else {
+		image[i] = 0;
+	}
+#endif /* __OPENCL_C_VERSION__ */
 
 }
 
