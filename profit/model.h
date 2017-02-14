@@ -41,6 +41,7 @@ namespace profit
 {
 
 /* Forward declaration */
+struct ProfileStats;
 class Profile;
 
 /**
@@ -97,6 +98,13 @@ public:
 #ifdef PROFIT_DEBUG
 	std::map<std::string, std::map<int, int>> get_profile_integrations() const;
 #endif
+
+	/**
+	 * Return a map of all profile statistics.
+	 *
+	 * @return A map indexed by profile name with runtime statistics
+	 */
+	std::map<std::string, std::shared_ptr<ProfileStats>> get_stats() const;
 
 	/**
 	 * The width of the model to generate

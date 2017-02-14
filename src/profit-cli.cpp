@@ -33,6 +33,8 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -317,6 +319,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -b        Output image as binary content on stdout\n");
 	fprintf(file,"  -f <file> Output image as fits file\n");
 	fprintf(file,"  -i <n>    Output performance information after evaluating the model n times\n");
+	fprintf(file,"  -s        Show runtime stats\n");
 #ifdef PROFIT_OPENCL
 	fprintf(file,"  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)\n");
 	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
@@ -347,7 +350,17 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"For more information visit https://libprofit.readthedocs.io.\n\n");
 }
 
+static
+void print_stats_line(const string &prefix, const string &stat_name, double val) {
+	const auto static name_width = 50u;
+	int nchars = prefix.size() + stat_name.size();
+	int nspaces = name_width - nchars;
+	string spaces(max(0, nspaces), ' ');
+	cout << prefix << stat_name << spaces << " : " << setw(10) << setprecision(3) << setiosflags(ios::fixed) << val << " [ms]" << endl;
+}
+
 #ifdef PROFIT_OPENCL
+static
 void print_opencl_info() {
 
 	const auto info = get_opencl_info();
@@ -373,7 +386,83 @@ void print_opencl_info() {
 		cout << "No OpenCL installation found" << endl;
 	}
 }
+
+static
+void print_cl_stats(const string &prefix0, bool opencl_120, const OpenCL_times &stats) {
+
+	auto prefix1 = prefix0 + "  ";
+
+	ostringstream os;
+	os << "OpenCL operations (" << stats.nwork_items << " work items)";
+	print_stats_line(prefix0, os.str(), stats.total/1000.);
+	print_stats_line(prefix1, "Kernel preparation", stats.kernel_prep/1000.);
+	if( opencl_120 ) {
+		print_stats_line(prefix1, "Fill submission", stats.filling_times.submit / 1000. / 1000.);
+		print_stats_line(prefix1, "Fill execution", stats.filling_times.exec / 1000. / 1000.);
+	}
+	print_stats_line(prefix1, "Write submission", stats.writing_times.submit / 1000. / 1000.);
+	print_stats_line(prefix1, "Write execution", stats.writing_times.exec / 1000. / 1000.);
+	print_stats_line(prefix1, "Kernel submission", stats.kernel_times.submit / 1000. / 1000.);
+	print_stats_line(prefix1, "Kernel execution", stats.kernel_times.exec / 1000. / 1000.);
+	print_stats_line(prefix1, "Read submission", stats.reading_times.submit / 1000. / 1000.);
+	print_stats_line(prefix1, "Read execution", stats.reading_times.exec / 1000. / 1000.);
+}
 #endif /* PROFIT_OPENCL */
+
+static
+void print_stats(const Model &m) {
+
+	for(const auto &profile_integrations: m.get_profile_integrations()) {
+		int total = 0;
+		if( get<1>(profile_integrations).size() > 0 ) {
+			cout << "Integrations per recursion level for profile " << get<0>(profile_integrations) << endl;
+			for(const auto level_integrations: get<1>(profile_integrations)) {
+				auto integrations = get<1>(level_integrations);
+				total += integrations;
+				cout << " Level " << get<0>(level_integrations) << ": " << integrations << " integrations" << endl;
+			}
+			cout << " Total: " << total << " integrations" << endl;
+		}
+		else {
+			cout << "Profile " << get<0>(profile_integrations) << " didn't run into any recursion" << endl;
+		}
+	}
+
+	cout << endl;
+	auto const &stats = m.get_stats();
+
+	auto prefix0 = "";
+	auto prefix1 = "  ";
+	for(auto const &stat_pair: stats) {
+
+		// Some profile might not have gathered stats
+		auto profile_name = get<0>(stat_pair);
+		auto stat = get<1>(stat_pair);
+		ProfileStats *profile_stats = stat.get();
+		if( !profile_stats ) {
+			continue;
+		}
+
+		cout << "Stats for profile " << profile_name << endl;
+
+#ifdef PROFIT_OPENCL
+		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
+		if( rprofile_stats ) {
+			bool opencl_120 = m.opencl_env->version >= 120;
+			print_cl_stats(prefix0, opencl_120, rprofile_stats->cl_times);
+			print_stats_line(prefix0, "Pre-loop", rprofile_stats->subsampling.pre_subsampling / 1000.);
+			print_stats_line(prefix0, "Subsampling loop", rprofile_stats->subsampling.total / 1000.);
+			print_stats_line(prefix1, "New subsamples calculation", rprofile_stats->subsampling.new_subsampling / 1000.);
+			print_stats_line(prefix1, "Initial transform", rprofile_stats->subsampling.inital_transform / 1000.);
+			print_cl_stats(prefix1, opencl_120, rprofile_stats->subsampling.cl_times);
+			print_stats_line(prefix1, "Final transform", rprofile_stats->subsampling.final_transform / 1000.);
+			print_stats_line(prefix0, "Final image", rprofile_stats->final_image / 1000.);
+		}
+#endif /* PROFIT_OPENCL */
+
+		print_stats_line(prefix0, "Total", profile_stats->total / 1000.);
+	}
+}
 
 static inline
 bool is_little_endian() {
@@ -552,6 +641,7 @@ int parse_and_run(int argc, char *argv[]) {
 	Model m;
 	struct stat stat_buf;
 	struct timeval start, end;
+	bool show_stats;
 
 #ifdef PROFIT_OPENCL
 	bool use_opencl = false, use_double = false;
@@ -561,9 +651,9 @@ int parse_and_run(int argc, char *argv[]) {
 #endif /* PROFIT_OPENCL */
 
 #ifdef PROFIT_OPENCL
-	const char *options = "h?vP:p:w:H:x:y:X:Y:m:tbf:i:C:c";
+	const char *options = "h?vsP:p:w:H:x:y:X:Y:m:tbf:i:C:c";
 #else
-	const char *options = "h?vP:p:w:H:x:y:X:Y:m:tbf:i:";
+	const char *options = "h?vsP:p:w:H:x:y:X:Y:m:tbf:i:";
 #endif /* PROFIT_OPENCL */
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
@@ -584,6 +674,10 @@ int parse_and_run(int argc, char *argv[]) {
 #endif
 				cout << endl;
 				return 0;
+
+			case 's':
+				show_stats = true;
+				break;
 
 			case 'p':
 				parse_profile(m, optarg);
@@ -687,13 +781,13 @@ int parse_and_run(int argc, char *argv[]) {
 	/* Get an OpenCL environment */
 	if( use_opencl ) {
 		gettimeofday(&start, NULL);
-		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double);
+		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double, show_stats);
 		gettimeofday(&end, NULL);
 		opencl_duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
 		m.opencl_env = opencl_env;
 #ifdef PROFIT_DEBUG
 		cout << "OpenCL environment created in " << opencl_duration/1000. << " [ms]" << endl;
-#endif
+#endif /* PROFIT_DEBUG */
 	}
 #endif /* PROFIT_OPENCL */
 
@@ -730,27 +824,14 @@ int parse_and_run(int argc, char *argv[]) {
 
 		case performance:
 			printf("Ran %d iterations in %.3f [s] (%.3f [ms] per iteration)\n", iterations, (double)duration/1000000., (double)duration/1000./iterations);
-#ifdef PROFIT_DEBUG
-			for(const auto &profile_integrations: m.get_profile_integrations()) {
-				int total = 0;
-				if( get<1>(profile_integrations).size() > 0 ) {
-					cout << "Integrations per recursion level for profile " << get<0>(profile_integrations) << endl;
-					for(const auto level_integrations: get<1>(profile_integrations)) {
-						auto integrations = get<1>(level_integrations);
-						total += integrations;
-						cout << " Level " << get<0>(level_integrations) << ": " << integrations << " integrations" << endl;
-					}
-					cout << " Total: " << total << " integrations" << endl;
-				}
-				else {
-					cout << "Profile " << get<0>(profile_integrations) << " didn't run into any recursion" << endl;
-				}
-			}
-#endif
 			break;
 
 		default:
 			cerr << "Output not currently supported: " << output << endl;
+	}
+
+	if( show_stats ) {
+		print_stats(m);
 	}
 
 	return 0;

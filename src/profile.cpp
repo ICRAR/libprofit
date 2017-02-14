@@ -40,7 +40,8 @@ namespace profit {
 Profile::Profile(const Model &model, const string &name) :
 	model(model),
 	name(name),
-	convolve(false)
+	convolve(false),
+	stats()
 {
 	// no-op
 }
@@ -56,6 +57,10 @@ bool Profile::do_convolve() const {
 
 const string& Profile::get_name() const {
 	return name;
+}
+
+shared_ptr<ProfileStats> Profile::get_stats() const {
+	return stats;
 }
 
 template <typename T>

@@ -206,6 +206,14 @@ vector<double> Model::evaluate() {
 	return image;
 }
 
+map<string, std::shared_ptr<ProfileStats>> Model::get_stats() const {
+	map<string, std::shared_ptr<ProfileStats>> stats;
+	for(auto p: profiles) {
+		stats[p->get_name()] = p->get_stats();
+	}
+	return stats;
+}
+
 #ifdef PROFIT_DEBUG
 map<string, map<int, int>> Model::get_profile_integrations() const {
 	map<string, map<int, int>> profile_integrations;
