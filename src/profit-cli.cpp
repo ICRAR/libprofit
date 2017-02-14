@@ -447,7 +447,7 @@ void print_stats(const Model &m) {
 
 #ifdef PROFIT_OPENCL
 		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
-		if( rprofile_stats ) {
+		if( rprofile_stats && m.opencl_env ) {
 			bool opencl_120 = m.opencl_env->version >= 120;
 			print_cl_stats(prefix0, opencl_120, rprofile_stats->cl_times);
 			print_stats_line(prefix0, "Pre-loop", rprofile_stats->subsampling.pre_subsampling / 1e6 );
