@@ -168,10 +168,10 @@ vector<double> Model::evaluate() {
 	 * parallelize only if we have more than 2 or 3 profiles)
 	 */
 	vector<vector<double>> profile_images;
-	for(auto profile: this->profiles) {
+	for(auto &profile: this->profiles) {
 		vector<double> profile_image(this->width * this->height, 0);
 		profile->evaluate(profile_image);
-		profile_images.push_back(profile_image);
+		profile_images.push_back(move(profile_image));
 	}
 
 	/*
@@ -182,7 +182,7 @@ vector<double> Model::evaluate() {
 	 */
 	bool do_convolve = false;
 	auto it = profile_images.begin();
-	for(auto profile: this->profiles) {
+	for(auto &profile: this->profiles) {
 		if( profile->do_convolve() ) {
 			do_convolve = true;
 			add_images(image, *it);
@@ -195,7 +195,7 @@ vector<double> Model::evaluate() {
 		image = convolve(image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask);
 	}
 	it = profile_images.begin();
-	for(auto profile: this->profiles) {
+	for(auto &profile: this->profiles) {
 		if( !profile->do_convolve() ) {
 			add_images(image, *it);
 		}
@@ -207,7 +207,7 @@ vector<double> Model::evaluate() {
 }
 
 #ifdef PROFIT_DEBUG
-map<string, map<int, int>> Model::get_profile_integrations() {
+map<string, map<int, int>> Model::get_profile_integrations() const {
 	map<string, map<int, int>> profile_integrations;
 	for(auto p: profiles) {
 		RadialProfile *rp = dynamic_cast<RadialProfile *>(p.get());

@@ -95,7 +95,7 @@ public:
 	std::vector<double> evaluate();
 
 #ifdef PROFIT_DEBUG
-	std::map<std::string, std::map<int, int>> get_profile_integrations();
+	std::map<std::string, std::map<int, int>> get_profile_integrations() const;
 #endif
 
 	/**
