@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 #include <map>
 #include <sstream>
 #include <tuple>
@@ -244,7 +245,7 @@ void RadialProfile::evaluate(vector<double> &image) {
 	stats = shared_ptr<RadialProfileStats>(new RadialProfileStats());
 #ifdef PROFIT_DEBUG
 	n_integrations.clear();
-#endif
+#endif /* PROFIT_DEBUG */
 
 #ifndef PROFIT_OPENCL
 	evaluate_cpu(image);
@@ -440,6 +441,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 #define AS_FT(x) static_cast<FT>(x)
 
+	using chrono::system_clock;
 	typedef point_t<FT> point_t;
 	typedef ss_info_t<FT> ss_info_t;
 	typedef ss_kinfo_t<FT> ss_kinfo_t;
@@ -447,8 +449,14 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	unsigned int imsize = model.width * model.height;
 
 	auto env = model.opencl_env;
+	OpenCL_times cl_times0, ss_cl_times;
+	RadialProfileStats* stats = static_cast<RadialProfileStats *>(this->stats.get());
+
+	/* Points in time we want to measure */
+	system_clock::time_point t0, t_kprep, t_opencl, t_loopstart, t_loopend, t_imgtrans;
 
 	/* Prepare the initial evaluation kernel */
+	t0 = system_clock::now();
 	unsigned int arg = 0;
 	auto kname = name + "_" + float_traits<FT>::name;
 	cl::Buffer image_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
@@ -462,6 +470,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	kernel.setArg(arg++, AS_FT(model.scale_x));
 	kernel.setArg(arg++, AS_FT(model.scale_y));
 	add_common_kernel_parameters<FT>(arg, kernel);
+	t_kprep = system_clock::now();
 
 	cl::Event fill_im_evt, fill_ss_points_evt, kernel_evt, read_evt, read_ss_points_evt;
 
@@ -478,26 +487,48 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	// Enqueue the kernel, and read back the resulting image + set of points to subsample
 	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, &k_wait_evts, &kernel_evt);
 
+	// If FT is double we directly store the result in the profile image
+	// Otherwise we have to copy element by element to convert from float to double
 	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
 	if( float_traits<FT>::is_double ) {
 		env->queue.enqueueReadBuffer(image_buffer, CL_FALSE, 0, sizeof(double)*imsize, image.data(), &read_waiting_evts, &read_evt);
 		read_evt.wait();
+		t_opencl = system_clock::now();
 	}
 	else {
 		vector<FT> image_from_kernel(image.size());
 		env->queue.enqueueReadBuffer(image_buffer, CL_FALSE, 0, sizeof(FT)*imsize, image_from_kernel.data(), &read_waiting_evts, &read_evt);
 		read_evt.wait();
+		t_opencl = system_clock::now();
 		copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
+		stats->final_image += (system_clock::now() - t_opencl).count();
 	}
 
-	// we're done here
+	/* These are the OpenCL-related timings so far */
+	cl_times0.kernel_prep = (t_kprep - t0).count();
+	cl_times0.total = (t_opencl - t_kprep).count();
+	if( env->use_profiling ) {
+		if( env->version >= 120 ) {
+			cl_times0.filling_times += cl_cmd_times(fill_im_evt) + cl_cmd_times(fill_ss_points_evt);
+		}
+		cl_times0.kernel_times += cl_cmd_times(kernel_evt);
+		cl_times0.reading_times += cl_cmd_times(read_evt);
+		cl_times0.nwork_items = imsize;
+	}
+
+	// we're done here, record the timings and go
 	if( rough ) {
+		stats->cl_times = move(cl_times0);
+		stats->total = (system_clock::now() - t0).count();
 		return;
 	}
 
 	vector<point_t> ss_points(image.size());
 	env->queue.enqueueReadBuffer(subsampling_points_buffer, CL_TRUE, 0, sizeof(point_t)*imsize, ss_points.data(), &read_waiting_evts, &read_ss_points_evt);
 	read_ss_points_evt.wait();
+	if( env->use_profiling ) {
+		cl_times0.reading_times += cl_cmd_times(read_ss_points_evt);
+	}
 
 	// enrich the points to subsample with their subsampling information
 	vector<ss_info_t> last_ss_info;
@@ -527,18 +558,23 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	// Preparing for the recursive subsampling
 	vector<ss_info_t> ss_info;
 	unsigned int recur_level = 0;
-	unsigned int total_subsamples = 0;
 
+	t_loopstart = system_clock::now();
 	while( recur_level < top_recursions ) {
 
+		/* Points in time we want to measure */
+		system_clock::time_point t0, t_newsamples, t_trans_h2k, t_kprep, t_opencl, t_trans_k2h;
+
+		t0 = system_clock::now();
 		unsigned int subsampled_pixels = new_subsampling_points<FT>(last_ss_info, ss_info, recur_level);
+		t_newsamples = system_clock::now();
 
 		auto subsamples = ss_info.size();
 		if( !subsamples ) {
 			break;
 		}
 
-		total_subsamples += subsamples;
+		ss_cl_times.nwork_items += subsamples;
 
 #ifdef PROFIT_DEBUG
 		/* record how many sub-integrations we've done */
@@ -563,12 +599,14 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 			cl::Event kernel_evt, w_ss_kinfo_evt, r_kimage_evt, r_ss_kinfo_evt, fill_evt;
 			vector<FT> kimage(subsamples);
+			t_kprep = system_clock::now();
 
 			// The information we pass down to the kernels is a subset of the original
 			vector<ss_kinfo_t> ss_kinfo(subsamples);
 			transform(ss_info.begin(), ss_info.end(), ss_kinfo.begin(), [](const ss_info_t &info) {
 				return ss_kinfo_t{info.point, info.xbin, info.ybin};
 			});
+			t_trans_h2k = system_clock::now();
 
 			if( env->version >= 120 ) {
 				env->queue.enqueueFillBuffer<FT>(subimage_buf, 0, 0, sizeof(FT)*subsamples, NULL, &fill_evt);
@@ -583,6 +621,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 			env->queue.enqueueReadBuffer(subimage_buf, CL_FALSE, 0, sizeof(FT)*subsamples, kimage.data(), &read_waiting_evts, &r_kimage_evt);
 			env->queue.enqueueReadBuffer(ss_kinfo_buf, CL_FALSE, 0, sizeof(ss_kinfo_t)*subsamples, ss_kinfo.data(), &read_waiting_evts, &r_ss_kinfo_evt);
 			env->queue.finish();
+			t_opencl = system_clock::now();
 
 			// Feed back the kinfo to the main subsampling info vectors
 			auto ss_info_it = ss_info.begin();
@@ -619,6 +658,21 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 				ss_info_it++;
 				kim_it++;
 			}
+			t_trans_k2h = system_clock::now();
+
+			stats->subsampling.new_subsampling += (t_newsamples - t0).count();
+			stats->subsampling.inital_transform += (t_trans_h2k - t_kprep).count();
+			stats->subsampling.final_transform += (t_trans_k2h - t_opencl).count();
+			ss_cl_times.kernel_prep += (t_kprep - t_newsamples).count();
+			ss_cl_times.total += (t_opencl - t_trans_h2k).count();
+			if( env->use_profiling ) {
+				if( env->version >= 120 ) {
+					ss_cl_times.filling_times += cl_cmd_times(fill_evt);
+				}
+				ss_cl_times.kernel_times += cl_cmd_times(kernel_evt);
+				ss_cl_times.writing_times += cl_cmd_times(w_ss_kinfo_evt);
+				ss_cl_times.reading_times += cl_cmd_times(r_ss_kinfo_evt) + cl_cmd_times(r_kimage_evt);
+			}
 
 		} catch(const cl::Error &e) {
 			// running out of memory, cannot go any further
@@ -630,6 +684,8 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 		recur_level++;
 	}
+
+	t_loopend = system_clock::now();
 
 	for_each(subimages_results.begin(), subimages_results.end(), [&image, this](const im_result_t &res) {
 		FT x = res.point.x / model.scale_x;
@@ -643,6 +699,14 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	transform(image.begin(), image.end(), image.begin(), [scale](double pixel) {
 		return pixel * scale;
 	});
+	t_imgtrans = system_clock::now();
+
+	stats->subsampling.pre_subsampling = (t_loopstart - t_opencl).count();
+	stats->subsampling.total = (t_loopend - t_loopstart).count();
+	stats->final_image = (t_imgtrans - t_loopend).count();
+	stats->total = (t_imgtrans - t0).count();
+	stats->cl_times = move(cl_times0);
+	stats->subsampling.cl_times = move(ss_cl_times);
 
 }
 

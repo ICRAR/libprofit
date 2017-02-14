@@ -42,21 +42,21 @@ class Model;
 
 struct ProfileStats {
 	virtual ~ProfileStats() {};
-	usecs_t total = 0;
+	nsecs_t total = 0;
 };
 
 struct RadialProfileStats : ProfileStats {
 #ifdef PROFIT_OPENCL
 	OpenCL_times cl_times;
 	struct radial_subsampling_stats {
-		usecs_t pre_subsampling = 0;
-		usecs_t new_subsampling = 0;
-		usecs_t inital_transform = 0;
+		nsecs_t pre_subsampling = 0;
+		nsecs_t new_subsampling = 0;
+		nsecs_t inital_transform = 0;
 		OpenCL_times cl_times;
-		usecs_t final_transform = 0;
-		usecs_t total = 0;
+		nsecs_t final_transform = 0;
+		nsecs_t total = 0;
 	} subsampling;
-	usecs_t final_image = 0;
+	nsecs_t final_image = 0;
 #endif /* PROFIT_OPENCL */
 };
 

@@ -394,18 +394,18 @@ void print_cl_stats(const string &prefix0, bool opencl_120, const OpenCL_times &
 
 	ostringstream os;
 	os << "OpenCL operations (" << stats.nwork_items << " work items)";
-	print_stats_line(prefix0, os.str(), stats.total/1000.);
-	print_stats_line(prefix1, "Kernel preparation", stats.kernel_prep/1000.);
+	print_stats_line(prefix0, os.str(), stats.total / 1e6 );
+	print_stats_line(prefix1, "Kernel preparation", stats.kernel_prep / 1e6 );
 	if( opencl_120 ) {
-		print_stats_line(prefix1, "Fill submission", stats.filling_times.submit / 1000. / 1000.);
-		print_stats_line(prefix1, "Fill execution", stats.filling_times.exec / 1000. / 1000.);
+		print_stats_line(prefix1, "Fill submission", stats.filling_times.submit / 1e6 );
+		print_stats_line(prefix1, "Fill execution", stats.filling_times.exec / 1e6 );
 	}
-	print_stats_line(prefix1, "Write submission", stats.writing_times.submit / 1000. / 1000.);
-	print_stats_line(prefix1, "Write execution", stats.writing_times.exec / 1000. / 1000.);
-	print_stats_line(prefix1, "Kernel submission", stats.kernel_times.submit / 1000. / 1000.);
-	print_stats_line(prefix1, "Kernel execution", stats.kernel_times.exec / 1000. / 1000.);
-	print_stats_line(prefix1, "Read submission", stats.reading_times.submit / 1000. / 1000.);
-	print_stats_line(prefix1, "Read execution", stats.reading_times.exec / 1000. / 1000.);
+	print_stats_line(prefix1, "Write submission", stats.writing_times.submit / 1e6 );
+	print_stats_line(prefix1, "Write execution", stats.writing_times.exec / 1e6 );
+	print_stats_line(prefix1, "Kernel submission", stats.kernel_times.submit / 1e6 );
+	print_stats_line(prefix1, "Kernel execution", stats.kernel_times.exec / 1e6 );
+	print_stats_line(prefix1, "Read submission", stats.reading_times.submit / 1e6 );
+	print_stats_line(prefix1, "Read execution", stats.reading_times.exec / 1e6 );
 }
 #endif /* PROFIT_OPENCL */
 
@@ -450,17 +450,17 @@ void print_stats(const Model &m) {
 		if( rprofile_stats ) {
 			bool opencl_120 = m.opencl_env->version >= 120;
 			print_cl_stats(prefix0, opencl_120, rprofile_stats->cl_times);
-			print_stats_line(prefix0, "Pre-loop", rprofile_stats->subsampling.pre_subsampling / 1000.);
-			print_stats_line(prefix0, "Subsampling loop", rprofile_stats->subsampling.total / 1000.);
-			print_stats_line(prefix1, "New subsamples calculation", rprofile_stats->subsampling.new_subsampling / 1000.);
-			print_stats_line(prefix1, "Initial transform", rprofile_stats->subsampling.inital_transform / 1000.);
+			print_stats_line(prefix0, "Pre-loop", rprofile_stats->subsampling.pre_subsampling / 1e6 );
+			print_stats_line(prefix0, "Subsampling loop", rprofile_stats->subsampling.total / 1e6 );
+			print_stats_line(prefix1, "New subsamples calculation", rprofile_stats->subsampling.new_subsampling / 1e6 );
+			print_stats_line(prefix1, "Initial transform", rprofile_stats->subsampling.inital_transform / 1e6 );
 			print_cl_stats(prefix1, opencl_120, rprofile_stats->subsampling.cl_times);
-			print_stats_line(prefix1, "Final transform", rprofile_stats->subsampling.final_transform / 1000.);
-			print_stats_line(prefix0, "Final image", rprofile_stats->final_image / 1000.);
+			print_stats_line(prefix1, "Final transform", rprofile_stats->subsampling.final_transform / 1e6 );
+			print_stats_line(prefix0, "Final image", rprofile_stats->final_image / 1e6 );
 		}
 #endif /* PROFIT_OPENCL */
 
-		print_stats_line(prefix0, "Total", profile_stats->total / 1000.);
+		print_stats_line(prefix0, "Total", profile_stats->total / 1e6 );
 	}
 }
 

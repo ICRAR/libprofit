@@ -76,13 +76,13 @@ struct OpenCL_command_times {
  * kernel and reading) plus other OpenCL-related times.
  */
 struct OpenCL_times {
-	usecs_t kernel_prep = 0;
+	nsecs_t kernel_prep = 0;
 	unsigned int nwork_items = 0;
 	OpenCL_command_times writing_times;
 	OpenCL_command_times reading_times;
 	OpenCL_command_times filling_times;
 	OpenCL_command_times kernel_times;
-	usecs_t total = 0;
+	nsecs_t total = 0;
 };
 
 /**
