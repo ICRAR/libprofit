@@ -267,7 +267,7 @@ private:
 #ifdef PROFIT_DEBUG
 	/* record of how many subintegrations we've done */
 	std::map<int,int> n_integrations;
-#endif
+#endif /* PROFIT_DEBUG */
 
 #ifdef PROFIT_OPENCL
 private:

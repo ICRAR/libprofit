@@ -225,6 +225,6 @@ map<string, map<int, int>> Model::get_profile_integrations() const {
 	}
 	return profile_integrations;
 }
-#endif
+#endif /* PROFIT_DEBUG */
 
 } /* namespace profit */
