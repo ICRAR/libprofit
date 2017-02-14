@@ -36,7 +36,7 @@ typedef struct _f_subsampling_info {
 	float ybin;
 	unsigned int resolution;
 	unsigned int max_recursion;
-} f_subsampling_info;
+} f_ss_kinfo;
 
 
 inline float f_evaluate_sersic(float x, float y, float box, float nser, float rscale, float bn) {
@@ -87,7 +87,7 @@ kernel void sersic_float(
 	}
 	else {
 #if __OPENCL_C_VERSION__ <= 120
-		image[i] = 0;;
+		image[i] = 0;
 #endif /* __OPENCL_C_VERSION__ */
 		// subsample
 		to_subsample[i].x = x;
@@ -99,7 +99,7 @@ kernel void sersic_float(
 
 kernel void sersic_subsample_float(
 	global float *image,
-   global f_subsampling_info *all_info,
+	global f_ss_kinfo *all_info,
 	float acc,
 	float xcen, float ycen,
 	float cos_ang, float sin_ang, float axrat,
@@ -107,7 +107,7 @@ kernel void sersic_subsample_float(
 	float box, float nser, float bn) {
 
 	private int i = get_global_id(0);
-	private f_subsampling_info info = all_info[i];
+	private f_ss_kinfo info = all_info[i];
 	private float x = info.point.x;
 	private float y = info.point.y;
 

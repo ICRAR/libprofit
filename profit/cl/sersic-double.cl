@@ -34,13 +34,13 @@ typedef struct _d_point {
 	double y;
 } d_point_t;
 
-typedef struct _d_subsampling_info {
+typedef struct _d_subsampling_kernel_info {
 	d_point_t point;
 	double xbin;
 	double ybin;
 	unsigned int resolution;
 	unsigned int max_recursion;
-} d_subsampling_info;
+} d_ss_kinfo_t;
 
 inline double d_evaluate_sersic(double x, double y, double box, double nser, double rscale, double bn) {
 	private double r = pow(pow(fabs(x), 2+box) + pow(fabs(y), 2+box), 1/(2+box));
@@ -101,7 +101,7 @@ kernel void sersic_double(
 
 kernel void sersic_subsample_double(
 	global double *image,
-   global d_subsampling_info *all_info,
+	global d_ss_kinfo_t *all_info,
 	double acc,
 	double xcen, double ycen,
 	double cos_ang, double sin_ang, double axrat,
@@ -109,7 +109,7 @@ kernel void sersic_subsample_double(
 	double box, double nser, double bn) {
 
 	private int i = get_global_id(0);
-	private d_subsampling_info info = all_info[i];
+	private d_ss_kinfo_t info = all_info[i];
 	private double x = info.point.x;
 	private double y = info.point.y;
 
