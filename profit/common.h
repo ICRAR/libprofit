@@ -38,4 +38,9 @@
 # define override
 #endif
 
+namespace profit {
+	typedef unsigned int nsecs_t;
+	typedef unsigned int usecs_t;
+}
+
 #endif /* PROFIT_COMMON_H */

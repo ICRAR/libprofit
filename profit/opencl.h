@@ -33,6 +33,8 @@
 #include <memory>
 #include <string>
 
+#include "profit/common.h"
+
 /*
  * OpenCL 1.x uses a different include file, we don't support it yet
  * Also we only give specific inputs to CL/cl2.hpp when building
@@ -57,6 +59,42 @@ namespace profit
  * It should have the form major*100 + minor*10 (e.g., 120 for OpenCL 1.2)
  */
 typedef unsigned int cl_ver_t;
+
+/**
+ * A structure holding two times associated with OpenCL commands:
+ * submission and execution
+ */
+struct OpenCL_command_times {
+	nsecs_t submit = 0;
+	nsecs_t exec = 0;
+	OpenCL_command_times &operator+=(const OpenCL_command_times &other);
+	const OpenCL_command_times operator+(const OpenCL_command_times &other) const;
+};
+
+/**
+ * A structure holding a number of OpenCL command times (filling, writing,
+ * kernel and reading) plus other OpenCL-related times.
+ */
+struct OpenCL_times {
+	usecs_t kernel_prep = 0;
+	unsigned int nwork_items = 0;
+	OpenCL_command_times writing_times;
+	OpenCL_command_times reading_times;
+	OpenCL_command_times filling_times;
+	OpenCL_command_times kernel_times;
+	usecs_t total = 0;
+};
+
+/**
+ * Returns the time spent submitting and executing the command associated to the
+ * given event as an OpenCL_comand_times structure.
+ * @param evt An event associated to a command
+ * @return A structure holding the times spent submitting and executing the
+ *         command associated to the given event
+ *         (i.e., CL_PROFILING_COMMAND_SUBMIT - CL_PROFILING_COMMAND_QUEUED, and
+ *          CL_PROFILING_COMMAND_END - CL_PROFILING_COMMAND_START).
+ */
+OpenCL_command_times cl_cmd_times(const cl::Event &evt);
 
 /**
  * An OpenCL environment

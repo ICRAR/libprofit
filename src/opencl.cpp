@@ -39,6 +39,47 @@ using namespace std;
 
 namespace profit {
 
+OpenCL_command_times &OpenCL_command_times::operator+=(const OpenCL_command_times &other) {
+	submit += other.submit;
+	exec += other.exec;
+	return *this;
+}
+
+const OpenCL_command_times OpenCL_command_times::operator+(const OpenCL_command_times &other) const {
+	OpenCL_command_times t1;
+	t1 += other;
+	return t1;
+}
+
+// Functions to read the duration of OpenCL events (queue->submit and start->end)
+template <cl_int S, cl_int E>
+static inline
+nsecs_t _cl_duration(const cl::Event &evt) {
+	auto start = evt.getProfilingInfo<S>();
+	auto end = evt.getProfilingInfo<E>();
+	if( start > end ) {
+		return 0;
+	}
+	return end - start;
+}
+
+static
+nsecs_t _cl_submit_time(const cl::Event &evt) {
+	return _cl_duration<CL_PROFILING_COMMAND_QUEUED, CL_PROFILING_COMMAND_SUBMIT>(evt);
+}
+
+static
+nsecs_t _cl_exec_time(const cl::Event &evt) {
+	return _cl_duration<CL_PROFILING_COMMAND_START, CL_PROFILING_COMMAND_END>(evt);
+}
+
+OpenCL_command_times cl_cmd_times(const cl::Event &evt) {
+	OpenCL_command_times times;
+	times.submit = _cl_submit_time(evt);
+	times.exec = _cl_exec_time(evt);
+	return times;
+}
+
 static cl_ver_t get_opencl_version(const cl::Platform &platform) {
 
 	string version = platform.getInfo<CL_PLATFORM_VERSION>();
