@@ -90,6 +90,11 @@ typedef struct _OpenCL_env {
 	 */
 	bool use_double;
 
+	/**
+	 * Whether profiling information should be gathered or not
+	 */
+	bool use_profiling;
+
 } OpenCL_env;
 
 /**
@@ -141,10 +146,16 @@ std::map<int, OpenCL_plat_info> get_opencl_info();
  * @param device_idx The index of device to use in the platform
  * @param use_double Whether double floating-point support should be used in
  *        the device or not.
+ * @param enable_profiling Whether OpenCL profiling capabilities should be
+ *        turned on in the OpenCL Queue created within this envinronment.
  * @return A pointer to a OpenCL_env structure, which contains the whole set of
  *         elements required to work with the requested device.
  */
-std::shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double);
+std::shared_ptr<OpenCL_env> get_opencl_environment(
+	unsigned int platform_idx,
+	unsigned int device_idx,
+	bool use_double,
+	bool enable_profiling);
 
 } /* namespace profit */
 

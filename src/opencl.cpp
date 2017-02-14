@@ -91,7 +91,7 @@ map<int, OpenCL_plat_info> get_opencl_info() {
 }
 
 static
-shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
+shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
 
 	vector<cl::Platform> all_platforms;
 	if( cl::Platform::get(&all_platforms) != CL_SUCCESS ) {
@@ -152,16 +152,16 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 		throw opencl_error("Error building program: " + program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device));
 	}
 
-	cl::CommandQueue queue(context, device);
+	cl::CommandQueue queue(context, device, enable_profiling ? CL_QUEUE_PROFILING_ENABLE : 0);
 
-	return make_shared<OpenCL_env>(OpenCL_env{device, get_opencl_version(platform), context, queue, program, use_double});
+	return make_shared<OpenCL_env>(OpenCL_env{device, get_opencl_version(platform), context, queue, program, use_double, enable_profiling});
 }
 
-shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double) {
+shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
 
 	// Wrap cl::Error exceptions
 	try {
-		return _get_opencl_environment(platform_idx, device_idx, use_double);
+		return _get_opencl_environment(platform_idx, device_idx, use_double, enable_profiling);
 	} catch(const cl::Error &e) {
 		ostringstream os;
 		os << "OpenCL error: " << e.what() << ". OpenCL error code: " << e.err();
