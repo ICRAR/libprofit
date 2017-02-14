@@ -34,8 +34,6 @@ typedef struct _f_subsampling_info {
 	f_point_t point;
 	float xbin;
 	float ybin;
-	unsigned int resolution;
-	unsigned int max_recursion;
 } f_ss_kinfo;
 
 

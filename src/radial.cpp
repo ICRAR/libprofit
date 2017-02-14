@@ -334,7 +334,9 @@ void RadialProfile::evaluate_cpu(vector<double> &image) {
 
 #ifdef PROFIT_OPENCL
 
-/* Small trait */
+/*
+ * Small trait that describes specific floating types
+ */
 template <typename T>
 struct float_traits {
 	const static bool is_float = false;
@@ -354,33 +356,104 @@ struct float_traits<double> {
 	constexpr const static char * name = "double";
 };
 
+/*
+ * Simple structure holding a 2D point
+ */
+template <typename FT>
+struct point_t {
+	FT x;
+	FT y;
+};
+
+/*
+ * A structure to hold the information needed to perform subsampling
+ * on a specific point
+ */
+template <typename FT>
+struct ss_info_t {
+	point_t<FT> point;
+	FT xbin;
+	FT ybin;
+	unsigned int resolution;
+	unsigned int max_recursion;
+};
+
+/*
+ * A smaller version of the previous structure
+ * This is what gets passed down to the kernel
+ * (and thus we do less memory alloc/copy on the device)
+ */
+template <typename FT>
+struct ss_kinfo_t {
+	point_t<FT> point;
+	FT xbin;
+	FT ybin;
+};
+
+template <typename FT>
+static inline
+unsigned int new_subsampling_points(const vector<ss_info_t<FT>> &last_ss_info, vector<ss_info_t<FT>> &ss_info, unsigned int recur_level) {
+
+	ss_info.clear();
+
+	unsigned int subsampled_pixels = 0;
+	for(const auto &info: last_ss_info) {
+
+		const unsigned int res = info.resolution;
+		const unsigned int maxr = info.max_recursion;
+		FT x = info.point.x;
+		FT y = info.point.y;
+
+		if( x == -1 || recur_level >= info.max_recursion) {
+			continue;
+		}
+
+		FT x0 = x - info.xbin/2;
+		FT y0 = y - info.ybin/2;
+		FT ss_res_x = info.xbin / res;
+		FT ss_res_y = info.ybin / res;
+
+		// we can't cope with more subsampling, sorry
+		if( ss_res_x == 0 || ss_res_y == 0 ) {
+			continue;
+		}
+
+		subsampled_pixels++;
+		for(unsigned int j=0; j!=res; j++) {
+			FT y_diff = (j*res + 0.5f) * ss_res_y;
+			for(unsigned int i=0; i!=res; i++) {
+				FT x_diff = (i + 0.5f)*ss_res_x;
+				ss_info.push_back({
+					{x0 + x_diff, y0 + y_diff},
+					ss_res_x, ss_res_y,
+					res, maxr
+				});
+			}
+		}
+	}
+
+	return subsampled_pixels;
+}
+
 template <typename FT>
 void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 #define AS_FT(x) static_cast<FT>(x)
 
+	typedef point_t<FT> point_t;
+	typedef ss_info_t<FT> ss_info_t;
+	typedef ss_kinfo_t<FT> ss_kinfo_t;
+
 	unsigned int imsize = model.width * model.height;
 
 	auto env = model.opencl_env;
 
-	typedef struct _point {
-		FT x;
-		FT y;
-	} point_t;
-
-	typedef struct _subsampling_info {
-		point_t point;
-		FT xbin;
-		FT ybin;
-		unsigned int resolution;
-		unsigned int max_recursion;
-	} subsampling_info;
-
 	/* Prepare the initial evaluation kernel */
 	unsigned int arg = 0;
+	auto kname = name + "_" + float_traits<FT>::name;
 	cl::Buffer image_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
 	cl::Buffer subsampling_points_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(point_t)*imsize);
-	cl::Kernel kernel = cl::Kernel(env->program, string(name + "_" + float_traits<FT>::name).c_str());
+	cl::Kernel kernel = cl::Kernel(env->program, kname.c_str());
 	kernel.setArg(arg++, image_buffer);
 	kernel.setArg(arg++, subsampling_points_buffer);
 	kernel.setArg(arg++, model.width);
@@ -390,136 +463,162 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	kernel.setArg(arg++, AS_FT(model.scale_y));
 	add_common_kernel_parameters<FT>(arg, kernel);
 
+	cl::Event fill_im_evt, fill_ss_points_evt, kernel_evt, read_evt, read_ss_points_evt;
+
 	// OpenCL 1.2 allows to do this; otherwise the work has to be done in the kernel
 	// (which we do)
+	cl::vector<cl::Event> k_wait_evts;
 	if( env->version >= 120 ) {
-		env->queue.enqueueFillBuffer<FT>(image_buffer, 0, 0, sizeof(FT)*imsize);
-		env->queue.enqueueFillBuffer<point_t>(subsampling_points_buffer, {-1, -1}, 0, sizeof(point_t)*imsize);
+		env->queue.enqueueFillBuffer<FT>(image_buffer, 0, 0, sizeof(FT)*imsize, NULL, &fill_im_evt);
+		env->queue.enqueueFillBuffer<point_t>(subsampling_points_buffer, {-1, -1}, 0, sizeof(point_t)*imsize, NULL, &fill_ss_points_evt);
+		k_wait_evts.push_back(fill_im_evt);
+		k_wait_evts.push_back(fill_ss_points_evt);
 	}
 
 	// Enqueue the kernel, and read back the resulting image + set of points to subsample
-	cl::Event kernel_evt;
-	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, 0, &kernel_evt);
-	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
+	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, &k_wait_evts, &kernel_evt);
 
+	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
 	if( float_traits<FT>::is_double ) {
-		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(double)*imsize, image.data(), &read_waiting_evts, NULL);
+		env->queue.enqueueReadBuffer(image_buffer, CL_FALSE, 0, sizeof(double)*imsize, image.data(), &read_waiting_evts, &read_evt);
+		read_evt.wait();
 	}
 	else {
 		vector<FT> image_from_kernel(image.size());
-		env->queue.enqueueReadBuffer(image_buffer, CL_TRUE, 0, sizeof(FT)*imsize, image_from_kernel.data(), &read_waiting_evts, NULL);
+		env->queue.enqueueReadBuffer(image_buffer, CL_FALSE, 0, sizeof(FT)*imsize, image_from_kernel.data(), &read_waiting_evts, &read_evt);
+		read_evt.wait();
 		copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
 	}
 
-	vector<point_t> to_subsample_points(image.size());
-	env->queue.enqueueReadBuffer(subsampling_points_buffer, CL_TRUE, 0, sizeof(point_t)*imsize, to_subsample_points.data(), &read_waiting_evts, NULL);
+	// we're done here
+	if( rough ) {
+		return;
+	}
+
+	vector<point_t> ss_points(image.size());
+	env->queue.enqueueReadBuffer(subsampling_points_buffer, CL_TRUE, 0, sizeof(point_t)*imsize, ss_points.data(), &read_waiting_evts, &read_ss_points_evt);
+	read_ss_points_evt.wait();
 
 	// enrich the points to subsample with their subsampling information
-	vector<subsampling_info> to_subsample(image.size());
+	vector<ss_info_t> last_ss_info;
+	last_ss_info.reserve(image.size());
 	FT half_xbin = AS_FT(model.scale_x)/2;
 	FT half_ybin = AS_FT(model.scale_y)/2;
-	transform(to_subsample_points.begin(), to_subsample_points.end(), to_subsample.begin(), [half_xbin, half_ybin, this](const point_t &point){
+	unsigned int top_recursions = 0;
+	for(auto const &point: ss_points) {
+		if( point.x == -1 ) {
+			continue;
+		}
 		unsigned int resolution, max_recursions;
 		subsampling_params(point.x, point.y, resolution, max_recursions);
-		return subsampling_info{{point.x, point.y}, AS_FT(model.scale_x), AS_FT(model.scale_y), resolution, max_recursions};
-	});
+		top_recursions = max(top_recursions, max_recursions);
+		last_ss_info.push_back({point, AS_FT(model.scale_x), AS_FT(model.scale_y), resolution, max_recursions});
+	}
 
-	// Preparing for the recursive subsampling
-	vector<subsampling_info> subsampling_points;
-	unsigned int recur_level = 0;
-
-	cl::Kernel subsample_kernel = cl::Kernel(env->program, string(name + "_subsample_" + float_traits<FT>::name).c_str());
-
-	unsigned int top_recursions = max_element(to_subsample.begin(),
-	                                          to_subsample.end(),
-	                                          [](const subsampling_info &i1, const subsampling_info &i2){
-	                                             return i1.max_recursion < i2.max_recursion;
-	                                          })->max_recursion;
+	auto ss_kname = name + "_subsample_" + float_traits<FT>::name;
+	cl::Kernel subsample_kernel = cl::Kernel(env->program, ss_kname.c_str());
 
 	typedef struct _im_result {
 		point_t point;
 		FT value;
 	} im_result_t;
 	vector<im_result_t> subimages_results;
+
+	// Preparing for the recursive subsampling
+	vector<ss_info_t> ss_info;
+	unsigned int recur_level = 0;
+	unsigned int total_subsamples = 0;
+
 	while( recur_level < top_recursions ) {
 
-		unsigned int n_to_subsample = 0;
-		subsampling_points.clear();
+		unsigned int subsampled_pixels = new_subsampling_points<FT>(last_ss_info, ss_info, recur_level);
 
-		for(auto info: to_subsample) {
-
-			if( info.point.x == -1 || recur_level >= info.max_recursion) {
-				continue;
-			}
-
-			FT x0 = info.point.x - info.xbin/2;
-			FT y0 = info.point.y - info.ybin/2;
-			FT ss_res_x = info.xbin / info.resolution;
-			FT ss_res_y = info.ybin / info.resolution;
-
-			// we can't cope with more subsampling, sorry
-			if( ss_res_x == 0 || ss_res_y == 0 ) {
-				break;
-			}
-
-			n_to_subsample++;
-			for(unsigned int i=0; i!=info.resolution*info.resolution; i++) {
-				subsampling_points.push_back({
-					{x0 + (i%resolution + 0.5f)*ss_res_x, y0 + (i/resolution + 0.5f)*ss_res_y},
-					ss_res_x, ss_res_y,
-					info.resolution, info.max_recursion
-			});
-			}
-
-		}
-
-		auto subsamples = subsampling_points.size();
+		auto subsamples = ss_info.size();
 		if( !subsamples ) {
 			break;
 		}
 
-		auto last_im_idx = subimages_results.size();
-		subimages_results.reserve(last_im_idx + subsamples);
+		total_subsamples += subsamples;
 
 #ifdef PROFIT_DEBUG
 		/* record how many sub-integrations we've done */
-		n_integrations[recur_level] = n_to_subsample;
+		n_integrations[recur_level] = subsampled_pixels;
 #endif
 
-		to_subsample.resize(subsamples);
+		/* Keeping things in size */
+		auto last_im_idx = subimages_results.size();
+		subimages_results.reserve(last_im_idx + subsamples);
+		last_ss_info.resize(subsamples);
 
 		try {
-			cl::Buffer subimage_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*subsamples);
-			cl::Buffer points_buffer(env->context, CL_MEM_READ_WRITE, sizeof(subsampling_info)*subsamples);
+
+			cl::Buffer subimage_buf(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*subsamples);
+			cl::Buffer ss_kinfo_buf(env->context, CL_MEM_READ_WRITE, sizeof(ss_kinfo_t)*subsamples);
 
 			arg = 0;
-			subsample_kernel.setArg(arg++, subimage_buffer);
-			subsample_kernel.setArg(arg++, points_buffer);
+			subsample_kernel.setArg(arg++, subimage_buf);
+			subsample_kernel.setArg(arg++, ss_kinfo_buf);
 			subsample_kernel.setArg(arg++, AS_FT(acc));
 			add_common_kernel_parameters<FT>(arg, subsample_kernel);
 
-			cl::Event kernel_evt, write_subsampling_info_event;
-			vector<FT> image_from_kernel(subsamples);
+			cl::Event kernel_evt, w_ss_kinfo_evt, r_kimage_evt, r_ss_kinfo_evt, fill_evt;
+			vector<FT> kimage(subsamples);
+
+			// The information we pass down to the kernels is a subset of the original
+			vector<ss_kinfo_t> ss_kinfo(subsamples);
+			transform(ss_info.begin(), ss_info.end(), ss_kinfo.begin(), [](const ss_info_t &info) {
+				return ss_kinfo_t{info.point, info.xbin, info.ybin};
+			});
 
 			if( env->version >= 120 ) {
-				env->queue.enqueueFillBuffer<FT>(subimage_buffer, 0, 0, sizeof(FT)*subsamples);
+				env->queue.enqueueFillBuffer<FT>(subimage_buf, 0, 0, sizeof(FT)*subsamples, NULL, &fill_evt);
 			}
-			env->queue.enqueueWriteBuffer(points_buffer, CL_FALSE, 0, sizeof(subsampling_info)*subsamples, subsampling_points.data(), NULL, &write_subsampling_info_event);
-			cl::vector<cl::Event> kernel_waiting_evts{write_subsampling_info_event};
+			env->queue.enqueueWriteBuffer(ss_kinfo_buf, CL_FALSE, 0, sizeof(ss_kinfo_t)*subsamples, ss_kinfo.data(), NULL, &w_ss_kinfo_evt);
+			cl::vector<cl::Event> kernel_waiting_evts{w_ss_kinfo_evt};
+			if( env->version >= 120 ) {
+				kernel_waiting_evts.push_back(fill_evt);
+			}
 			env->queue.enqueueNDRangeKernel(subsample_kernel, cl::NullRange, cl::NDRange(subsamples), cl::NullRange, &kernel_waiting_evts, &kernel_evt);
 			cl::vector<cl::Event> read_waiting_evts{kernel_evt};
-			env->queue.enqueueReadBuffer(subimage_buffer, CL_FALSE, 0, sizeof(FT)*subsamples, image_from_kernel.data(), &read_waiting_evts, NULL);
-			env->queue.enqueueReadBuffer(points_buffer, CL_FALSE, 0, sizeof(subsampling_info)*subsamples, to_subsample.data(), &read_waiting_evts, NULL);
+			env->queue.enqueueReadBuffer(subimage_buf, CL_FALSE, 0, sizeof(FT)*subsamples, kimage.data(), &read_waiting_evts, &r_kimage_evt);
+			env->queue.enqueueReadBuffer(ss_kinfo_buf, CL_FALSE, 0, sizeof(ss_kinfo_t)*subsamples, ss_kinfo.data(), &read_waiting_evts, &r_ss_kinfo_evt);
 			env->queue.finish();
 
-			// Process the results from the image
-			subimages_results.resize(last_im_idx + subsamples);
-			transform(subsampling_points.begin(), subsampling_points.end(), image_from_kernel.begin(), subimages_results.begin() + last_im_idx, [recur_level](const subsampling_info &info, FT val) {
+			// Feed back the kinfo to the main subsampling info vectors
+			auto ss_info_it = ss_info.begin();
+			auto last_ss_info_it  = last_ss_info.begin();
+			auto kim_it = kimage.begin();
+			subimages_results.reserve(last_im_idx + subsamples);
+
+			for(auto &kinfo: ss_kinfo) {
+
+				// Copy the point information from the kernel
+				last_ss_info_it->point = kinfo.point;
+
+				// ... and the rest of the subsampling info for next round
+				last_ss_info_it->xbin = ss_info_it->xbin;
+				last_ss_info_it->ybin = ss_info_it->ybin;
+				last_ss_info_it->resolution = ss_info_it->resolution;
+				last_ss_info_it->max_recursion = ss_info_it->max_recursion;
+
+				FT val = *kim_it;
 				for(int i=0; i<=recur_level; i++) {
-					val /= (info.resolution * info.resolution);
+					val /= (ss_info_it->resolution * ss_info_it->resolution);
 				}
-				return im_result_t{{info.point.x, info.point.y}, val};
-			});
+
+				// This is a final result that requires no more subsampling
+//				if( kinfo.point.x == -1 ) {
+//					FT x = ss_info_it->point.x / model.scale_x;
+//					FT y = ss_info_it->point.y / model.scale_y;
+//					unsigned int idx = static_cast<unsigned int>(floor(x)) + static_cast<unsigned int>(floor(y)) * model.width;
+//					image[idx] += val;
+//				}
+				subimages_results.push_back(im_result_t{ss_info_it->point, val});
+
+				last_ss_info_it++;
+				ss_info_it++;
+				kim_it++;
+			}
 
 		} catch(const cl::Error &e) {
 			// running out of memory, cannot go any further

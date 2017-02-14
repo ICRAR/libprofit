@@ -38,8 +38,6 @@ typedef struct _d_subsampling_kernel_info {
 	d_point_t point;
 	double xbin;
 	double ybin;
-	unsigned int resolution;
-	unsigned int max_recursion;
 } d_ss_kinfo_t;
 
 inline double d_evaluate_sersic(double x, double y, double box, double nser, double rscale, double bn) {
