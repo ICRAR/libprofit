@@ -34,6 +34,7 @@ typedef struct _f_subsampling_info {
 	f_point_t point;
 	float xbin;
 	float ybin;
+	float val;
 } f_ss_kinfo;
 
 
@@ -96,7 +97,6 @@ kernel void sersic_float(
 }
 
 kernel void sersic_subsample_float(
-	global float *image,
 	global f_ss_kinfo *kinfo,
 	float acc,
 	float xcen, float ycen,
@@ -130,14 +130,12 @@ kernel void sersic_subsample_float(
 	if( fabs(testval/val - 1.0f) <= acc*acc_scale ) {
 		kinfo[i].point.x = -1.f;
 		kinfo[i].point.y = -1.f;
-		image[i] = val;
+		kinfo[i].val = val;
 	}
 	// else we already have the correct coordinates for the next subsampling
-#if __OPENCL_C_VERSION__ <= 120
 	else {
-		image[i] = 0;
+		kinfo[i].val = 0;
 	}
-#endif /* __OPENCL_C_VERSION__ */
 
 }
 

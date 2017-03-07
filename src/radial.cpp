@@ -380,15 +380,15 @@ struct ss_info_t {
 };
 
 /*
- * A smaller version of the previous structure
- * This is what gets passed down to the kernel
- * (and thus we do less memory alloc/copy on the device)
+ * A similar but smaller version of the ss_info_t structure.
+ * This is used as input and output of the subsampling kernel.
  */
 template <typename FT>
 struct ss_kinfo_t {
 	point_t<FT> point;
 	FT xbin;
 	FT ybin;
+	FT val;
 };
 
 template <typename FT>
@@ -588,17 +588,14 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 		try {
 
-			cl::Buffer subimage_buf(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*subsamples);
 			cl::Buffer ss_kinfo_buf(env->context, CL_MEM_READ_WRITE, sizeof(ss_kinfo_t)*subsamples);
 
 			arg = 0;
-			subsample_kernel.setArg(arg++, subimage_buf);
 			subsample_kernel.setArg(arg++, ss_kinfo_buf);
 			subsample_kernel.setArg(arg++, AS_FT(acc));
 			add_common_kernel_parameters<FT>(arg, subsample_kernel);
 
-			cl::Event kernel_evt, w_ss_kinfo_evt, r_kimage_evt, r_ss_kinfo_evt, fill_evt;
-			vector<FT> kimage(subsamples);
+			cl::Event kernel_evt, w_ss_kinfo_evt, r_ss_kinfo_evt;
 			t_kprep = system_clock::now();
 
 			// The information we pass down to the kernels is a subset of the original
@@ -608,17 +605,10 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 			});
 			t_trans_h2k = system_clock::now();
 
-			if( env->version >= 120 ) {
-				env->queue.enqueueFillBuffer<FT>(subimage_buf, 0, 0, sizeof(FT)*subsamples, NULL, &fill_evt);
-			}
 			env->queue.enqueueWriteBuffer(ss_kinfo_buf, CL_FALSE, 0, sizeof(ss_kinfo_t)*subsamples, ss_kinfo.data(), NULL, &w_ss_kinfo_evt);
 			cl::vector<cl::Event> kernel_waiting_evts{w_ss_kinfo_evt};
-			if( env->version >= 120 ) {
-				kernel_waiting_evts.push_back(fill_evt);
-			}
 			env->queue.enqueueNDRangeKernel(subsample_kernel, cl::NullRange, cl::NDRange(subsamples), cl::NullRange, &kernel_waiting_evts, &kernel_evt);
 			cl::vector<cl::Event> read_waiting_evts{kernel_evt};
-			env->queue.enqueueReadBuffer(subimage_buf, CL_FALSE, 0, sizeof(FT)*subsamples, kimage.data(), &read_waiting_evts, &r_kimage_evt);
 			env->queue.enqueueReadBuffer(ss_kinfo_buf, CL_FALSE, 0, sizeof(ss_kinfo_t)*subsamples, ss_kinfo.data(), &read_waiting_evts, &r_ss_kinfo_evt);
 			env->queue.finish();
 			t_opencl = system_clock::now();
@@ -626,7 +616,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 			// Feed back the kinfo to the main subsampling info vectors
 			auto ss_info_it = ss_info.begin();
 			auto last_ss_info_it  = last_ss_info.begin();
-			auto kim_it = kimage.begin();
 			for(auto &kinfo: ss_kinfo) {
 
 				// Copy the point information from the kernel
@@ -638,7 +627,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 				last_ss_info_it->resolution = ss_info_it->resolution;
 				last_ss_info_it->max_recursion = ss_info_it->max_recursion;
 
-				FT val = *kim_it;
+				FT val = kinfo.val;
 				for(int i=0; i<=recur_level; i++) {
 					val /= (ss_info_it->resolution * ss_info_it->resolution);
 				}
@@ -654,7 +643,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 				last_ss_info_it++;
 				ss_info_it++;
-				kim_it++;
 			}
 			t_trans_k2h = system_clock::now();
 
@@ -664,12 +652,9 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 			ss_cl_times.kernel_prep += (t_kprep - t_newsamples).count();
 			ss_cl_times.total += (t_opencl - t_trans_h2k).count();
 			if( env->use_profiling ) {
-				if( env->version >= 120 ) {
-					ss_cl_times.filling_times += cl_cmd_times(fill_evt);
-				}
 				ss_cl_times.kernel_times += cl_cmd_times(kernel_evt);
 				ss_cl_times.writing_times += cl_cmd_times(w_ss_kinfo_evt);
-				ss_cl_times.reading_times += cl_cmd_times(r_ss_kinfo_evt) + cl_cmd_times(r_kimage_evt);
+				ss_cl_times.reading_times += cl_cmd_times(r_ss_kinfo_evt);
 			}
 
 		} catch(const cl::Error &e) {

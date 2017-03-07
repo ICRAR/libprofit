@@ -38,6 +38,7 @@ typedef struct _d_subsampling_kernel_info {
 	d_point_t point;
 	double xbin;
 	double ybin;
+	double val;
 } d_ss_kinfo_t;
 
 inline double d_evaluate_sersic(double x, double y, double box, double nser, double rscale, double bn) {
@@ -98,7 +99,6 @@ kernel void sersic_double(
 }
 
 kernel void sersic_subsample_double(
-	global double *image,
 	global d_ss_kinfo_t *kinfo,
 	double acc,
 	double xcen, double ycen,
@@ -126,14 +126,12 @@ kernel void sersic_subsample_double(
 	if( fabs(testval/val - 1.0) <= acc ) {
 		kinfo[i].point.x = -1.;
 		kinfo[i].point.y = -1.;
-		image[i] = val;
+		kinfo[i].val = val;
 	}
 	// else we already have the correct coordinates for the next subsampling
-#if __OPENCL_C_VERSION__ <= 120
 	else {
-		image[i] = 0;
+		kinfo[i].val = 0;
 	}
-#endif /* __OPENCL_C_VERSION__ */
 
 }
 )==="
