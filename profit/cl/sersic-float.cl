@@ -97,7 +97,7 @@ kernel void sersic_float(
 
 kernel void sersic_subsample_float(
 	global float *image,
-	global f_ss_kinfo *all_info,
+	global f_ss_kinfo *kinfo,
 	float acc,
 	float xcen, float ycen,
 	float cos_ang, float sin_ang, float axrat,
@@ -105,7 +105,7 @@ kernel void sersic_subsample_float(
 	float box, float nser, float bn) {
 
 	private int i = get_global_id(0);
-	private f_ss_kinfo info = all_info[i];
+	private f_ss_kinfo info = kinfo[i];
 	private float x = info.point.x;
 	private float y = info.point.y;
 
@@ -128,8 +128,8 @@ kernel void sersic_subsample_float(
 
 	// no need for subsampling
 	if( fabs(testval/val - 1.0f) <= acc*acc_scale ) {
-		all_info[i].point.x = -1.f;
-		all_info[i].point.y = -1.f;
+		kinfo[i].point.x = -1.f;
+		kinfo[i].point.y = -1.f;
 		image[i] = val;
 	}
 	// else we already have the correct coordinates for the next subsampling

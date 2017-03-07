@@ -393,40 +393,40 @@ struct ss_kinfo_t {
 
 template <typename FT>
 static inline
-unsigned int new_subsampling_points(const vector<ss_info_t<FT>> &last_ss_info, vector<ss_info_t<FT>> &ss_info, unsigned int recur_level) {
+unsigned int new_subsampling_points(const vector<ss_info_t<FT>> &prev_ss_info, vector<ss_info_t<FT>> &ss_info, unsigned int recur_level) {
 
 	ss_info.clear();
 
 	unsigned int subsampled_pixels = 0;
-	for(const auto &info: last_ss_info) {
+	for(const auto &info: prev_ss_info) {
 
 		const unsigned int res = info.resolution;
 		const unsigned int maxr = info.max_recursion;
 		FT x = info.point.x;
 		FT y = info.point.y;
 
-		if( x == -1 || recur_level >= info.max_recursion) {
+		if( x == -1 || recur_level >= maxr) {
 			continue;
 		}
 
-		FT x0 = x - info.xbin/2;
-		FT y0 = y - info.ybin/2;
-		FT ss_res_x = info.xbin / res;
-		FT ss_res_y = info.ybin / res;
+		FT x0 = x - info.xbin / 2;
+		FT y0 = y - info.ybin / 2;
+		FT ss_xbin = info.xbin / res;
+		FT ss_ybin = info.ybin / res;
 
 		// we can't cope with more subsampling, sorry
-		if( ss_res_x == 0 || ss_res_y == 0 ) {
+		if( ss_xbin == 0 || ss_ybin == 0 ) {
 			continue;
 		}
 
 		subsampled_pixels++;
 		for(unsigned int j=0; j!=res; j++) {
-			FT y_diff = (j*res + 0.5f) * ss_res_y;
+			FT y_diff = (j*res + 0.5) * ss_ybin;
 			for(unsigned int i=0; i!=res; i++) {
-				FT x_diff = (i + 0.5f)*ss_res_x;
+				FT x_diff = (i + 0.5) * ss_xbin;
 				ss_info.push_back({
 					{x0 + x_diff, y0 + y_diff},
-					ss_res_x, ss_res_y,
+					ss_xbin, ss_ybin,
 					res, maxr
 				});
 			}
@@ -582,8 +582,8 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 #endif
 
 		/* Keeping things in size */
-		auto last_im_idx = subimages_results.size();
-		subimages_results.reserve(last_im_idx + subsamples);
+		auto prev_im_size = subimages_results.size();
+		subimages_results.reserve(prev_im_size + subsamples);
 		last_ss_info.resize(subsamples);
 
 		try {
@@ -627,8 +627,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 			auto ss_info_it = ss_info.begin();
 			auto last_ss_info_it  = last_ss_info.begin();
 			auto kim_it = kimage.begin();
-			subimages_results.reserve(last_im_idx + subsamples);
-
 			for(auto &kinfo: ss_kinfo) {
 
 				// Copy the point information from the kernel

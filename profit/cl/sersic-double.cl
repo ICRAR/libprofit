@@ -99,7 +99,7 @@ kernel void sersic_double(
 
 kernel void sersic_subsample_double(
 	global double *image,
-	global d_ss_kinfo_t *all_info,
+	global d_ss_kinfo_t *kinfo,
 	double acc,
 	double xcen, double ycen,
 	double cos_ang, double sin_ang, double axrat,
@@ -107,7 +107,7 @@ kernel void sersic_subsample_double(
 	double box, double nser, double bn) {
 
 	private int i = get_global_id(0);
-	private d_ss_kinfo_t info = all_info[i];
+	private d_ss_kinfo_t info = kinfo[i];
 	private double x = info.point.x;
 	private double y = info.point.y;
 
@@ -124,8 +124,8 @@ kernel void sersic_subsample_double(
 
 	// no need for subsampling
 	if( fabs(testval/val - 1.0) <= acc ) {
-		all_info[i].point.x = -1.;
-		all_info[i].point.y = -1.;
+		kinfo[i].point.x = -1.;
+		kinfo[i].point.y = -1.;
 		image[i] = val;
 	}
 	// else we already have the correct coordinates for the next subsampling
