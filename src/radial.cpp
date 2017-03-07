@@ -421,7 +421,7 @@ unsigned int new_subsampling_points(const vector<ss_info_t<FT>> &prev_ss_info, v
 
 		subsampled_pixels++;
 		for(unsigned int j=0; j!=res; j++) {
-			FT y_diff = (j*res + 0.5) * ss_ybin;
+			FT y_diff = (j + 0.5) * ss_ybin;
 			for(unsigned int i=0; i!=res; i++) {
 				FT x_diff = (i + 0.5) * ss_xbin;
 				ss_info.push_back({
