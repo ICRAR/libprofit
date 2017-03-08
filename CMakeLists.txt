@@ -77,7 +77,10 @@ macro(find_opencl)
 	find_package(OpenCL)
 	if( OpenCL_FOUND )
 		include_directories(${OpenCL_INCLUDE_DIRS})
-		add_definitions(-DPROFIT_OPENCL)
+		add_definitions(
+		        -DPROFIT_OPENCL
+		        -DPROFIT_OPENCL_MAJOR=${OpenCL_VERSION_MAJOR}
+		        -DPROFIT_OPENCL_MINOR=${OpenCL_VERSION_MINOR})
 		set(profit_LIBS ${profit_LIBS} ${OpenCL_LIBRARIES})
 	endif()
 endmacro()
