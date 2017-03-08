@@ -436,6 +436,11 @@ unsigned int new_subsampling_points(const vector<ss_info_t<FT>> &prev_ss_info, v
 	return subsampled_pixels;
 }
 
+static inline
+chrono::nanoseconds::rep to_nsecs(const chrono::system_clock::duration &d) {
+	return chrono::duration_cast<chrono::nanoseconds>(d).count();
+}
+
 template <typename FT>
 void RadialProfile::evaluate_opencl(vector<double> &image) {
 
@@ -503,12 +508,12 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 		read_evt.wait();
 		t_opencl = system_clock::now();
 		copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
-		stats->final_image += (system_clock::now() - t_opencl).count();
+		stats->final_image += to_nsecs(system_clock::now() - t_opencl);
 	}
 
 	/* These are the OpenCL-related timings so far */
-	cl_times0.kernel_prep = (t_kprep - t0).count();
-	cl_times0.total = (t_opencl - t_kprep).count();
+	cl_times0.kernel_prep = to_nsecs(t_kprep - t0);
+	cl_times0.total = to_nsecs(t_opencl - t_kprep);
 	if( env->use_profiling ) {
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
 		if( env->version >= 120 ) {
@@ -523,7 +528,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	// we're done here, record the timings and go
 	if( rough ) {
 		stats->cl_times = move(cl_times0);
-		stats->total = (system_clock::now() - t0).count();
+		stats->total = to_nsecs(system_clock::now() - t0);
 		return;
 	}
 
@@ -650,11 +655,11 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 			}
 			t_trans_k2h = system_clock::now();
 
-			stats->subsampling.new_subsampling += (t_newsamples - t0).count();
-			stats->subsampling.inital_transform += (t_trans_h2k - t_kprep).count();
-			stats->subsampling.final_transform += (t_trans_k2h - t_opencl).count();
-			ss_cl_times.kernel_prep += (t_kprep - t_newsamples).count();
-			ss_cl_times.total += (t_opencl - t_trans_h2k).count();
+			stats->subsampling.new_subsampling += to_nsecs(t_newsamples - t0);
+			stats->subsampling.inital_transform += to_nsecs(t_trans_h2k - t_kprep);
+			stats->subsampling.final_transform += to_nsecs(t_trans_k2h - t_opencl);
+			ss_cl_times.kernel_prep += to_nsecs(t_kprep - t_newsamples);
+			ss_cl_times.total += to_nsecs(t_opencl - t_trans_h2k);
 			if( env->use_profiling ) {
 				ss_cl_times.kernel_times += cl_cmd_times(kernel_evt);
 				ss_cl_times.writing_times += cl_cmd_times(w_ss_kinfo_evt);
@@ -688,10 +693,10 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	});
 	t_imgtrans = system_clock::now();
 
-	stats->subsampling.pre_subsampling = (t_loopstart - t_opencl).count();
-	stats->subsampling.total = (t_loopend - t_loopstart).count();
-	stats->final_image = (t_imgtrans - t_loopend).count();
-	stats->total = (t_imgtrans - t0).count();
+	stats->subsampling.pre_subsampling = to_nsecs(t_loopstart - t_opencl);
+	stats->subsampling.total = to_nsecs(t_loopend - t_loopstart);
+	stats->final_image += to_nsecs(t_imgtrans - t_loopend);
+	stats->total = to_nsecs(t_imgtrans - t0);
 	stats->cl_times = move(cl_times0);
 	stats->subsampling.cl_times = move(ss_cl_times);
 
