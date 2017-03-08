@@ -76,14 +76,8 @@ endmacro()
 macro(find_opencl)
 	find_package(OpenCL)
 	if( OpenCL_FOUND )
-		if( NOT ${OpenCL_VERSION_MAJOR} EQUAL 2 )
-			message(FATAL_ERROR
-			        "OpenCL < 2.0 found (${OpenCL_VERSION_STRING}), "
-					  "but libprofit currently supports only OpenCL >= 2.0. "
-			        "Try with -DLIBPROFIT_NO_OPENCL=1 to disable OpenCL support.")
-		endif()
 		include_directories(${OpenCL_INCLUDE_DIRS})
-		add_definitions(-DPROFIT_OPENCL -DPROFIT_OPENCL_MAJOR_VERSION=${OpenCL_VERSION_MAJOR})
+		add_definitions(-DPROFIT_OPENCL)
 		set(profit_LIBS ${profit_LIBS} ${OpenCL_LIBRARIES})
 	endif()
 endmacro()
@@ -154,6 +148,7 @@ install(TARGETS profit profit-cli
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
 install(FILES
+        profit/cl/cl2.hpp
         profit/common.h
         profit/convolve.h
         profit/exceptions.h

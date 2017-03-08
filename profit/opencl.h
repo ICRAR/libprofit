@@ -36,20 +36,24 @@
 #include "profit/common.h"
 
 /*
- * OpenCL 1.x uses a different include file, we don't support it yet
- * Also we only give specific inputs to CL/cl2.hpp when building
- * the library, but not when including this file from an external program
+ * We only give specific inputs to cl2.hpp when building the library,
+ * but not when including this file from an external program
  */
-#if (PROFIT_OPENCL_MAJOR_VERSION >= 2)
-# if defined(PROFIT_BUILD)
-#  define CL_HPP_ENABLE_EXCEPTIONS
-#  define CL_HPP_TARGET_OPENCL_VERSION  120
-#  define CL_HPP_MINIMUM_OPENCL_VERSION 110
-# endif
-# include <CL/cl2.hpp>
-#else
-# error "We currently support only the OpenCL 2.0 C++ API"
-#endif /* PROFIT_OPENCL_MAJOR_VERSION */
+#ifdef PROFIT_BUILD
+# define CL_HPP_ENABLE_EXCEPTIONS
+# define CL_HPP_TARGET_OPENCL_VERSION  120
+# define CL_HPP_MINIMUM_OPENCL_VERSION 110
+#endif /* PROFIT_BUILD */
+
+/*
+ * GCC 6 gives lots of "ignoring attributes on template arguments" warnings
+ * Until the cl2.hpp header files doesn't get a proper fix (it's taken from
+ * the officla Kronos github) we simply turn the warnings off.
+ */
+#if defined __GNUC__ && __GNUC__>=6
+# pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
+#include "profit/cl/cl2.hpp"
 
 namespace profit
 {
