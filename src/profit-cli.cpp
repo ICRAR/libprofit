@@ -412,6 +412,7 @@ void print_cl_stats(const string &prefix0, bool opencl_120, const OpenCL_times &
 static
 void print_stats(const Model &m) {
 
+#ifdef PROFIT_DEBUG
 	for(const auto &profile_integrations: m.get_profile_integrations()) {
 		int total = 0;
 		if( get<1>(profile_integrations).size() > 0 ) {
@@ -427,6 +428,7 @@ void print_stats(const Model &m) {
 			cout << "Profile " << get<0>(profile_integrations) << " didn't run into any recursion" << endl;
 		}
 	}
+#endif /* PROFIT_DEBUG */
 
 	cout << endl;
 	auto const &stats = m.get_stats();
@@ -641,7 +643,7 @@ int parse_and_run(int argc, char *argv[]) {
 	Model m;
 	struct stat stat_buf;
 	struct timeval start, end;
-	bool show_stats;
+	bool show_stats = false;
 
 #ifdef PROFIT_OPENCL
 	bool use_opencl = false, use_double = false;
