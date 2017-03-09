@@ -80,8 +80,9 @@ typedef unsigned int cl_ver_t;
  * submission and execution
  */
 struct OpenCL_command_times {
-	nsecs_t submit = 0;
-	nsecs_t exec = 0;
+	OpenCL_command_times();
+	nsecs_t submit;
+	nsecs_t exec;
 	OpenCL_command_times &operator+=(const OpenCL_command_times &other);
 	const OpenCL_command_times operator+(const OpenCL_command_times &other) const;
 };
@@ -91,13 +92,14 @@ struct OpenCL_command_times {
  * kernel and reading) plus other OpenCL-related times.
  */
 struct OpenCL_times {
-	nsecs_t kernel_prep = 0;
-	unsigned int nwork_items = 0;
+	OpenCL_times();
+	nsecs_t kernel_prep;
+	unsigned int nwork_items;
 	OpenCL_command_times writing_times;
 	OpenCL_command_times reading_times;
 	OpenCL_command_times filling_times;
 	OpenCL_command_times kernel_times;
-	nsecs_t total = 0;
+	nsecs_t total;
 };
 
 /**

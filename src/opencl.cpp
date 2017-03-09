@@ -39,6 +39,12 @@ using namespace std;
 
 namespace profit {
 
+OpenCL_command_times::OpenCL_command_times() :
+	submit(0), exec(0)
+{
+	// no-op
+}
+
 OpenCL_command_times &OpenCL_command_times::operator+=(const OpenCL_command_times &other) {
 	submit += other.submit;
 	exec += other.exec;
@@ -49,6 +55,14 @@ const OpenCL_command_times OpenCL_command_times::operator+(const OpenCL_command_
 	OpenCL_command_times t1;
 	t1 += other;
 	return t1;
+}
+
+OpenCL_times::OpenCL_times() :
+	kernel_prep(0), nwork_items(0),
+	writing_times(), reading_times(), filling_times(), kernel_times(),
+	total(0)
+{
+	// no-op
 }
 
 // Functions to read the duration of OpenCL events (queue->submit and start->end)
