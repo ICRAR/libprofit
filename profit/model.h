@@ -27,10 +27,7 @@
 #ifndef PROFIT_MODEL_H
 #define PROFIT_MODEL_H
 
-#ifdef PROFIT_DEBUG
 #include <map>
-#endif
-
 #include <memory>
 #include <string>
 #include <vector>
