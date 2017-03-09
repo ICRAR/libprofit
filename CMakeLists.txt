@@ -40,6 +40,12 @@ project(libprofit VERSION ${PROFIT_VERSION} LANGUAGES ${PROFIT_LANGS})
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules/)
 
+# Options users can give on the command line
+option(LIBPROFIT_USE_R     "Try to compile libprofit first against R/Rmath, and then with GSL" OFF)
+option(LIBPROFIT_TEST      "Include test compilation in the build" OFF)
+option(LIBPROFIT_DEBUG     "Include some debugging code in libprofit" OFF)
+option(LIBPROFIT_NO_OPENCL "Don't attempt to include OpenCL support in libprofit" OFF)
+
 # Macros to check for presence of GSL, R/Rmath and OpenCL
 macro(find_gsl)
 
