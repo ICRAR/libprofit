@@ -51,11 +51,12 @@ Model::Model() :
 	magzero(0),
 	psf(), psf_width(0), psf_height(0),
 	psf_scale_x(1), psf_scale_y(1),
-	calcmask(), profiles(),
-	dry_run(false)
+	calcmask(),
+	dry_run(false),
 #ifdef PROFIT_OPENCL
-	,opencl_env()
+	opencl_env(),
 #endif /* PROFIT_OPENCL */
+	profiles()
 {
 	// no-op
 }

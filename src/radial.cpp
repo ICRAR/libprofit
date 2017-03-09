@@ -542,8 +542,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	// enrich the points to subsample with their subsampling information
 	vector<ss_info_t> last_ss_info;
 	last_ss_info.reserve(image.size());
-	FT half_xbin = AS_FT(model.scale_x)/2;
-	FT half_ybin = AS_FT(model.scale_y)/2;
 	unsigned int top_recursions = 0;
 	for(auto const &point: ss_points) {
 		if( point.x == -1 ) {
@@ -574,8 +572,14 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 		/* Points in time we want to measure */
 		system_clock::time_point t0, t_newsamples, t_trans_h2k, t_kprep, t_opencl, t_trans_k2h;
 
+
 		t0 = system_clock::now();
-		unsigned int subsampled_pixels = new_subsampling_points<FT>(last_ss_info, ss_info, recur_level);
+#ifdef PROFIT_DEBUG
+		/* record how many sub-integrations we've done */
+		n_integrations[recur_level] = new_subsampling_points<FT>(last_ss_info, ss_info, recur_level);
+#else
+		new_subsampling_points<FT>(last_ss_info, ss_info, recur_level);
+#endif /* PROFIT_DEBUG */
 		t_newsamples = system_clock::now();
 
 		auto subsamples = ss_info.size();
@@ -584,11 +588,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 		}
 
 		ss_cl_times.nwork_items += subsamples;
-
-#ifdef PROFIT_DEBUG
-		/* record how many sub-integrations we've done */
-		n_integrations[recur_level] = subsampled_pixels;
-#endif
 
 		/* Keeping things in size */
 		auto prev_im_size = subimages_results.size();
@@ -637,7 +636,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 				last_ss_info_it->max_recursion = ss_info_it->max_recursion;
 
 				FT val = kinfo.val;
-				for(int i=0; i<=recur_level; i++) {
+				for(unsigned int i=0; i<=recur_level; i++) {
 					val /= (ss_info_it->resolution * ss_info_it->resolution);
 				}
 

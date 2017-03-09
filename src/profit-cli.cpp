@@ -434,7 +434,6 @@ void print_stats(const Model &m) {
 	auto const &stats = m.get_stats();
 
 	auto prefix0 = "";
-	auto prefix1 = "  ";
 	for(auto const &stat_pair: stats) {
 
 		// Some profile might not have gathered stats
@@ -448,6 +447,7 @@ void print_stats(const Model &m) {
 		cout << "Stats for profile " << profile_name << endl;
 
 #ifdef PROFIT_OPENCL
+		auto prefix1 = "  ";
 		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
 		if( rprofile_stats && m.opencl_env ) {
 			bool opencl_120 = m.opencl_env->version >= 120;
@@ -647,7 +647,6 @@ int parse_and_run(int argc, char *argv[]) {
 
 #ifdef PROFIT_OPENCL
 	bool use_opencl = false, use_double = false;
-	long opencl_duration;
 	unsigned int clplat_idx = 0, cldev_idx = 0;
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
@@ -785,9 +784,9 @@ int parse_and_run(int argc, char *argv[]) {
 		gettimeofday(&start, NULL);
 		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double, show_stats);
 		gettimeofday(&end, NULL);
-		opencl_duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
 		m.opencl_env = opencl_env;
 #ifdef PROFIT_DEBUG
+		long opencl_duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
 		cout << "OpenCL environment created in " << opencl_duration/1000. << " [ms]" << endl;
 #endif /* PROFIT_DEBUG */
 	}

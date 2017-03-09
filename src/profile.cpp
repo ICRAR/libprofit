@@ -62,8 +62,8 @@ RadialProfileStats::RadialProfileStats() :
 Profile::Profile(const Model &model, const string &name) :
 	model(model),
 	name(name),
-	convolve(false),
-	stats()
+	stats(),
+	convolve(false)
 {
 	// no-op
 }
