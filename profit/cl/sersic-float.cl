@@ -25,30 +25,10 @@ R"===(
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-typedef struct _f_point {
-	float x;
-	float y;
-} f_point_t;
-
-typedef struct _f_subsampling_info {
-	f_point_t point;
-	float xbin;
-	float ybin;
-	float val;
-} f_ss_kinfo;
-
-
 inline float f_evaluate_sersic(float x, float y, float box, float nser, float rscale, float bn) {
 	private float r = pow(pow(fabs(x), 2+box) + pow(fabs(y), 2+box), 1/(2+box));
 	private float r_factor = pow(r/rscale, 1/nser);
 	return exp(-bn * (r_factor - 1));
-}
-
-inline void f_image_to_profile_coordiates(float x, float y, float *x_prof, float *y_prof, float xcen, float ycen, float cos_ang, float sin_ang, float axrat) {
-	x -= xcen;
-	y -= ycen;
-	*x_prof =   x * cos_ang + y * sin_ang;
-	*y_prof = (-x * sin_ang + y * cos_ang)/axrat;
 }
 
 kernel void sersic_float(

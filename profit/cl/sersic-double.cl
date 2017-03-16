@@ -25,33 +25,10 @@ R"===(
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if __OPENCL_C_VERSION__ < 120
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
-#endif
-
-typedef struct _d_point {
-	double x;
-	double y;
-} d_point_t;
-
-typedef struct _d_subsampling_kernel_info {
-	d_point_t point;
-	double xbin;
-	double ybin;
-	double val;
-} d_ss_kinfo_t;
-
 inline double d_evaluate_sersic(double x, double y, double box, double nser, double rscale, double bn) {
 	private double r = pow(pow(fabs(x), 2+box) + pow(fabs(y), 2+box), 1/(2+box));
 	private double r_factor = pow(r/rscale, 1/nser);
 	return exp(-bn * (r_factor - 1));
-}
-
-inline void d_image_to_profile_coordiates(double x, double y, double *x_prof, double *y_prof, double xcen, double ycen, double cos_ang, double sin_ang, double axrat) {
-	x -= xcen;
-	y -= ycen;
-	*x_prof =   x * cos_ang + y * sin_ang;
-	*y_prof = (-x * sin_ang + y * cos_ang)/axrat;
 }
 
 kernel void sersic_double(

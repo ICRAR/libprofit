@@ -185,7 +185,17 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 		}
 	}
 
-	// kernel calculates sersic profile for each stuff
+	// Create a program with all the relevant kernels
+	// The source of the kernels is kept in a different file,
+	// but gets #included here, and thus gets embedded in the resulting
+	// shared library (instead of, for instance, loading the sources from a
+	// particular location on disk at runtime)
+	const char *common_float =
+#include "profit/cl/common-float.cl"
+	;
+	const char *common_double =
+#include "profit/cl/common-double.cl"
+	;
 	const char *sersic_float =
 #include "profit/cl/sersic-float.cl"
 	;
@@ -194,8 +204,10 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 	;
 
 	cl::Program::Sources sources;
+	sources.push_back(common_float);
 	sources.push_back(sersic_float);
 	if( use_double ) {
+		sources.push_back(common_double);
 		sources.push_back(sersic_double);
 	}
 
