@@ -208,15 +208,23 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 	const char *moffat_double =
 #include "profit/cl/moffat-double.cl"
 	;
+	const char *ferrer_float =
+#include "profit/cl/ferrer-float.cl"
+	;
+	const char *ferrer_double =
+#include "profit/cl/ferrer-double.cl"
+	;
 
 	cl::Program::Sources sources;
 	sources.push_back(common_float);
 	sources.push_back(sersic_float);
 	sources.push_back(moffat_float);
+	sources.push_back(ferrer_float);
 	if( use_double ) {
 		sources.push_back(common_double);
 		sources.push_back(sersic_double);
 		sources.push_back(moffat_double);
+		sources.push_back(ferrer_double);
 	}
 
 	cl::Context context(device);
