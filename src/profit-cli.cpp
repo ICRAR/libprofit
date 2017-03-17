@@ -28,12 +28,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -632,9 +632,11 @@ typedef enum _output_type {
 } output_t;
 
 int parse_and_run(int argc, char *argv[]) {
+
+	using namespace std::chrono;
+
 	int opt;
 	unsigned int width = 100, height = 100, iterations = 1;
-	long duration;
 	double magzero = 0, scale_x = 1, scale_y = 1;
 	unsigned int i, j;
 	char *endptr = NULL;
@@ -642,7 +644,7 @@ int parse_and_run(int argc, char *argv[]) {
 	output_t output = none;
 	Model m;
 	struct stat stat_buf;
-	struct timeval start, end;
+	chrono::system_clock::time_point start, end;
 	bool show_stats = false;
 
 #ifdef PROFIT_OPENCL
@@ -781,25 +783,25 @@ int parse_and_run(int argc, char *argv[]) {
 #ifdef PROFIT_OPENCL
 	/* Get an OpenCL environment */
 	if( use_opencl ) {
-		gettimeofday(&start, NULL);
+		start = chrono::system_clock::now();
 		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double, show_stats);
-		gettimeofday(&end, NULL);
+		end = chrono::system_clock::now();
 		m.opencl_env = opencl_env;
 #ifdef PROFIT_DEBUG
-		long opencl_duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
-		cout << "OpenCL environment created in " << opencl_duration/1000. << " [ms]" << endl;
+		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+		cout << "OpenCL environment created in " << opencl_duration << " [ms]" << endl;
 #endif /* PROFIT_DEBUG */
 	}
 #endif /* PROFIT_OPENCL */
 
 	/* This means that we evaluated the model once, but who cares */
-	gettimeofday(&start, NULL);
+	start = chrono::system_clock::now();
 	vector<double> image;
 	for(i=0; i!=iterations; i++) {
 		image = m.evaluate();
 	}
-	gettimeofday(&end, NULL);
-	duration = (end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec);
+	end = chrono::system_clock::now();
+	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 
 	switch(output) {
 
@@ -824,7 +826,7 @@ int parse_and_run(int argc, char *argv[]) {
 			break;
 
 		case performance:
-			printf("Ran %d iterations in %.3f [s] (%.3f [ms] per iteration)\n", iterations, (double)duration/1000000., (double)duration/1000./iterations);
+			printf("Ran %d iterations in %.3f [s] (%.3f [ms] per iteration)\n", iterations, (double)duration/1000, (double)duration/iterations);
 			break;
 
 		default:
