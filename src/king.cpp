@@ -136,4 +136,26 @@ bool KingProfile::parameter_impl(const string &name, double val) {
 	return true;
 }
 
+#ifdef PROFIT_OPENCL
+void KingProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters<float>(index, kernel);
+}
+
+void KingProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters<double>(index, kernel);
+}
+
+template <typename FT>
+void KingProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
+	kernel.setArg(index++, static_cast<FT>(rc));
+	kernel.setArg(index++, static_cast<FT>(rt));
+	kernel.setArg(index++, static_cast<FT>(a));
+}
+
+bool KingProfile::supports_opencl() const {
+	return true;
+}
+
+#endif /* PROFIT_OPENCL */
+
 } /* namespace profit */
