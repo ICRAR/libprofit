@@ -116,12 +116,11 @@ static cl_ver_t get_opencl_version(const cl::Platform &platform) {
 	return major*100u + minor*10u;
 }
 
-map<int, OpenCL_plat_info> get_opencl_info() {
+static
+map<int, OpenCL_plat_info> _get_opencl_info() {
 
 	vector<cl::Platform> all_platforms;
-	if( cl::Platform::get(&all_platforms) != CL_SUCCESS ) {
-		throw opencl_error("Error while getting OpenCL platforms");
-	}
+	cl::Platform::get(&all_platforms);
 
 	map<int, OpenCL_plat_info> pinfo;
 	unsigned int pidx = 0;
@@ -143,6 +142,18 @@ map<int, OpenCL_plat_info> get_opencl_info() {
 	}
 
 	return pinfo;
+}
+
+map<int, OpenCL_plat_info> get_opencl_info() {
+
+	// Wrap cl::Error exceptions
+	try {
+		return _get_opencl_info();
+	} catch(const cl::Error &e) {
+		ostringstream os;
+		os << "OpenCL error: " << e.what() << ". OpenCL error code: " << e.err();
+		throw opencl_error(os.str());
+	}
 }
 
 static
