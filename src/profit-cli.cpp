@@ -324,6 +324,9 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)\n");
 	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
 #endif /* PROFIT_OPENCL */
+#ifdef PROFIT_OPENMP
+	fprintf(file,"  -n <n>    Use n OpenMP threads to calculate profiles\n");
+#endif /* PROFIT_OPENMP */
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
 	fprintf(file,"  -y        Image height. Defaults to 100\n");
 	fprintf(file,"  -w        Width in pixels. Defaults to 100\n");
@@ -653,11 +656,14 @@ int parse_and_run(int argc, char *argv[]) {
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
 
+	const char *options = "h?vsP:p:w:H:x:y:X:Y:m:tbf:i:"
 #ifdef PROFIT_OPENCL
-	const char *options = "h?vsP:p:w:H:x:y:X:Y:m:tbf:i:C:c";
-#else
-	const char *options = "h?vsP:p:w:H:x:y:X:Y:m:tbf:i:";
+	                      "C:c"
 #endif /* PROFIT_OPENCL */
+#ifdef PROFIT_OPENMP
+	                      "n:"
+#endif /* PROFIT_OPENMP */
+	;
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
 		switch(opt) {
@@ -672,6 +678,12 @@ int parse_and_run(int argc, char *argv[]) {
 				cout << "OpenCL support: ";
 #ifdef PROFIT_OPENCL
 				cout << "Yes (up to " << PROFIT_OPENCL_MAJOR << "." << PROFIT_OPENCL_MINOR << ")";
+#else
+				cout << "No";
+#endif
+				cout << endl << "OpenMP support: ";
+#ifdef PROFIT_OPENMP
+				cout << "Yes";
 #else
 				cout << "No";
 #endif
@@ -702,6 +714,12 @@ int parse_and_run(int argc, char *argv[]) {
 				use_double = (bool)atoi(tokens[2].c_str());
 				break;
 #endif /* PROFIT_OPENCL */
+
+#ifdef PROFIT_OPENMP
+			case 'n':
+				m.omp_threads = (unsigned int)atoi(optarg);
+				break;
+#endif
 
 			case 'P':
 				if( !stat(optarg, &stat_buf) ) {

@@ -45,6 +45,7 @@ option(LIBPROFIT_USE_R     "Try to compile libprofit first against R/Rmath, and 
 option(LIBPROFIT_TEST      "Include test compilation in the build" OFF)
 option(LIBPROFIT_DEBUG     "Include some debugging code in libprofit" OFF)
 option(LIBPROFIT_NO_OPENCL "Don't attempt to include OpenCL support in libprofit" OFF)
+option(LIBPROFIT_NO_OPENMP "Don't attempt to include OpenMP support in libprofit" OFF)
 
 # Macros to check for presence of GSL, R/Rmath and OpenCL
 macro(find_gsl)
@@ -91,6 +92,14 @@ macro(find_opencl)
 	endif()
 endmacro()
 
+macro(find_openmp)
+	find_package(OpenMP)
+	if( OPENMP_FOUND )
+		add_definitions(-DPROFIT_OPENMP)
+		set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
+	endif()
+endmacro()
+
 # Depending on the user's preference we check GSL or R/Rmath first
 # We default to use GSL
 if( LIBPROFIT_USE_R )
@@ -115,6 +124,11 @@ endif()
 # Check if there's OpenCL (users might opt out)
 if( NOT LIBPROFIT_NO_OPENCL )
 	find_opencl()
+endif()
+
+# Check if there's OpenMP support (users might opt out)
+if( NOT LIBPROFIT_NO_OPENMP )
+	find_openmp()
 endif()
 
 # Include debugging stuff?

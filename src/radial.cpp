@@ -278,28 +278,30 @@ void RadialProfile::evaluate(vector<double> &image) {
 
 void RadialProfile::evaluate_cpu(vector<double> &image) {
 
-	unsigned int i, j;
-	double x, y, pixel_val;
-	double x_prof, y_prof, r_prof;
 	double half_xbin = model.scale_x/2.;
 	double half_ybin = model.scale_y/2.;
 
 	double scale = this->get_pixel_scale();
 
-	/* The middle X/Y value is used for each pixel */
-	y = 0;
-	for(j=0; j < model.height; j++) {
-		y += half_ybin;
-		x = 0;
-		for(i=0; i < model.width; i++) {
-			x += half_xbin;
+	/*
+	 * If compiled with OpenMP support, and if the user requests so,
+	 * we parallelize the following two "for" loops
+	 */
+#ifdef PROFIT_OPENMP
+	bool use_omp = model.omp_threads > 1;
+	#pragma omp parallel for collapse(2) schedule(dynamic, 10) if(use_omp) num_threads(model.omp_threads)
+#endif /* PROFIT_OPENMP */
+	for(unsigned int j=0; j < model.height; j++) {
+		for(unsigned int i=0; i < model.width; i++) {
 
 			/* We were instructed to ignore this pixel */
 			if( !model.calcmask.empty() && !model.calcmask[i + j*model.width] ) {
-				x += half_xbin;
 				continue;
 			}
 
+			double x_prof, y_prof, r_prof;
+			double y = half_ybin + j*model.scale_y;
+			double x = half_xbin + i*model.scale_x;
 			this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
 
 			/*
@@ -307,6 +309,7 @@ void RadialProfile::evaluate_cpu(vector<double> &image) {
 			 * TODO: the radius calculation doesn't take into account boxing
 			 */
 			r_prof = sqrt(x_prof*x_prof + y_prof*y_prof);
+			double pixel_val;
 			if( this->rscale_max > 0 && r_prof/this->rscale > this->rscale_max ) {
 				pixel_val = 0.;
 			}
@@ -326,9 +329,7 @@ void RadialProfile::evaluate_cpu(vector<double> &image) {
 			}
 
 			image[i + j*model.width] = scale * pixel_val;
-			x += half_xbin;
 		}
-		y += half_ybin;
 	}
 
 }
