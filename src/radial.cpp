@@ -242,7 +242,7 @@ void RadialProfile::evaluate(vector<double> &image) {
 	 */
 	this->initial_calculations();
 
-	stats = shared_ptr<RadialProfileStats>(new RadialProfileStats());
+	stats = make_shared<RadialProfileStats>();
 #ifdef PROFIT_DEBUG
 	n_integrations.clear();
 #endif /* PROFIT_DEBUG */
