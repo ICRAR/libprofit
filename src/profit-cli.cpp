@@ -334,7 +334,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
 	fprintf(file,"  -P        PSF function (specified as w:h:val1,val2..., or as a FITS filename)\n");
 	fprintf(file,"  -h,-?     Show this help and exit\n");
-	fprintf(file,"  -v        Show the program version and exit\n\n");
+	fprintf(file,"  -V        Show the program version and exit\n\n");
 	fprintf(file,"Profiles should be specified as follows:\n\n");
 	fprintf(file,"-p name:param1=val1:param2=val2:...\n\n");
 	fprintf(file,"The following profiles (and parameters) are currently accepted:\n\n");
@@ -656,7 +656,7 @@ int parse_and_run(int argc, char *argv[]) {
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
 
-	const char *options = "h?vsP:p:w:H:x:y:X:Y:m:tbf:i:"
+	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:"
 #ifdef PROFIT_OPENCL
 	                      "C:c"
 #endif /* PROFIT_OPENCL */
@@ -673,7 +673,7 @@ int parse_and_run(int argc, char *argv[]) {
 				usage(stdout, argv);
 				return 0;
 
-			case 'v':
+			case 'V':
 				cout << "libprofit version " << PROFIT_VERSION << endl;
 				cout << "OpenCL support: ";
 #ifdef PROFIT_OPENCL
