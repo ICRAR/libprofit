@@ -282,7 +282,7 @@ void RadialProfile::evaluate_cpu(vector<double> &image) {
 	double x, y, pixel_val;
 	double x_prof, y_prof, r_prof;
 	double half_xbin = model.scale_x/2.;
-	double half_ybin = model.scale_x/2.;
+	double half_ybin = model.scale_y/2.;
 
 	double scale = this->get_pixel_scale();
 
