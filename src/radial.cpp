@@ -641,13 +641,6 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 					val /= (ss_info_it->resolution * ss_info_it->resolution);
 				}
 
-				// This is a final result that requires no more subsampling
-//				if( kinfo.point.x == -1 ) {
-//					FT x = ss_info_it->point.x / model.scale_x;
-//					FT y = ss_info_it->point.y / model.scale_y;
-//					unsigned int idx = static_cast<unsigned int>(floor(x)) + static_cast<unsigned int>(floor(y)) * model.width;
-//					image[idx] += val;
-//				}
 				subimages_results.push_back(im_result_t{ss_info_it->point, val});
 
 				last_ss_info_it++;
