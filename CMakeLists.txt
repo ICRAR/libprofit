@@ -96,7 +96,7 @@ macro(find_openmp)
 	find_package(OpenMP)
 	if( OPENMP_FOUND )
 		add_definitions(-DPROFIT_OPENMP)
-		set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 	endif()
 endmacro()
 
