@@ -406,7 +406,7 @@ unsigned int new_subsampling_points(const vector<ss_info_t<FT>> &prev_ss_info, v
 		FT x = info.point.x;
 		FT y = info.point.y;
 
-		if( x == -1 || recur_level >= maxr) {
+		if( x == -1 || recur_level > maxr) {
 			continue;
 		}
 
@@ -568,7 +568,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 	unsigned int recur_level = 0;
 
 	t_loopstart = system_clock::now();
-	while( recur_level < top_recursions ) {
+	while( recur_level <= top_recursions ) {
 
 		/* Points in time we want to measure */
 		system_clock::time_point t0, t_newsamples, t_trans_h2k, t_kprep, t_opencl, t_trans_k2h;
