@@ -410,6 +410,8 @@ unsigned int new_subsampling_points(const vector<ss_info_t<FT>> &prev_ss_info, v
 			continue;
 		}
 
+		// New subsampling for this point starts at x0,y0
+		// and contains res*res subsampling points
 		FT x0 = x - info.xbin / 2;
 		FT y0 = y - info.ybin / 2;
 		FT ss_xbin = info.xbin / res;
@@ -733,7 +735,9 @@ RadialProfile::RadialProfile(const Model &model, const string &name) :
 	rough(false), acc(0.1),
 	rscale_switch(1), resolution(9),
 	max_recursions(2), adjust(true),
-	rscale_max(0)
+	rscale_max(0),
+	rscale(0), _ie(0),
+	_cos_ang(0), _sin_ang(0)
 {
 	// no-op
 }
