@@ -38,6 +38,9 @@
 # define override
 #endif
 
+/* Sometimes we don't use all arguments */
+#define UNUSED(x) do { (void)x; } while(0)
+
 namespace profit {
 	typedef unsigned int nsecs_t;
 }

@@ -575,12 +575,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 
 
 		t0 = system_clock::now();
-#ifdef PROFIT_DEBUG
-		/* record how many sub-integrations we've done */
-		n_integrations[recur_level] = new_subsampling_points<FT>(last_ss_info, ss_info, recur_level);
-#else
-		new_subsampling_points<FT>(last_ss_info, ss_info, recur_level);
-#endif /* PROFIT_DEBUG */
+		unsigned int subsampled_pixels = new_subsampling_points<FT>(last_ss_info, ss_info, recur_level);
 		t_newsamples = system_clock::now();
 
 		auto subsamples = ss_info.size();
@@ -589,6 +584,13 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 		}
 
 		ss_cl_times.nwork_items += subsamples;
+#ifdef PROFIT_DEBUG
+		/* record how many sub-integrations we've done */
+		n_integrations[recur_level] = subsampled_pixels;
+#else
+		// avoid warning because of unused variable
+		UNUSED(subsampled_pixels);
+#endif
 
 		/* Keeping things in size */
 		auto prev_im_size = subimages_results.size();
