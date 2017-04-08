@@ -107,7 +107,6 @@ protected:
 protected:
 	virtual void add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const override;
 	virtual void add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const override;
-	virtual bool supports_opencl() const override;
 
 private:
 	template <typename FT>

@@ -150,10 +150,6 @@ void BrokenExponentialProfile::add_kernel_parameters(unsigned int index, cl::Ker
 	kernel.setArg(index++, static_cast<FT>(a));
 }
 
-bool BrokenExponentialProfile::supports_opencl() const {
-	return true;
-}
-
 #endif /* PROFIT_OPENCL */
 
 } /* namespace profit */

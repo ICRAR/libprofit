@@ -153,10 +153,6 @@ void FerrerProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel
 	kernel.setArg(index++, static_cast<FT>(b));
 }
 
-bool FerrerProfile::supports_opencl() const {
-	return true;
-}
-
 #endif /* PROFIT_OPENCL */
 
 } /* namespace profit */

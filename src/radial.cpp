@@ -719,7 +719,7 @@ void RadialProfile::add_common_kernel_parameters(unsigned int arg, cl::Kernel &k
 }
 
 bool RadialProfile::supports_opencl() const {
-	return false;
+	return true;
 }
 
 #endif /* PROFIT_OPENCL */

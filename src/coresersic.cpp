@@ -170,10 +170,6 @@ void CoreSersicProfile::add_kernel_parameters(unsigned int index, cl::Kernel &ke
 	kernel.setArg(index++, static_cast<FT>(_bn));
 }
 
-bool CoreSersicProfile::supports_opencl() const {
-	return true;
-}
-
 #endif /* PROFIT_OPENCL */
 
 } /* namespace profit */
