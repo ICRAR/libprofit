@@ -237,6 +237,12 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 	const char *brokenexp_double =
 #include "profit/cl/brokenexponential-double.cl"
 	;
+	const char *coresersic_float =
+#include "profit/cl/coresersic-float.cl"
+	;
+	const char *coresersic_double =
+#include "profit/cl/coresersic-double.cl"
+	;
 
 	cl::Program::Sources sources;
 	sources.push_back(common_float);
@@ -245,6 +251,7 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 	sources.push_back(ferrer_float);
 	sources.push_back(king_float);
 	sources.push_back(brokenexp_float);
+	sources.push_back(coresersic_float);
 	if( use_double ) {
 		sources.push_back(common_double);
 		sources.push_back(sersic_double);
@@ -252,6 +259,7 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 		sources.push_back(ferrer_double);
 		sources.push_back(king_double);
 		sources.push_back(brokenexp_double);
+		sources.push_back(coresersic_double);
 	}
 
 	cl::Context context(device);
