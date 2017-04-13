@@ -202,46 +202,46 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 	// shared library (instead of, for instance, loading the sources from a
 	// particular location on disk at runtime)
 	const char *common_float =
-#include "profit/cl/common-float.cl"
+#include "cl/common-float.cl"
 	;
 	const char *common_double =
-#include "profit/cl/common-double.cl"
+#include "cl/common-double.cl"
 	;
 	const char *sersic_float =
-#include "profit/cl/sersic-float.cl"
+#include "cl/sersic-float.cl"
 	;
 	const char *sersic_double =
-#include "profit/cl/sersic-double.cl"
+#include "cl/sersic-double.cl"
 	;
 	const char *moffat_float =
-#include "profit/cl/moffat-float.cl"
+#include "cl/moffat-float.cl"
 	;
 	const char *moffat_double =
-#include "profit/cl/moffat-double.cl"
+#include "cl/moffat-double.cl"
 	;
 	const char *ferrer_float =
-#include "profit/cl/ferrer-float.cl"
+#include "cl/ferrer-float.cl"
 	;
 	const char *ferrer_double =
-#include "profit/cl/ferrer-double.cl"
+#include "cl/ferrer-double.cl"
 	;
 	const char *king_float =
-#include "profit/cl/king-float.cl"
+#include "cl/king-float.cl"
 	;
 	const char *king_double =
-#include "profit/cl/king-double.cl"
+#include "cl/king-double.cl"
 	;
 	const char *brokenexp_float =
-#include "profit/cl/brokenexponential-float.cl"
+#include "cl/brokenexponential-float.cl"
 	;
 	const char *brokenexp_double =
-#include "profit/cl/brokenexponential-double.cl"
+#include "cl/brokenexponential-double.cl"
 	;
 	const char *coresersic_float =
-#include "profit/cl/coresersic-float.cl"
+#include "cl/coresersic-float.cl"
 	;
 	const char *coresersic_double =
-#include "profit/cl/coresersic-double.cl"
+#include "cl/coresersic-double.cl"
 	;
 
 	cl::Program::Sources sources;

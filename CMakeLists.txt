@@ -139,7 +139,7 @@ endif()
 
 # Common definitions for the shared lib and the binary
 add_definitions(-DPROFIT_BUILD -DPROFIT_VERSION="${PROFIT_VERSION}")
-include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
 
 # The shared library
 set(PROFIT_SRC
