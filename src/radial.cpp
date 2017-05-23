@@ -668,7 +668,7 @@ void RadialProfile::evaluate_opencl(vector<double> &image) {
 			if( e.err() == CL_INVALID_BUFFER_SIZE ) {
 				break;
 			}
-			throw e;
+			throw;
 		}
 
 		recur_level++;
