@@ -471,15 +471,15 @@ void print_stats(const Model &m) {
 
 static inline
 bool is_little_endian() {
-	volatile uint32_t i=0x01234567;
-	return (*((uint8_t*)(&i))) == 0x67;
+	const uint32_t i = 0x01234567;
+	return *reinterpret_cast<const uint8_t *>(&i) == 0x67;
 }
 
 static inline
-double swap_bytes(double v) {
+double swap_bytes(const double v) {
 	double r;
-	char *vbytes = (char *)(&v);
-	char *rbytes = (char *)(&r);
+	const char *vbytes = reinterpret_cast<const char *>(&v);
+	char *rbytes = reinterpret_cast<char *>(&r);
 	rbytes[0] = vbytes[7];
 	rbytes[1] = vbytes[6];
 	rbytes[2] = vbytes[5];
