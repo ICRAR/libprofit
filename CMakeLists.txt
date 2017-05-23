@@ -46,7 +46,16 @@ option(LIBPROFIT_DEBUG     "Include some debugging code in libprofit" OFF)
 option(LIBPROFIT_NO_OPENCL "Don't attempt to include OpenCL support in libprofit" OFF)
 option(LIBPROFIT_NO_OPENMP "Don't attempt to include OpenMP support in libprofit" OFF)
 
-# Macros to check for presence of GSL, R/Rmath and OpenCL
+#
+# Macros to check for the presence of:
+#  * GSL
+#  * R/Rmath
+#  * OpenCL
+#  * OpenMP
+#
+# From those, only GSL or R/Rmath are required (one of the two), the rest is
+# optional.
+#
 macro(find_gsl)
 
 	# Try with FindGSL.cmake first, if found
@@ -99,8 +108,10 @@ macro(find_openmp)
 	endif()
 endmacro()
 
+#
 # Depending on the user's preference we check GSL or R/Rmath first
 # We default to use GSL
+#
 if( LIBPROFIT_USE_R )
 	find_r_and_rmath()
 	if( NOT R_FOUND OR NOT RMATH_FOUND)
@@ -113,6 +124,7 @@ else()
 	endif()
 endif()
 
+#
 # None found, what an ill luck
 if( NOT GSL_FOUND )
 	if( NOT R_FOUND OR NOT RMATH_FOUND )
@@ -120,17 +132,23 @@ if( NOT GSL_FOUND )
 	endif()
 endif()
 
+#
 # Check if there's OpenCL (users might opt out)
+#
 if( NOT LIBPROFIT_NO_OPENCL )
 	find_opencl()
 endif()
 
+#
 # Check if there's OpenMP support (users might opt out)
+#
 if( NOT LIBPROFIT_NO_OPENMP )
 	find_openmp()
 endif()
 
-# Include debugging stuff?
+#
+# Include debugging stuff? (off by default)
+#
 if( LIBPROFIT_DEBUG )
 	set(PROFIT_DEBUG ON)
 endif()
@@ -141,12 +159,15 @@ endif()
 #
 configure_file(profit/config.h.in profit/config.h @ONLY)
 
+#
 # Common definitions for the shared lib and the binary
 #
 add_definitions(-DPROFIT_BUILD)
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
-# The shared library
+#
+# The shared library sources
+#
 set(PROFIT_SRC
    src/brokenexponential.cpp
    src/convolve.cpp
@@ -190,8 +211,9 @@ install(FILES
         profit/profit.h
         DESTINATION include/profit)
 
-
-# Tests
+#
+# Unit tests
+#
 if( LIBPROFIT_TEST )
 	find_package(CxxTest)
 	if( CXXTEST_FOUND )
