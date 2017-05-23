@@ -230,24 +230,24 @@ void SersicProfile::evaluate(std::vector<double> &image) {
 	double inv_exponent = nser;
 	if( this->box != 0 ) {
 		inv_exponent *= (box + 2);
-		if( inv_exponent == 0.5 )     init_eval_function<true, pointfive>();
-		else if( inv_exponent == 1 )  init_eval_function<true, one>();
-		else if( inv_exponent == 2 )  init_eval_function<true, two>();
-		else if( inv_exponent == 3 )  init_eval_function<true, three>();
-		else if( inv_exponent == 4 )  init_eval_function<true, four>();
-		else if( inv_exponent == 8 )  init_eval_function<true, eight>();
-		else if( inv_exponent == 16 ) init_eval_function<true, sixteen>();
-		else                          init_eval_function<true, general>();
+		if( almost_equals(inv_exponent, 0.5) )    init_eval_function<true, pointfive>();
+		else if( almost_equals(inv_exponent, 1) ) init_eval_function<true, one>();
+		else if( almost_equals(inv_exponent, 2) ) init_eval_function<true, two>();
+		else if( almost_equals(inv_exponent, 3) ) init_eval_function<true, three>();
+		else if( almost_equals(inv_exponent, 4) ) init_eval_function<true, four>();
+		else if( almost_equals(inv_exponent, 8) ) init_eval_function<true, eight>();
+		else if( almost_equals(inv_exponent, 16)) init_eval_function<true, sixteen>();
+		else                                      init_eval_function<true, general>();
 	}
 	else {
-		if( inv_exponent == 0.5 )     init_eval_function<false, pointfive>();
-		else if( inv_exponent == 1 )  init_eval_function<false, one>();
-		else if( inv_exponent == 2 )  init_eval_function<false, two>();
-		else if( inv_exponent == 3 )  init_eval_function<false, three>();
-		else if( inv_exponent == 4 )  init_eval_function<false, four>();
-		else if( inv_exponent == 8 )  init_eval_function<false, eight>();
-		else if( inv_exponent == 16 ) init_eval_function<false, sixteen>();
-		else                          init_eval_function<false, general>();
+		if( almost_equals(inv_exponent, 0.5) )     init_eval_function<false, pointfive>();
+		else if( almost_equals(inv_exponent, 1) )  init_eval_function<false, one>();
+		else if( almost_equals(inv_exponent, 2) )  init_eval_function<false, two>();
+		else if( almost_equals(inv_exponent, 3) )  init_eval_function<false, three>();
+		else if( almost_equals(inv_exponent, 4) )  init_eval_function<false, four>();
+		else if( almost_equals(inv_exponent, 8) )  init_eval_function<false, eight>();
+		else if( almost_equals(inv_exponent, 16) ) init_eval_function<false, sixteen>();
+		else                                       init_eval_function<false, general>();
 	}
 
 	return RadialProfile::evaluate(image);

@@ -84,6 +84,10 @@
 
 namespace profit {
 
+bool almost_equals(double x, double y, double e) {
+	return std::abs(x - y) < std::abs(e);
+}
+
 void add_images(std::vector<double> &dest, const std::vector<double> &src) {
 	std::transform(src.begin(), src.end(), dest.begin(), dest.begin(), std::plus<double>());
 }

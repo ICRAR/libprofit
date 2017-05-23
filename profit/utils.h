@@ -33,6 +33,16 @@ namespace profit
 {
 
 /**
+ * Checks whether values `x` and `y` are equals,
+ * with a difference of almost `e`.
+ * @param x The first value to compare
+ * @param y The second value to compare
+ * @param e The maximum allowed difference
+ * @return Whether the values are almost equals
+ */
+bool almost_equals(double x, double y, double e = 1e-10);
+
+/**
  * Adds the individual values from `src` and `dest` and stores the result
  * in `dest`. Both images must have the same size.
  */
