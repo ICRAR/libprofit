@@ -332,6 +332,8 @@ void SersicProfile::subsampling_params(double x, double y,
                                        unsigned int &resolution,
                                        unsigned int &max_recursions) {
 
+	using std::abs;
+
 	RadialProfile::subsampling_params(x, y, resolution, max_recursions);
 
 	/* Higher subsampling params for central pixel if nser > 1 */
