@@ -6,3 +6,4 @@ builds
 .cproject
 .project
 .settings
+/bin/
