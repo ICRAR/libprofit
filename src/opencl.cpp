@@ -24,7 +24,6 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef PROFIT_OPENCL
 #include <fstream>
 #include <streambuf>
 #include <sstream>
@@ -35,6 +34,7 @@
 #include "profit/exceptions.h"
 #include "profit/opencl.h"
 
+#ifdef PROFIT_OPENCL
 
 namespace profit {
 

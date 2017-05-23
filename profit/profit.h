@@ -27,6 +27,7 @@
 #ifndef PROFIT_PROFIT_H
 #define PROFIT_PROFIT_H
 
+#include "profit/config.h"
 #include "profit/common.h"
 #include "profit/convolve.h"
 #include "profit/exceptions.h"

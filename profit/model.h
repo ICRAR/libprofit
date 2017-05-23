@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 
+#include "profit/config.h"
 #include "profit/opencl.h"
 
 namespace profit

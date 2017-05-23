@@ -60,7 +60,7 @@ macro(find_gsl)
 	endif()
 
 	if( GSL_FOUND )
-		add_definitions(-DHAVE_GSL)
+		set(PROFIT_USES_GSL ON)
 		include_directories(${GSL_INCLUDE_DIRS})
 		set(profit_LIBS ${GSL_LIBRARIES})
 	endif()
@@ -72,7 +72,8 @@ macro(find_r_and_rmath)
 		pkg_check_modules(R libR)
 		pkg_check_modules(RMATH libRmath)
 		if( R_FOUND AND RMATH_FOUND )
-			add_definitions(-DHAVE_R -DMATHLIB_STANDALONE)
+			set(PROFIT_USES_R ON)
+			add_definitions(-DMATHLIB_STANDALONE)
 			include_directories(${R_INCLUDE_DIRS} ${RMATH_INCLUDE_DIRS})
 			set(profit_LIBS ${R_LIBRARIES} ${RMATH_LIBRARIES})
 		endif( R_FOUND AND RMATH_FOUND )
@@ -83,10 +84,9 @@ macro(find_opencl)
 	find_package(OpenCL)
 	if( OpenCL_FOUND )
 		include_directories(${OpenCL_INCLUDE_DIRS})
-		add_definitions(
-		        -DPROFIT_OPENCL
-		        -DPROFIT_OPENCL_MAJOR=${OpenCL_VERSION_MAJOR}
-		        -DPROFIT_OPENCL_MINOR=${OpenCL_VERSION_MINOR})
+		set(PROFIT_OPENCL ON)
+		set(PROFIT_OPENCL_MAJOR ${OpenCL_VERSION_MAJOR})
+		set(PROFIT_OPENCL_MINOR ${OpenCL_VERSION_MINOR})
 		set(profit_LIBS ${profit_LIBS} ${OpenCL_LIBRARIES})
 	endif()
 endmacro()
@@ -94,7 +94,7 @@ endmacro()
 macro(find_openmp)
 	find_package(OpenMP)
 	if( OPENMP_FOUND )
-		add_definitions(-DPROFIT_OPENMP)
+		set(PROFIT_OPENMP ON)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 	endif()
 endmacro()
@@ -132,13 +132,19 @@ endif()
 
 # Include debugging stuff?
 if( LIBPROFIT_DEBUG )
-	add_definitions(-DPROFIT_DEBUG)
+	set(PROFIT_DEBUG ON)
 endif()
 
+#
+# Create the final configuration file that records
+# the compile-time options used for this libprofit build
+#
+configure_file(profit/config.h.in profit/config.h @ONLY)
 
 # Common definitions for the shared lib and the binary
-add_definitions(-DPROFIT_BUILD -DPROFIT_VERSION="${PROFIT_VERSION}")
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
+#
+add_definitions(-DPROFIT_BUILD)
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
 # The shared library
 set(PROFIT_SRC
@@ -161,16 +167,21 @@ set(PROFIT_SRC
 add_library(profit SHARED ${PROFIT_SRC})
 target_link_libraries(profit ${profit_LIBS})
 
+#
 # The executable
+#
 add_executable(profit-cli src/profit-cli.cpp)
 target_link_libraries(profit-cli profit)
 
-# Installing stuff
+#
+# Installing lib + binary + headers
+#
 install(TARGETS profit profit-cli
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
 install(FILES
         profit/cl/cl2.hpp
+        profit/config.h
         profit/common.h
         profit/convolve.h
         profit/exceptions.h

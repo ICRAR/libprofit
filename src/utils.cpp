@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "profit/common.h"
+#include "profit/config.h"
 #include "profit/utils.h"
 
 /*
@@ -38,12 +39,12 @@
  * beta, gamma and pgamma and qgamma functions needed by some profiles.
  * If neither is given the compilation should fail
  */
-#if defined(HAVE_GSL)
+#if defined(PROFIT_USES_GSL)
 	#include <gsl/gsl_errno.h>
 	#include <gsl/gsl_cdf.h>
 	#include <gsl/gsl_sf_gamma.h>
 	#include <gsl/gsl_integration.h>
-#elif defined(HAVE_R)
+#elif defined(PROFIT_USES_R)
 	#include <Rmath.h>
 	#include <R_ext/Applic.h>
 
@@ -98,7 +99,7 @@ void normalize(std::vector<double> &image) {
 /*
  * GSL-based functions
  */
-#if defined(HAVE_GSL)
+#if defined(PROFIT_USES_GSL)
 double qgamma(double p, double shape) {
 	return gsl_cdf_gamma_Pinv(p, shape, 1);
 }
@@ -179,7 +180,7 @@ double integrate_qags(integration_func_t f, double a, double b, void *params) {
 /*
  * R-based functions
  */
-#elif defined(HAVE_R)
+#elif defined(PROFIT_USES_R)
 
 double qgamma(double p, double shape) {
 	return ::Rf_qgamma(p, shape, 1, 1, 0);

@@ -30,6 +30,8 @@
 #include <exception>
 #include <string>
 
+#include "profit/config.h"
+
 namespace profit
 {
 

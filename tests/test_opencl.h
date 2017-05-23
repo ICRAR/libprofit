@@ -24,8 +24,6 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef PROFIT_OPENCL
-
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -35,6 +33,8 @@
 #include <cxxtest/TestSuite.h>
 
 #include "profit/profit.h"
+
+#ifdef PROFIT_OPENCL
 
 using namespace profit;
 

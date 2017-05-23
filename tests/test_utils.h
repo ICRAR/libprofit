@@ -29,11 +29,14 @@
 #include <iostream>
 
 #include <cxxtest/TestSuite.h>
-#ifdef HAVE_GSL
+
+#include "profit/config.h"
+#include "profit/utils.h"
+
+#ifdef PROFIT_USES_GSL
 	#include <gsl/gsl_errno.h>
 #endif
 
-#include "profit/utils.h"
 
 using namespace profit;
 
@@ -41,7 +44,7 @@ class TestUtils : public CxxTest::TestSuite {
 
 public:
 
-#ifdef HAVE_GSL
+#ifdef PROFIT_USES_GSL
 	void setUp() {
 		gsl_set_error_handler_off();
 	}
