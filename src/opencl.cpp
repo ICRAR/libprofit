@@ -35,7 +35,6 @@
 #include "profit/exceptions.h"
 #include "profit/opencl.h"
 
-using namespace std;
 
 namespace profit {
 
@@ -96,12 +95,12 @@ OpenCL_command_times cl_cmd_times(const cl::Event &evt) {
 
 static cl_ver_t get_opencl_version(const cl::Platform &platform) {
 
-	string version = platform.getInfo<CL_PLATFORM_VERSION>();
+	std::string version = platform.getInfo<CL_PLATFORM_VERSION>();
 
 	// Version string should be of type "OpenCL<space><major_version.minor_version><space><platform-specific information>"
 
 	if( version.find("OpenCL ") != 0) {
-		throw opencl_error(string("OpenCL version string doesn't start with 'OpenCL ': ") + version);
+		throw opencl_error(std::string("OpenCL version string doesn't start with 'OpenCL ': ") + version);
 	}
 
 	auto next_space = version.find(" ", 7);
@@ -117,18 +116,18 @@ static cl_ver_t get_opencl_version(const cl::Platform &platform) {
 }
 
 static
-map<int, OpenCL_plat_info> _get_opencl_info() {
+std::map<int, OpenCL_plat_info> _get_opencl_info() {
 
-	vector<cl::Platform> all_platforms;
+	std::vector<cl::Platform> all_platforms;
 	cl::Platform::get(&all_platforms);
 
-	map<int, OpenCL_plat_info> pinfo;
+	std::map<int, OpenCL_plat_info> pinfo;
 	unsigned int pidx = 0;
 	for(auto platform: all_platforms) {
-		vector<cl::Device> devices;
+		std::vector<cl::Device> devices;
 		platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
 
-		map<int, OpenCL_dev_info> dinfo;
+		std::map<int, OpenCL_dev_info> dinfo;
 		unsigned int didx = 0;
 		for(auto device: devices) {
 			dinfo[didx] = OpenCL_dev_info{
@@ -137,29 +136,29 @@ map<int, OpenCL_plat_info> _get_opencl_info() {
 			};
 		}
 
-		string name = platform.getInfo<CL_PLATFORM_NAME>();
+		std::string name = platform.getInfo<CL_PLATFORM_NAME>();
 		pinfo[pidx++] = OpenCL_plat_info{name, get_opencl_version(platform), dinfo};
 	}
 
 	return pinfo;
 }
 
-map<int, OpenCL_plat_info> get_opencl_info() {
+std::map<int, OpenCL_plat_info> get_opencl_info() {
 
 	// Wrap cl::Error exceptions
 	try {
 		return _get_opencl_info();
 	} catch(const cl::Error &e) {
-		ostringstream os;
+		std::ostringstream os;
 		os << "OpenCL error: " << e.what() << ". OpenCL error code: " << e.err();
 		throw opencl_error(os.str());
 	}
 }
 
 static
-shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
+std::shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
 
-	vector<cl::Platform> all_platforms;
+	std::vector<cl::Platform> all_platforms;
 	if( cl::Platform::get(&all_platforms) != CL_SUCCESS ) {
 		throw opencl_error("Error while getting OpenCL platforms");
 	}
@@ -168,7 +167,7 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 	}
 
 	if( platform_idx >= all_platforms.size() ) {
-		ostringstream ss;
+		std::ostringstream ss;
 		ss << "OpenCL platform index " << platform_idx << " must be < " << all_platforms.size();
 		throw invalid_parameter(ss.str());
 	}
@@ -176,13 +175,13 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 	cl::Platform platform = all_platforms[platform_idx];
 
 	//get default device of the default platform
-	vector<cl::Device> all_devices;
+	std::vector<cl::Device> all_devices;
 	platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
 	if( all_devices.size() == 0 ){
 		throw opencl_error("No devices found. Check OpenCL installation");
 	}
 	if( device_idx >= all_devices.size() ) {
-		ostringstream ss;
+		std::ostringstream ss;
 		ss << "OpenCL device index " << device_idx << " must be < " << all_devices.size();
 		throw invalid_parameter(ss.str());
 	}
@@ -272,16 +271,16 @@ shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, unsign
 
 	cl::CommandQueue queue(context, device, enable_profiling ? CL_QUEUE_PROFILING_ENABLE : 0);
 
-	return make_shared<OpenCL_env>(OpenCL_env{device, get_opencl_version(platform), context, queue, program, use_double, enable_profiling});
+	return std::make_shared<OpenCL_env>(OpenCL_env{device, get_opencl_version(platform), context, queue, program, use_double, enable_profiling});
 }
 
-shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
+std::shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
 
 	// Wrap cl::Error exceptions
 	try {
 		return _get_opencl_environment(platform_idx, device_idx, use_double, enable_profiling);
 	} catch(const cl::Error &e) {
-		ostringstream os;
+		std::ostringstream os;
 		os << "OpenCL error: " << e.what() << ". OpenCL error code: " << e.err();
 		throw opencl_error(os.str());
 	}

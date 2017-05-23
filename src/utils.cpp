@@ -81,20 +81,18 @@
 #endif
 
 
-using namespace std;
-
 namespace profit {
 
-void add_images(vector<double> &dest, const vector<double> &src) {
-	transform(src.begin(), src.end(), dest.begin(), dest.begin(), plus<double>());
+void add_images(std::vector<double> &dest, const std::vector<double> &src) {
+	std::transform(src.begin(), src.end(), dest.begin(), dest.begin(), std::plus<double>());
 }
 
-void normalize(vector<double> &image) {
-	double sum = accumulate(image.begin(), image.end(), 0);
+void normalize(std::vector<double> &image) {
+	double sum = std::accumulate(image.begin(), image.end(), 0);
 	if( sum == 0 ) {
 		return;
 	}
-	transform(image.begin(), image.end(), image.begin(), [=](double x) {return x/sum;});
+	std::transform(image.begin(), image.end(), image.begin(), [=](double x) {return x/sum;});
 }
 
 /*
@@ -118,9 +116,9 @@ double gammafn(double x) {
 			return 0.;
 		}
 		else if( status == GSL_EOVRFLW && x > 0 ) {
-			return numeric_limits<double>::infinity();
+			return std::numeric_limits<double>::infinity();
 		}
-		return numeric_limits<double>::quiet_NaN();
+		return std::numeric_limits<double>::quiet_NaN();
 	}
 
 	return result.val;
@@ -129,10 +127,10 @@ double gammafn(double x) {
 double beta(double a, double b) {
 
 	if( a < 0. || b < 0. ) {
-		return numeric_limits<double>::quiet_NaN();
+		return std::numeric_limits<double>::quiet_NaN();
 	}
 	if( a == 0. || b == 0. ) {
-		return numeric_limits<double>::infinity();
+		return std::numeric_limits<double>::infinity();
 	}
 
 	gsl_sf_result result;
@@ -141,7 +139,7 @@ double beta(double a, double b) {
 		if( status == GSL_EUNDRFLW ) {
 			return 0.;
 		}
-		return numeric_limits<double>::quiet_NaN();
+		return std::numeric_limits<double>::quiet_NaN();
 	}
 
 	return result.val;
@@ -219,8 +217,8 @@ double __r_integrate_qag(integration_func_t f, void *params,
 	int neval, ier, last;
 	int limit = 100;
 	int lenw = 4 * limit;
-	vector<int> iwork(limit);
-	vector<double> work(lenw);
+	std::vector<int> iwork(limit);
+	std::vector<double> work(lenw);
 	double result, abserr;
 	double epsabs = 1e-4, epsrel = 1e-4;
 	struct __r_integrator_args int_args = {f, params};

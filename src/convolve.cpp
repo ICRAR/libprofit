@@ -29,15 +29,13 @@
 #include "profit/common.h"
 
 
-using namespace std;
-
 namespace profit
 {
 
-vector<double>
-convolve(const vector<double> &src, unsigned int src_width, unsigned int src_height,
-         const vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-         const vector<bool> &mask){
+std::vector<double>
+convolve(const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
+         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
+         const std::vector<bool> &mask){
 
 	double pixel;
 	unsigned int i, j, k, l;
@@ -46,12 +44,12 @@ convolve(const vector<double> &src, unsigned int src_width, unsigned int src_hei
 	unsigned int krn_size = krn_width * krn_height;
 	int src_i, src_j;
 
-	vector<double> convolution(src_width * src_height);
+	std::vector<double> convolution(src_width * src_height);
 
 	double *out = convolution.data() - 1;
 	const double *srcPtr1 = src.data() - 1, *srcPtr2;
 	const double *krnPtr;
-	vector<bool>::const_iterator mask_it = mask.begin();
+	std::vector<bool>::const_iterator mask_it = mask.begin();
 
 	/* Convolve! */
 	/* Loop around the output image first... */
