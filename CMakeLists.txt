@@ -38,6 +38,7 @@ endif()
 # Our project...
 project(libprofit VERSION ${PROFIT_VERSION} LANGUAGES ${PROFIT_LANGS})
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/)
 
 # Options users can give on the command line
 option(LIBPROFIT_USE_R     "Try to compile libprofit first against R/Rmath, and then with GSL" OFF)
@@ -45,6 +46,7 @@ option(LIBPROFIT_TEST      "Include test compilation in the build" OFF)
 option(LIBPROFIT_DEBUG     "Include some debugging code in libprofit" OFF)
 option(LIBPROFIT_NO_OPENCL "Don't attempt to include OpenCL support in libprofit" OFF)
 option(LIBPROFIT_NO_OPENMP "Don't attempt to include OpenMP support in libprofit" OFF)
+option(LIBPROFIT_NO_FFTW   "Don't attempt to include FFTW support in libprofit" OFF)
 
 #
 # Macros to check for the presence of:
@@ -52,6 +54,7 @@ option(LIBPROFIT_NO_OPENMP "Don't attempt to include OpenMP support in libprofit
 #  * R/Rmath
 #  * OpenCL
 #  * OpenMP
+#  * FFTW
 #
 # From those, only GSL or R/Rmath are required (one of the two), the rest is
 # optional.
@@ -108,6 +111,18 @@ macro(find_openmp)
 	endif()
 endmacro()
 
+macro(find_fftw)
+	find_package(FFTW)
+	if( FFTW_FOUND )
+		set(PROFIT_FFTW ON)
+		if( FFTW_OPENMP_FOUND )
+			set(PROFIT_FFTW_OPENMP ON)
+		endif()
+		include_directories(${FFTW_INCLUDE_DIR})
+		set(profit_LIBS ${profit_LIBS} ${FFTW_LIBRARIES})
+	endif()
+endmacro(find_fftw)
+
 #
 # Depending on the user's preference we check GSL or R/Rmath first
 # We default to use GSL
@@ -144,6 +159,13 @@ endif()
 #
 if( NOT LIBPROFIT_NO_OPENMP )
 	find_openmp()
+endif()
+
+#
+# Check if there's FFTW support (users might opt out)
+#
+if( NOT LIBPROFIT_NO_FFTW )
+	find_fftw()
 endif()
 
 #
