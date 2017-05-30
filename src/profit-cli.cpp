@@ -560,10 +560,8 @@ int to_fits(Model &m, vector<double> image, string fname) {
 
 	/* Append .fits if not in the name yet */
 	size_t fname_size = fname.size();
-	if( fname_size <= 5 || fname.rfind(".fits", fname_size - 6) != string::npos ) {
-		ostringstream ss;
-		ss << fname << ".fits";
-		fname = ss.str();
+	if( fname_size <= 5 || fname.rfind(".fits", fname_size - 6) == string::npos ) {
+		fname = fname + ".fits";
 	}
 
 	f = fopen(fname.c_str(), "w+");
