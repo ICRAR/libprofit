@@ -57,6 +57,43 @@ void add_images(std::vector<double> &dest, const std::vector<double> &src);
 void normalize(std::vector<double> &image);
 
 /**
+ * Crops the given image (of size ``width x height`` so its new dimensions
+ * are ``new_width x new_height``, starting at ``(start_x, start_y)``
+ *
+ * @param image The image to crop
+ * @param width The image's width
+ * @param height The image's height
+ * @param new_width The new width of the image. It should be ``<= width``
+ * @param new_height The new height of the image. It should be ``<= height``
+ * @param start_x The start of the new image relative to ``image``
+ * @param start_y The start of the new image relative to ``image``
+ * @return The new image
+ */
+std::vector<double> crop(const std::vector<double> &image,
+                         unsigned int width, unsigned int height,
+                         unsigned int new_width, unsigned int new_height,
+                         unsigned int start_x, unsigned int start_y);
+
+/**
+ * Extends the given image of size ``width x height`` so its new dimensions
+ * are ``new_width x new_height``, starting at ``(start_x, start_y)`` relative
+ * to the new image's dimensions.
+ *
+ * @param img The image to extend
+ * @param width The image's width
+ * @param height The image's height
+ * @param new_width The new width of the image, it should be ``>= width``
+ * @param new_height The new height of the image, it should be ``>= height``
+ * @param start_x The start of the new image relative to the new image
+ * @param start_y The start of the new image relative to the new image
+ * @return The new image
+ */
+std::vector<double> extend(const std::vector<double> &image,
+                           unsigned int width, unsigned int height,
+                           unsigned int new_width, unsigned int new_height,
+                           unsigned int start_x, unsigned int start_y);
+
+/**
  * Computes the quantile of the gamma distribution for ``p`` and ``shape``
  */
 double qgamma(double p, double shape);

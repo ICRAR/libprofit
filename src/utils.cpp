@@ -28,6 +28,7 @@
 #include <functional>
 #include <limits>
 #include <numeric>
+#include <stdexcept>
 #include <vector>
 
 #include "profit/common.h"
@@ -99,6 +100,57 @@ void normalize(std::vector<double> &image) {
 	}
 	std::transform(image.begin(), image.end(), image.begin(), [=](double x) {return x/sum;});
 }
+
+std::vector<double> crop(const std::vector<double> &image,
+                         unsigned int width, unsigned int height,
+                         unsigned int new_width, unsigned int new_height,
+                         unsigned int start_x, unsigned int start_y) {
+
+	// standard checks
+	if (width * height != image.size()) {
+		throw std::invalid_argument("crop: width*height != image.size()");
+	}
+	if (start_x + new_width > width) {
+		throw std::invalid_argument("extend: start_x + new_width > image.width");
+	}
+	if (start_y + new_height > height) {
+		throw std::invalid_argument("extend: start_y + new_height > image.height");
+	}
+
+	std::vector<double> crop(new_width * new_height);
+	for(unsigned int j = 0; j < new_height; j++) {
+		for(unsigned int i = 0; i < new_width; i++) {
+			crop[i + j * new_width] = image[(i + start_x) + (j + start_y) * width];
+		}
+	};
+	return crop;
+}
+
+std::vector<double> extend(const std::vector<double> &image,
+                           unsigned int width, unsigned int height,
+                           unsigned int new_width, unsigned int new_height,
+                           unsigned int start_x, unsigned int start_y)
+{
+	// standard checks
+	if (width * height != image.size()) {
+		throw std::invalid_argument("extend: width*height != image.size()");
+	}
+	if (start_x + width > new_width) {
+		throw std::invalid_argument("extend: start_x + new_width > image.width");
+	}
+	if (start_y + height > new_height) {
+		throw std::invalid_argument("extend: start_y + new_height > image.height");
+	}
+
+	std::vector<double> new_img(new_height * new_width);
+	for(unsigned int j = 0; j < height; j++) {
+		for(unsigned int i = 0; i < width; i++) {
+			new_img[(i+start_x) + (j+start_y)*new_width] = image[i + j*width];
+		}
+	}
+	return new_img;
+}
+
 
 /*
  * GSL-based functions
