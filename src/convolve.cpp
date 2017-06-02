@@ -24,18 +24,37 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+#include <functional>
+#include <memory>
 #include <vector>
 
-#include "profit/common.h"
+#include "profit/convolve.h"
+#include "profit/utils.h"
 
 
 namespace profit
 {
 
-std::vector<double>
-convolve(const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
+std::vector<double> convolve(
+         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
          const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-         const std::vector<bool> &mask){
+         const std::vector<bool> &mask)
+{
+	return BruteForceConvolver().convolve(src, src_width, src_height, krn, krn_width, krn_height, mask);
+}
+
+Convolver::~Convolver()
+{
+	// no-op
+}
+
+
+std::vector<double> BruteForceConvolver::convolve(
+         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
+         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
+         const std::vector<bool> &mask) const
+{
 
 	double pixel;
 	unsigned int i, j, k, l;
@@ -96,5 +115,59 @@ convolve(const std::vector<double> &src, unsigned int src_width, unsigned int sr
 
 	return convolution;
 }
+
+#ifdef PROFIT_FFTW
+FFTConvolver::FFTConvolver(std::shared_ptr<FFTPlan> &plan) :
+	plan(plan)
+{
+	// no-op
+}
+
+FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
+                           unsigned int krn_width, unsigned int krn_height,
+                           FFTPlan::effort_t effort, unsigned int plan_omp_threads) :
+	plan()
+{
+	auto convolution_size = 4 * src_width * src_height;
+	plan = std::make_shared<FFTPlan>(convolution_size, effort, plan_omp_threads);
+	// no-op
+}
+
+std::vector<double> FFTConvolver::convolve(
+        const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
+        const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
+        const std::vector<bool> &mask) const
+{
+
+	typedef std::complex<double> complex;
+
+	// Create extended images first
+	auto krn_start_x = (src_width - krn_width) / 2;
+	auto krn_start_y = (src_height - krn_height) / 2;
+	auto ext_width = 2 * src_width;
+	auto ext_height = 2 * src_height;
+	auto ext_img = extend(src, src_width, src_height, ext_width, ext_height, 0, 0);
+	auto ext_krn = extend(krn, krn_width, krn_height, ext_width, ext_height, krn_start_x, krn_start_y);
+
+	// Forward FFTs
+	std::vector<complex> src_c = plan->forward(ext_img);
+	std::vector<complex> krn_c = plan->forward(ext_krn);
+
+	// element-wise multiplication
+	std::transform(src_c.begin(), src_c.end(), krn_c.begin(), src_c.begin(), std::multiplies<complex>());
+
+	// inverse FFT and scale down
+	using namespace std::placeholders;
+	std::vector<double> res = plan->backward_real(src_c);
+	std::transform(res.begin(), res.end(), res.begin(),
+	               std::bind(std::divides<double>(), _1, res.size()));
+
+	// crop the image and good bye
+	auto x_offset = src_width / 2 - (src_width % 2 ? 0 : 1);
+	auto y_offset = src_height / 2 - (src_height % 2 ? 0 : 1);
+	return crop(res, ext_width, ext_height, src_width, src_height, x_offset, y_offset);
+}
+
+#endif /* PROFIT_FFTW */
 
 } /* namespace profit */
