@@ -196,6 +196,7 @@ set(PROFIT_SRC
    src/coresersic.cpp
    src/exceptions.cpp
    src/ferrer.cpp
+   src/fft.cpp
    src/king.cpp
    src/model.cpp
    src/moffat.cpp
