@@ -24,6 +24,7 @@ Optional requirements are:
 
 * An `OpenMP <http://www.openmp.org/>`_-enabled compiler
 * An `OpenCL <https://www.khronos.org/opencl/>`_ installation
+* `FFTW <http://www.fftw.org/>`_
 
 *libprofit*'s compilation system is based
 on `cmake <https://cmake.org/>`_.
@@ -56,5 +57,6 @@ Other ``cmake`` options that can be given in the command-line include:
 * ``LIBPROFIT_DEBUG``: enable debugging-related code
 * ``LIBPROFIT_NO_OPENCL``: disable OpenCL support
 * ``LIBPROFIT_NO_OPENMP``: disable OpenMP support
+* ``LIBPROFIT_NO_FFTW``: disable FFTW support
 
 Please refer to the ``cmake`` for further options.
