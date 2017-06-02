@@ -57,6 +57,10 @@ Model::Model() :
 #ifdef PROFIT_OPENMP
 	omp_threads(0),
 #endif /* PROFIT_OPENMP */
+#ifdef PROFIT_FFTW
+	fft_plan(),
+	create_fft_plan(false),
+#endif /* PROFIT_FFTW */
 	profiles()
 {
 	// no-op
@@ -196,7 +200,7 @@ std::vector<double> Model::evaluate() {
 	if( do_convolve ) {
 		std::vector<double> psf(this->psf);
 		normalize(psf);
-		image = convolve(image, this->width, this->height, psf, this->psf_width, this->psf_height, this->calcmask);
+		image = get_convolver()->convolve(image, width, height, psf, psf_width, psf_height, calcmask);
 	}
 	it = profile_images.begin();
 	for(auto &profile: this->profiles) {
@@ -209,6 +213,35 @@ std::vector<double> Model::evaluate() {
 	/* Done! Good job :-) */
 	return image;
 }
+
+
+std::unique_ptr<Convolver> Model::get_convolver()
+{
+#ifndef PROFIT_FFTW
+	return std::unique_ptr<Convolver>(new BruteForceConvolver());
+#else
+
+	// Reuse our plan, or create a new one via the convolver if needed
+	FFTConvolver *fft_convolver = nullptr;
+	if (fft_plan) {
+		fft_convolver = new FFTConvolver(fft_plan);
+	}
+	else if (create_fft_plan) {
+		int threads = 1;
+#ifdef PROFIT_FFTW_OPENMP
+		threads = omp_threads;
+#endif /* PROFIT_FFTW_OPENMP */
+		fft_convolver = new FFTConvolver(width, height, psf_width, psf_height, FFTPlan::PATIENT, threads);
+		fft_plan = fft_convolver->plan;
+	}
+
+	if (fft_convolver) {
+		return std::unique_ptr<Convolver>(fft_convolver);
+	}
+	return std::unique_ptr<Convolver>(new BruteForceConvolver());
+#endif /* PROFIT_FFTW */
+}
+
 
 std::map<std::string, std::shared_ptr<ProfileStats>> Model::get_stats() const {
 	std::map<std::string, std::shared_ptr<ProfileStats>> stats;

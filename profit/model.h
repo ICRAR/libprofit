@@ -33,6 +33,8 @@
 #include <vector>
 
 #include "profit/config.h"
+#include "profit/convolve.h"
+#include "profit/fft.h"
 #include "profit/opencl.h"
 
 namespace profit
@@ -182,6 +184,21 @@ public:
 	unsigned int omp_threads;
 #endif /* PROFIT_OPENMP */
 
+#ifdef PROFIT_FFTW
+	/**
+	 * An FFT plan to use when convolving images.
+	 * If set then FFT-based convolution will be used instead of brute-force
+	 * convolution
+	 */
+	std::shared_ptr<FFTPlan> fft_plan;
+
+	/**
+	 * Instruct the model to internally create a new FFT plan for convolution
+	 * if necesssary
+	 */
+	bool create_fft_plan;
+#endif
+
 private:
 
 	/**
@@ -189,6 +206,8 @@ private:
 	 * model's image
 	 */
 	std::vector<std::shared_ptr<Profile>> profiles;
+
+	std::unique_ptr<Convolver> get_convolver();
 
 };
 
