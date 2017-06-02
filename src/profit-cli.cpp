@@ -626,17 +626,41 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	return 0;
 }
 
+vector<double> run(unsigned int iterations, Model &m) {
+
+	using chrono::steady_clock;
+
+	/* This means that we evaluated the model once, but who cares */
+	vector<double> image;
+	auto start = steady_clock::now();
+	for(unsigned i=0; i!=iterations; i++) {
+		image = m.evaluate();
+	}
+	auto end = steady_clock::now();
+	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+
+	double dur_secs = (double)duration/1000;
+	double dur_per_iter = (double)duration/iterations;
+	cout << std::fixed << std::setprecision(3);
+	cout << "Ran " << iterations << " iterations in ";
+	cout << setprecision(3) << fixed << dur_secs << " [s] ";
+	cout << "(" << setprecision(3) << fixed << dur_per_iter << " [ms] per iteration)";
+	cout << endl;
+
+	return image;
+}
+
 typedef enum _output_type {
 	none = 0,
 	binary = 1,
 	text = 2,
 	fits = 3,
-	performance = 4
 } output_t;
 
 int parse_and_run(int argc, char *argv[]) {
 
 	using namespace std::chrono;
+	using chrono::steady_clock;
 
 	int opt;
 	unsigned int width = 100, height = 100, iterations = 1;
@@ -647,7 +671,6 @@ int parse_and_run(int argc, char *argv[]) {
 	output_t output = none;
 	Model m;
 	struct stat stat_buf;
-	chrono::system_clock::time_point start, end;
 	bool show_stats = false;
 
 #ifdef PROFIT_OPENCL
@@ -771,7 +794,6 @@ int parse_and_run(int argc, char *argv[]) {
 
 			case 'i':
 				iterations = (unsigned int)atoi(optarg);
-				output = performance;
 				break;
 
 			default:
@@ -801,9 +823,9 @@ int parse_and_run(int argc, char *argv[]) {
 #ifdef PROFIT_OPENCL
 	/* Get an OpenCL environment */
 	if( use_opencl ) {
-		start = chrono::system_clock::now();
+		auto start = steady_clock::now();
 		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double, show_stats);
-		end = chrono::system_clock::now();
+		auto end = steady_clock::now();
 		m.opencl_env = opencl_env;
 #ifdef PROFIT_DEBUG
 		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
@@ -812,14 +834,7 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 #endif /* PROFIT_OPENCL */
 
-	/* This means that we evaluated the model once, but who cares */
-	start = chrono::system_clock::now();
-	vector<double> image;
-	for(i=0; i!=iterations; i++) {
-		image = m.evaluate();
-	}
-	end = chrono::system_clock::now();
-	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+	vector<double> image = run(iterations, m);
 
 	switch(output) {
 
@@ -841,10 +856,6 @@ int parse_and_run(int argc, char *argv[]) {
 				perror("Error while saving image to FITS file");
 				return 1;
 			}
-			break;
-
-		case performance:
-			printf("Ran %d iterations in %.3f [s] (%.3f [ms] per iteration)\n", iterations, (double)duration/1000, (double)duration/iterations);
 			break;
 
 		default:
