@@ -560,7 +560,9 @@ int to_fits(Model &m, vector<double> image, string fname) {
 
 	/* Append .fits if not in the name yet */
 	size_t fname_size = fname.size();
-	if( fname_size <= 5 || fname.rfind(".fits", fname_size - 6) == string::npos ) {
+	bool needs_suffix = fname_size <= 5;
+	needs_suffix |= fname.compare(fname_size - 5, fname_size, ".fits") != 0;
+	if( needs_suffix ) {
 		fname = fname + ".fits";
 	}
 
