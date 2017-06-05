@@ -170,8 +170,16 @@ std::vector<double> FFTConvolver::convolve(
 	               std::bind(std::divides<double>(), _1, res.size()));
 
 	// crop the image and good bye
-	auto x_offset = src_width / 2 - (src_width % 2 ? 0 : 1);
-	auto y_offset = src_height / 2 - (src_height % 2 ? 0 : 1);
+	auto x_offset = src_width / 2;
+	auto y_offset = src_height / 2;
+
+	// even image and odd kernel requires slight adjustment
+	if (src_width % 2 == 0 and krn_width % 2 == 1) {
+		x_offset -= 1;
+	}
+	if (src_height % 2 == 0 and krn_height % 2 == 1) {
+		y_offset -= 1;
+	}
 	return crop(res, ext_width, ext_height, src_width, src_height, x_offset, y_offset);
 }
 
