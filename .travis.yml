@@ -61,7 +61,7 @@ matrix:
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: g++-6
+      packages: [g++-6, libfftw3-dev]
     env: COMPILER=g++-6 CXXFLAGS="-coverage" LDFLAGS="-coverage"
   - compiler: clang
     env: COMPILER=clang++
