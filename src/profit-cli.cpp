@@ -631,15 +631,15 @@ int to_fits(Model &m, vector<double> image, string fname) {
 
 vector<double> run(unsigned int iterations, Model &m) {
 
-	using chrono::steady_clock;
+	using chrono::system_clock;
 
 	/* This means that we evaluated the model once, but who cares */
 	vector<double> image;
-	auto start = steady_clock::now();
+	auto start = system_clock::now();
 	for(unsigned i=0; i!=iterations; i++) {
 		image = m.evaluate();
 	}
-	auto end = steady_clock::now();
+	auto end = system_clock::now();
 	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 
 	double dur_secs = (double)duration/1000;
@@ -663,7 +663,7 @@ typedef enum _output_type {
 int parse_and_run(int argc, char *argv[]) {
 
 	using namespace std::chrono;
-	using chrono::steady_clock;
+	using chrono::system_clock;
 
 	int opt;
 	unsigned int width = 100, height = 100, iterations = 1;
@@ -846,9 +846,9 @@ int parse_and_run(int argc, char *argv[]) {
 #ifdef PROFIT_OPENCL
 	/* Get an OpenCL environment */
 	if( use_opencl ) {
-		auto start = steady_clock::now();
+		auto start = system_clock::now();
 		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double, show_stats);
-		auto end = steady_clock::now();
+		auto end = system_clock::now();
 		m.opencl_env = opencl_env;
 		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 		cout << "OpenCL environment created in " << opencl_duration << " [ms]" << endl;
