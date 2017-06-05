@@ -73,6 +73,10 @@ void MoffatProfile::validate() {
 
 }
 
+double MoffatProfile::fluxfrac(double fraction) const {
+	return rscale * std::sqrt(std::pow(1 - fraction, 1/ (1 - con)) - 1);
+}
+
 double MoffatProfile::get_lumtot(double r_box) {
 	double con = this->con;
 	return std::pow(this->rscale, 2) * M_PI * axrat/(con-1)/r_box;
@@ -82,14 +86,16 @@ double MoffatProfile::get_rscale() {
 	return fwhm/(2*std::sqrt(std::pow(2,(1/con))-1));
 }
 
+// pchisq((1.823*2*sqrt(2*log(2)))^2,2) = 0.9999004
+// Contains 99.99% of the flux in the Gaussian limit
+// con -> 1 should contain < 50% so this may be redundant, but it's here just in case
 double MoffatProfile::adjust_rscale_switch() {
-	double rscale_switch = this->fwhm*4;
-	rscale_switch = std::max(std::min(rscale_switch, 20.), 2.);
-	return rscale_switch / this->rscale;
+	double rscale_switch = std::max(fluxfrac(0.9999), 1.823 * fwhm);
+	return std::max(std::min(rscale_switch, 20.), 2.) / rscale;
 }
 
 double MoffatProfile::adjust_rscale_max() {
-	return 8;
+	return std::ceil(std::max(fluxfrac(0.9999), 2.) / rscale);
 }
 
 double MoffatProfile::adjust_acc() {

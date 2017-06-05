@@ -265,18 +265,17 @@ double SersicProfile::adjust_rscale_switch() {
 	 * but don't let it become less than 1 pixel (means we do no worse than
 	 * GALFIT anywhere)
 	 */
-	double nser = this->nser;
 	double rscale_switch = std::ceil(fluxfrac(1. - nser*nser/2e3));
 	rscale_switch = std::max(std::min(rscale_switch, 20.), 2.);
 	return rscale_switch / this->re;
 }
 
 double SersicProfile::adjust_rscale_max() {
-	return std::ceil(fluxfrac(0.9999));
+	return std::ceil(std::max(fluxfrac(0.9999), 2.) / re);
 }
 
 double SersicProfile::adjust_acc() {
-	double acc = 0.2 / this->nser;
+	double acc = acc / std::sqrt(nser);
 	return std::max(0.1, acc) / this->axrat;
 }
 
