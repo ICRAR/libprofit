@@ -850,10 +850,8 @@ int parse_and_run(int argc, char *argv[]) {
 		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double, show_stats);
 		auto end = steady_clock::now();
 		m.opencl_env = opencl_env;
-#ifdef PROFIT_DEBUG
 		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 		cout << "OpenCL environment created in " << opencl_duration << " [ms]" << endl;
-#endif /* PROFIT_DEBUG */
 	}
 #endif /* PROFIT_OPENCL */
 
