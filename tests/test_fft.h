@@ -41,8 +41,7 @@
 using namespace profit;
 
 /**
- * Create and keep a pointer to a plan for convolving an 100x100 image with a
- * 25x25 kernel
+ * Create and keep a pointer to an appropriate plan for the given sizes
  */
 class FFTFixtures : CxxTest::GlobalFixture {
 
