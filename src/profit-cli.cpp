@@ -870,9 +870,9 @@ int parse_and_run(int argc, char *argv[]) {
 		case text:
 			for(j=0; j!=m.height; j++) {
 				for(i=0; i!=m.width; i++) {
-					printf("%g ", image[j*m.width + i]);
+					cout << image[j*m.width + i] << " ";
 				}
-				printf("\n");
+				cout << endl;
 			}
 			break;
 
