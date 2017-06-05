@@ -151,7 +151,7 @@ void PsfProfile::evaluate(std::vector<double> &image) {
 	if( total != 0 ) {
 		multiplier = scale / total;
 	}
-	transform(image.begin(), image.end(), image.begin(), [=](double v) {return v*multiplier;});
+	std::transform(image.begin(), image.end(), image.begin(), [=](double v) {return v*multiplier;});
 
 }
 
