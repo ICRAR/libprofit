@@ -152,7 +152,6 @@ void FFTPlan::destroy()
 
 int FFTPlan::get_fftw_effort() const
 {
-	int effort_flag;
 	switch (effort) {
 	case ESTIMATE:
 		return FFTW_ESTIMATE;
@@ -191,7 +190,7 @@ std::vector<std::complex<double>> FFTPlan::execute(const std::vector<std::comple
 	std::vector<std::complex<double>> ret;
 	ret.reserve(size);
 	fftw_complex *out_it = out.get();
-	for(int i=0; i < size; i++) {
+	for(unsigned int i = 0; i < size; i++) {
 		ret.push_back({(*out_it)[0], (*out_it)[1]});
 		out_it++;
 	}
