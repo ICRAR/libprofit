@@ -327,6 +327,9 @@ void usage(FILE *file, char *argv[]) {
 #ifdef PROFIT_OPENMP
 	fprintf(file,"  -n <n>    Use n OpenMP threads to calculate profiles\n");
 #endif /* PROFIT_OPENMP */
+#ifdef PROFIT_FFTW
+	fprintf(file,"  -F        Use FFTW to perform convolution\n");
+#endif /* PROFIT_FFTW */
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
 	fprintf(file,"  -y        Image height. Defaults to 100\n");
 	fprintf(file,"  -w        Width in pixels. Defaults to 100\n");
@@ -679,6 +682,10 @@ int parse_and_run(int argc, char *argv[]) {
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
 
+#ifdef PROFIT_FFTW
+	bool use_fft = false;
+#endif /* PROFIT_FFTW */
+
 	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:"
 #ifdef PROFIT_OPENCL
 	                      "C:c"
@@ -686,6 +693,9 @@ int parse_and_run(int argc, char *argv[]) {
 #ifdef PROFIT_OPENMP
 	                      "n:"
 #endif /* PROFIT_OPENMP */
+#ifdef PROFIT_FFTW
+	                      "F"
+#endif /* PROFIT_FFTW */
 	;
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
@@ -711,11 +721,24 @@ int parse_and_run(int argc, char *argv[]) {
 				cout << "No";
 #endif
 				cout << endl;
+				cout << "FFTW support: ";
+#ifdef PROFIT_FFTW
+				cout << "Yes";
+#else
+				cout << "No";
+#endif /* PROFIT_FFTW */
+				cout << endl;
 				return 0;
 
 			case 's':
 				show_stats = true;
 				break;
+
+#ifdef PROFIT_FFTW
+			case 'F':
+				use_fft = true;
+				break;
+#endif /* PROFIT_FFTW */
 
 			case 'p':
 				parse_profile(m, optarg);
@@ -834,6 +857,10 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 #endif /* PROFIT_OPENCL */
 
+#ifdef PROFIT_FFTW
+	m.create_fft_plan = use_fft;
+#endif
+
 	vector<double> image = run(iterations, m);
 
 	switch(output) {
@@ -871,21 +898,39 @@ int parse_and_run(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+
+#ifdef PROFIT_FFTW
+	FFTPlan::initialize();
+#endif
+
+	int ret;
 	try {
-		return parse_and_run(argc, argv);
+		ret = parse_and_run(argc, argv);
 	}
 	catch (invalid_cmdline &e) {
 		cerr << "Error on command line: " << e.what() << endl;
-		return 1;
+		ret = 1;
 	}
 	catch (invalid_parameter &e) {
 		cerr << "Error while calculating model: " << e.what() << endl;
-		return 1;
+		ret = 1;
 	}
 #ifdef PROFIT_OPENCL
 	catch (opencl_error &e) {
 		cerr << "Error in OpenCL operation: " << e.what() << endl;
-		return 1;
+		ret = 1;
 	}
 #endif /* PROFIT_OPENCL */
+#ifdef PROFIT_FFTW
+	catch (fft_error &e) {
+		cerr << "Error in FFT operation: " << e.what() << endl;
+		ret = 1;
+	}
+#endif /* PROFIT_FFT */
+
+#ifdef PROFIT_FFTW
+	FFTPlan::initialize();
+#endif
+
+	return ret;
 }
