@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "profit/convolve.h"
+#include "profit/exceptions.h"
 #include "profit/utils.h"
 
 
@@ -128,9 +129,15 @@ FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
                            FFTPlan::effort_t effort, unsigned int plan_omp_threads) :
 	plan()
 {
+
+	if (krn_width > src_width) {
+		throw invalid_parameter("krn_width must be <= src_width");
+	}
+	if (krn_height > src_height) {
+		throw invalid_parameter("krn_height must be <= src_height");
+	}
 	auto convolution_size = 4 * src_width * src_height;
 	plan = std::make_shared<FFTPlan>(convolution_size, effort, plan_omp_threads);
-	// no-op
 }
 
 std::vector<double> FFTConvolver::convolve(
