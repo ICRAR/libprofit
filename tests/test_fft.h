@@ -61,6 +61,11 @@ public:
 		for (unsigned int i = 0; i < psf_width * psf_height; i++) {
 			psf[i] = (rand() % 10000) / 10000.0;
 		}
+
+		// For manual checks, if wanted
+		if( const char *tol = std::getenv("LIBPROFIT_FFT_TOLERANCE") ) {
+			tolerance = std::stod(tol);
+		}
 	}
 
 	double tolerance;
