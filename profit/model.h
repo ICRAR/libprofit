@@ -209,6 +209,12 @@ public:
 	 * If a convolver is set, it overrides this setting.
 	 */
 	bool use_fft;
+
+	/**
+	 * How much effort should be used to create the FFT plans used by the
+	 * convolver. Used only if `use_fft` is set and no convolver is set.
+	 */
+	FFTPlan::effort_t fft_effort;
 #endif /* PROFIT_FFTW */
 
 private:

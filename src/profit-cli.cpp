@@ -328,7 +328,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -n <n>    Use n OpenMP threads to calculate profiles\n");
 #endif /* PROFIT_OPENMP */
 #ifdef PROFIT_FFTW
-	fprintf(file,"  -F        Use FFTW to perform convolution\n");
+	fprintf(file,"  -F <n>    Convolve with FFTW. Plan created with n effort (more takes longer)\n");
 #endif /* PROFIT_FFTW */
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
 	fprintf(file,"  -y        Image height. Defaults to 100\n");
@@ -695,7 +695,7 @@ int parse_and_run(int argc, char *argv[]) {
 	                      "n:"
 #endif /* PROFIT_OPENMP */
 #ifdef PROFIT_FFTW
-	                      "F"
+	                      "F:"
 #endif /* PROFIT_FFTW */
 	;
 
@@ -738,6 +738,7 @@ int parse_and_run(int argc, char *argv[]) {
 #ifdef PROFIT_FFTW
 			case 'F':
 				m.use_fft = true;
+				m.fft_effort = FFTPlan::effort_t(std::atoi(optarg));
 				break;
 #endif /* PROFIT_FFTW */
 

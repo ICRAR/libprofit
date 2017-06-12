@@ -60,6 +60,7 @@ Model::Model() :
 #endif /* PROFIT_OPENMP */
 #ifdef PROFIT_FFTW
 	use_fft(false),
+	fft_effort(FFTPlan::ESTIMATE),
 #endif /* PROFIT_FFTW */
 	profiles()
 {
@@ -231,7 +232,7 @@ std::shared_ptr<Convolver> Model::create_convolver() const
 #ifdef PROFIT_FFTW_OPENMP
 	threads = omp_threads;
 #endif /* PROFIT_FFTW_OPENMP */
-	return std::make_shared<FFTConvolver>(width, height, psf_width, psf_height, FFTPlan::MEASURE, threads);
+	return std::make_shared<FFTConvolver>(width, height, psf_width, psf_height, fft_effort, threads);
 #endif /* PROFIT_FFTW */
 }
 
