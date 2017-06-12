@@ -52,38 +52,14 @@ void FFTPlan::finalize()
 	fftw_cleanup();
 }
 
-FFTPlan::FFTPlan() :
-	size(0),
-	effort(ESTIMATE),
-	omp_threads(0),
-	in(), out(),
-	forward_plan(NULL),
-	backward_plan(NULL)
-{
-	// no-op
-}
-
 FFTPlan::FFTPlan(unsigned int size, effort_t effort, unsigned int omp_threads) :
 	size(0),
-	effort(ESTIMATE),
+	effort(effort),
 	omp_threads(0),
 	in(), out(),
 	forward_plan(NULL),
 	backward_plan(NULL)
 {
-	setup(size, effort, omp_threads);
-}
-
-void FFTPlan::setup(unsigned int size, effort_t effort, unsigned int threads)
-{
-
-	// No need to re-create underlying plans if things are the same
-	if (size == this->size and effort == this->effort and threads == omp_threads) {
-		return;
-	}
-
-	destroy();
-
 	fftw_complex *in_tmp = fftw_alloc_complex(size);
 	if (!in_tmp) {
 		throw std::bad_alloc();
@@ -128,11 +104,6 @@ FFTPlan::FFTPlan(FFTPlan &&plan) :
 }
 
 FFTPlan::~FFTPlan()
-{
-	destroy();
-}
-
-void FFTPlan::destroy()
 {
 	if (out) {
 		fftw_free(out.release());

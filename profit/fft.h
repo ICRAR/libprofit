@@ -52,11 +52,6 @@ public:
 	};
 
 	/**
-	 * Creates a new plan without initializing it
-	 */
-	FFTPlan();
-
-	/**
 	 * Creates a new plan of size ``size``, using ``effort`` and ``threads`` to
 	 * create it.
 	 *
@@ -80,16 +75,6 @@ public:
 	 * Destroy this plan
 	 */
 	~FFTPlan();
-
-	/**
-	 * Sets up this plan to be of size ``size`` and use ``effort`` and
-	 * ``threads`` threads.
-	 *
-	 * @param size The size of the data to be transformed
-	 * @param effort The kind of effort that should be put into creating this plan
-	 * @param threads The number of threads to use to execute the plan
-	 */
-	void setup(unsigned int size, effort_t effort, unsigned int threads);
 
 	/**
 	 * Returns the FFT of ``data``
@@ -158,7 +143,6 @@ private:
 	fftw_plan forward_plan;
 	fftw_plan backward_plan;
 
-	void destroy();
 	int get_fftw_effort() const;
 	std::vector<std::complex<double>> to_complex(const std::vector<double> data) const;
 	std::vector<double> to_double(const std::vector<std::complex<double>> data) const;

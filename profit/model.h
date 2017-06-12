@@ -95,6 +95,18 @@ public:
 	 */
 	std::vector<double> evaluate();
 
+	/**
+	 * Creates and returns a new Convolver instance suitable to be used by this
+	 * Model's settings (i.e., image width/height, psf width/heigh, and number
+	 * of OpenMP threads, if supported).
+	 *
+	 * This method does not set the internal convolver to the returned instance;
+	 * this must be done by the user.
+	 *
+	 * @return A convolver suitable to be used with this model's settings.
+	 */
+	std::shared_ptr<Convolver> create_convolver() const;
+
 #ifdef PROFIT_DEBUG
 	std::map<std::string, std::map<int, int>> get_profile_integrations() const;
 #endif
@@ -166,6 +178,13 @@ public:
 	std::vector<bool> calcmask;
 
 	/**
+	 * The object used to carry out the convolution, if necessary.
+	 * If a convolver is present before calling `evaluate` then it is used.
+	 * If missing, then a new one is created internally.
+	 */
+	std::shared_ptr<Convolver> convolver;
+
+	/**
 	 * Whether the actual evaluation of profiles should be skipped or not.
 	 * Profile validation still occurs.
 	 */
@@ -186,18 +205,11 @@ public:
 
 #ifdef PROFIT_FFTW
 	/**
-	 * An FFT plan to use when convolving images.
-	 * If set then FFT-based convolution will be used instead of brute-force
-	 * convolution
+	 * Whether or not this Model try to use FFT-based convolution.
+	 * If a convolver is set, it overrides this setting.
 	 */
-	std::shared_ptr<FFTPlan> fft_plan;
-
-	/**
-	 * Instruct the model to internally create a new FFT plan for convolution
-	 * if necesssary
-	 */
-	bool create_fft_plan;
-#endif
+	bool use_fft;
+#endif /* PROFIT_FFTW */
 
 private:
 
@@ -206,8 +218,6 @@ private:
 	 * model's image
 	 */
 	std::vector<std::shared_ptr<Profile>> profiles;
-
-	std::unique_ptr<Convolver> get_convolver();
 
 };
 

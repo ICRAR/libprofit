@@ -633,14 +633,21 @@ vector<double> run(unsigned int iterations, Model &m) {
 
 	using chrono::system_clock;
 
+	auto start = system_clock::now();
+	m.convolver = m.create_convolver();
+	auto end = system_clock::now();
+	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+	cout << std::fixed << std::setprecision(3);
+	cout << "Created convolver in " << duration << " [ms]" << endl;
+
 	/* This means that we evaluated the model once, but who cares */
 	vector<double> image;
-	auto start = system_clock::now();
+	start = system_clock::now();
 	for(unsigned i=0; i!=iterations; i++) {
 		image = m.evaluate();
 	}
-	auto end = system_clock::now();
-	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+	end = system_clock::now();
+	duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 
 	double dur_secs = (double)duration/1000;
 	double dur_per_iter = (double)duration/iterations;
@@ -681,10 +688,6 @@ int parse_and_run(int argc, char *argv[]) {
 	unsigned int clplat_idx = 0, cldev_idx = 0;
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
-
-#ifdef PROFIT_FFTW
-	bool use_fft = false;
-#endif /* PROFIT_FFTW */
 
 	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:"
 #ifdef PROFIT_OPENCL
@@ -736,7 +739,7 @@ int parse_and_run(int argc, char *argv[]) {
 
 #ifdef PROFIT_FFTW
 			case 'F':
-				use_fft = true;
+				m.use_fft = true;
 				break;
 #endif /* PROFIT_FFTW */
 
@@ -854,10 +857,6 @@ int parse_and_run(int argc, char *argv[]) {
 		cout << "OpenCL environment created in " << opencl_duration << " [ms]" << endl;
 	}
 #endif /* PROFIT_OPENCL */
-
-#ifdef PROFIT_FFTW
-	m.create_fft_plan = use_fft;
-#endif
 
 	vector<double> image = run(iterations, m);
 

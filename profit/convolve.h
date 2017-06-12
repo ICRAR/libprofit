@@ -123,8 +123,6 @@ public:
 class FFTConvolver : public Convolver {
 
 public:
-	FFTConvolver(std::shared_ptr<FFTPlan> &plan);
-
 	FFTConvolver(unsigned int src_width, unsigned int src_height,
 	             unsigned int krn_width, unsigned int krn_height,
 	             FFTPlan::effort_t effort, unsigned int plan_omp_threads);
@@ -134,7 +132,8 @@ public:
 	         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
 	         const std::vector<bool> &mask) const;
 
-	std::shared_ptr<FFTPlan> plan;
+private:
+	std::unique_ptr<FFTPlan> plan;
 };
 
 #endif /* PROFIT_FFTW */

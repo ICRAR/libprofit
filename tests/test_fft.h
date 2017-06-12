@@ -48,7 +48,7 @@ class FFTFixtures : CxxTest::GlobalFixture {
 public:
 	FFTFixtures(unsigned int width, unsigned int height, unsigned int psf_width, unsigned int psf_height) :
 		tolerance(0.01),
-		fft_plan(FFTConvolver(width, height, psf_width, psf_height, FFTPlan::PATIENT, 1).plan),
+		fft_convolver(std::make_shared<FFTConvolver>(width, height, psf_width, psf_height, FFTPlan::PATIENT, 1)),
 		psf(psf_width * psf_height),
 		psf_width(psf_width),
 		psf_height(psf_height),
@@ -69,7 +69,7 @@ public:
 	}
 
 	double tolerance;
-	std::shared_ptr<FFTPlan> fft_plan;
+	std::shared_ptr<FFTConvolver> fft_convolver;
 	std::vector<double> psf;
 	unsigned int psf_width;
 	unsigned int psf_height;
@@ -96,7 +96,7 @@ public:
 	void _check_images_within_tolerance_with_fixtures(Model &m, FFTFixtures &fftFixtures)
 	{
 
-		if( !fftFixtures.fft_plan ) {
+		if( !fftFixtures.fft_convolver ) {
 			TS_SKIP("No FFTPlan found to run FFT tests with this fixture");
 		}
 
@@ -107,10 +107,11 @@ public:
 		m.psf_height = fftFixtures.psf_height;
 
 		// evaluate normally first, and then using the FFTPlan
+		m.use_fft = false;
+		m.convolver.reset();
 		std::vector<double> original = m.evaluate();
-		m.fft_plan = fftFixtures.fft_plan;
+		m.convolver = fftFixtures.fft_convolver;
 		std::vector<double> fft_produced = m.evaluate();
-		m.fft_plan.reset();
 
 		// Pixel by pixel the images should be fairly similar
 		for(unsigned int i=0; i!=original.size(); i++) {

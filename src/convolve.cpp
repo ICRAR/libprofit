@@ -118,12 +118,6 @@ std::vector<double> BruteForceConvolver::convolve(
 }
 
 #ifdef PROFIT_FFTW
-FFTConvolver::FFTConvolver(std::shared_ptr<FFTPlan> &plan) :
-	plan(plan)
-{
-	// no-op
-}
-
 FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
                            unsigned int krn_width, unsigned int krn_height,
                            FFTPlan::effort_t effort, unsigned int plan_omp_threads) :
@@ -137,7 +131,7 @@ FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
 		throw invalid_parameter("krn_height must be <= src_height");
 	}
 	auto convolution_size = 4 * src_width * src_height;
-	plan = std::make_shared<FFTPlan>(convolution_size, effort, plan_omp_threads);
+	plan = std::unique_ptr<FFTPlan>(new FFTPlan(convolution_size, effort, plan_omp_threads));
 }
 
 std::vector<double> FFTConvolver::convolve(
