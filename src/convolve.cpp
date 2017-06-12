@@ -163,7 +163,7 @@ std::vector<double> FFTConvolver::convolve(
 	std::transform(res.begin(), res.end(), res.begin(),
 	               std::bind(std::divides<double>(), _1, res.size()));
 
-	// crop the image and good bye
+	// crop the image to original size
 	auto x_offset = src_width / 2;
 	auto y_offset = src_height / 2;
 
@@ -174,7 +174,16 @@ std::vector<double> FFTConvolver::convolve(
 	if (src_height % 2 == 0 and krn_height % 2 == 1) {
 		y_offset -= 1;
 	}
-	return crop(res, ext_width, ext_height, src_width, src_height, x_offset, y_offset);
+
+	auto cropped = crop(res, ext_width, ext_height, src_width, src_height, x_offset, y_offset);
+
+	// apply mask and good bye
+	if (!mask.empty()) {
+		std::transform(cropped.begin(), cropped.end(), mask.begin(), cropped.begin(), [](const double i, const bool m) {
+			return m ? i : 0.;
+		});
+	}
+	return cropped;
 }
 
 #endif /* PROFIT_FFTW */
