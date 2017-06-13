@@ -77,6 +77,7 @@ public:
 	unsigned int height;
 };
 
+// all combinations of: even/odd image, even/odd psf, psf fft reuse/no_reuse
 static FFTFixtures fixtures[] = {
 	{100, 100, 25, 25, true},
 	{100, 100, 26, 26, true},
