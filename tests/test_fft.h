@@ -46,9 +46,9 @@ using namespace profit;
 class FFTFixtures : CxxTest::GlobalFixture {
 
 public:
-	FFTFixtures(unsigned int width, unsigned int height, unsigned int psf_width, unsigned int psf_height) :
+	FFTFixtures(unsigned int width, unsigned int height, unsigned int psf_width, unsigned int psf_height, bool reuse_psf_fft) :
 		tolerance(0.01),
-		fft_convolver(std::make_shared<FFTConvolver>(width, height, psf_width, psf_height, FFTPlan::ESTIMATE, 1, true)),
+		fft_convolver(std::make_shared<FFTConvolver>(width, height, psf_width, psf_height, FFTPlan::ESTIMATE, 1, reuse_psf_fft)),
 		psf(psf_width * psf_height),
 		psf_width(psf_width),
 		psf_height(psf_height),
@@ -77,20 +77,25 @@ public:
 	unsigned int height;
 };
 
-static FFTFixtures image_even_psf_odd(100, 100, 25, 25);
-static FFTFixtures image_even_psf_even(100, 100, 26, 26);
-static FFTFixtures image_odd_psf_odd(99, 99, 25, 25);
-static FFTFixtures image_odd_psf_even(99, 99, 26, 26);
+static FFTFixtures fixtures[] = {
+	{100, 100, 25, 25, true},
+	{100, 100, 26, 26, true},
+	{99, 99, 25, 25, true},
+	{99, 99, 26, 26, true},
+	{100, 100, 25, 25, false},
+	{100, 100, 26, 26, false},
+	{99, 99, 25, 25, false},
+	{99, 99, 26, 26, false}
+};
 
 class TestFFT : public CxxTest::TestSuite {
 
 public:
 
 	void _check_images_within_tolerance(Model &m) {
-		_check_images_within_tolerance_with_fixtures(m, image_even_psf_odd);
-		_check_images_within_tolerance_with_fixtures(m, image_even_psf_even);
-		_check_images_within_tolerance_with_fixtures(m, image_odd_psf_odd);
-		_check_images_within_tolerance_with_fixtures(m, image_odd_psf_even);
+		for(auto &fixture: fixtures) {
+			_check_images_within_tolerance_with_fixtures(m, fixture);
+		}
 	}
 
 	void _check_images_within_tolerance_with_fixtures(Model &m, FFTFixtures &fftFixtures)
