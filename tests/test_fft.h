@@ -48,7 +48,7 @@ class FFTFixtures : CxxTest::GlobalFixture {
 public:
 	FFTFixtures(unsigned int width, unsigned int height, unsigned int psf_width, unsigned int psf_height) :
 		tolerance(0.01),
-		fft_convolver(std::make_shared<FFTConvolver>(width, height, psf_width, psf_height, FFTPlan::ESTIMATE, 1)),
+		fft_convolver(std::make_shared<FFTConvolver>(width, height, psf_width, psf_height, FFTPlan::ESTIMATE, 1, true)),
 		psf(psf_width * psf_height),
 		psf_width(psf_width),
 		psf_height(psf_height),

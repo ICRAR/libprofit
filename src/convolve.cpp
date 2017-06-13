@@ -54,7 +54,7 @@ Convolver::~Convolver()
 std::vector<double> BruteForceConvolver::convolve(
          const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
          const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-         const std::vector<bool> &mask) const
+         const std::vector<bool> &mask)
 {
 
 	double pixel;
@@ -120,8 +120,11 @@ std::vector<double> BruteForceConvolver::convolve(
 #ifdef PROFIT_FFTW
 FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
                            unsigned int krn_width, unsigned int krn_height,
-                           FFTPlan::effort_t effort, unsigned int plan_omp_threads) :
-	plan()
+                           FFTPlan::effort_t effort, unsigned int plan_omp_threads,
+                           bool reuse_krn_fft) :
+	plan(),
+	krn_fft(),
+	reuse_krn_fft(reuse_krn_fft)
 {
 
 	if (krn_width > src_width) {
@@ -137,7 +140,7 @@ FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
 std::vector<double> FFTConvolver::convolve(
         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-        const std::vector<bool> &mask) const
+        const std::vector<bool> &mask)
 {
 
 	typedef std::complex<double> complex;
@@ -151,15 +154,21 @@ std::vector<double> FFTConvolver::convolve(
 	auto ext_krn = extend(krn, krn_width, krn_height, ext_width, ext_height, krn_start_x, krn_start_y);
 
 	// Forward FFTs
-	std::vector<complex> src_c = plan->forward(ext_img);
-	std::vector<complex> krn_c = plan->forward(ext_krn);
+	std::vector<complex> src_fft = plan->forward(ext_img);
+	if (krn_fft.empty()) {
+		krn_fft = plan->forward(ext_krn);
+	}
 
 	// element-wise multiplication
-	std::transform(src_c.begin(), src_c.end(), krn_c.begin(), src_c.begin(), std::multiplies<complex>());
+	std::transform(src_fft.begin(), src_fft.end(), krn_fft.begin(), src_fft.begin(), std::multiplies<complex>());
+
+	if (!reuse_krn_fft) {
+		krn_fft.clear();
+	}
 
 	// inverse FFT and scale down
 	using namespace std::placeholders;
-	std::vector<double> res = plan->backward_real(src_c);
+	std::vector<double> res = plan->backward_real(src_fft);
 	std::transform(res.begin(), res.end(), res.begin(),
 	               std::bind(std::divides<double>(), _1, res.size()));
 

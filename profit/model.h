@@ -211,6 +211,12 @@ public:
 	bool use_fft;
 
 	/**
+	 * Whether or not a copy of the FFT'd version of the PSF should be kept
+	 * by the FFT-based convolver (if used).
+	 */
+	bool reuse_psf_fft;
+
+	/**
 	 * How much effort should be used to create the FFT plans used by the
 	 * convolver. Used only if `use_fft` is set and no convolver is set.
 	 */

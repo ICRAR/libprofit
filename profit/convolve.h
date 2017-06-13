@@ -26,6 +26,7 @@
 #ifndef PROFIT_CONVOLVE_H
 #define PROFIT_CONVOLVE_H
 
+#include <complex>
 #include <memory>
 #include <vector>
 
@@ -82,7 +83,7 @@ public:
 	std::vector<double>
 	convolve(const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
 	         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-	         const std::vector<bool> &mask) const = 0;
+	         const std::vector<bool> &mask) = 0;
 
 };
 
@@ -96,7 +97,7 @@ public:
 	std::vector<double> convolve(
 	         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
 	         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-	         const std::vector<bool> &mask) const;
+	         const std::vector<bool> &mask);
 
 };
 
@@ -125,15 +126,20 @@ class FFTConvolver : public Convolver {
 public:
 	FFTConvolver(unsigned int src_width, unsigned int src_height,
 	             unsigned int krn_width, unsigned int krn_height,
-	             FFTPlan::effort_t effort, unsigned int plan_omp_threads);
+	             FFTPlan::effort_t effort, unsigned int plan_omp_threads,
+	             bool reuse_krn_fft);
 
 	std::vector<double> convolve(
 	         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
 	         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-	         const std::vector<bool> &mask) const;
+	         const std::vector<bool> &mask) override;
 
 private:
-	std::unique_ptr<FFTPlan> plan;
+	std::shared_ptr<FFTPlan> plan;
+
+	std::vector<std::complex<double>> krn_fft;
+
+	bool reuse_krn_fft;
 };
 
 #endif /* PROFIT_FFTW */
