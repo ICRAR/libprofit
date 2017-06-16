@@ -49,13 +49,16 @@
 #  error "libprofit requires at minimum OpenCL >= 1.1"
 # endif
 
+/* We use exceptions in our code */
+# define CL_HPP_ENABLE_EXCEPTIONS
+
+#endif /* PROFIT_BUILD */
+
 /* Define the target OpenCL version based on the given major/minor version */
 # define PASTE(x,y) x ## y ## 0
 # define MAKE_VERSION(x,y) PASTE(x,y)
-# define CL_HPP_ENABLE_EXCEPTIONS
 # define CL_HPP_TARGET_OPENCL_VERSION  MAKE_VERSION(PROFIT_OPENCL_MAJOR, PROFIT_OPENCL_MINOR)
 # define CL_HPP_MINIMUM_OPENCL_VERSION 110
-#endif /* PROFIT_BUILD */
 
 /*
  * GCC 6 gives lots of "ignoring attributes on template arguments" warnings
