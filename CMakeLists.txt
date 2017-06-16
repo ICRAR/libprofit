@@ -224,15 +224,19 @@ install(TARGETS profit profit-cli
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
 install(FILES
-        profit/cl/cl2.hpp
-        profit/config.h
+       ${CMAKE_CURRENT_BINARY_DIR}/profit/config.h
         profit/common.h
         profit/convolve.h
         profit/exceptions.h
+        profit/fft.h
         profit/model.h
+        profit/opencl.h
         profit/profile.h
         profit/profit.h
         DESTINATION include/profit)
+install(FILES
+        profit/cl/cl2.hpp
+        DESTINATION include/profit/cl)
 
 #
 # Unit tests
