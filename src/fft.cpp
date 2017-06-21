@@ -195,11 +195,6 @@ std::vector<double> FFTPlan::backward_real(const std::vector<std::complex<double
 	return to_double(execute(data, backward_plan));
 }
 
-std::vector<double> FFTPlan::backward_real(const std::vector<double> &data) const
-{
-	return to_double(execute(to_complex(data), backward_plan));
-}
-
 std::vector<std::complex<double>> FFTPlan::to_complex(const std::vector<double> data) const
 {
 	std::vector<std::complex<double>> c_data(data.size());

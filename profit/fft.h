@@ -117,14 +117,6 @@ public:
 	std::vector<double> backward_real(const std::vector<std::complex<double>> &data) const;
 
 	/**
-	 * Returns the inverse FFT of ``data``
-	 *
-	 * @param data The data to transform
-	 * @return The inverse FFT of ``data``, an array of real data
-	 */
-	std::vector<double> backward_real(const std::vector<double> &data) const;
-
-	/**
 	 * Method to be called to initialize the underlying library.
 	 */
 	static void initialize();
