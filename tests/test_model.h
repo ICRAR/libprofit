@@ -30,7 +30,7 @@
 
 using namespace profit;
 
-class TestPsf : public CxxTest::TestSuite {
+class TestModel : public CxxTest::TestSuite {
 
 public:
 
