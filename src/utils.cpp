@@ -94,7 +94,7 @@ void add_images(std::vector<double> &dest, const std::vector<double> &src) {
 }
 
 void normalize(std::vector<double> &image) {
-	double sum = std::accumulate(image.begin(), image.end(), 0);
+	double sum = std::accumulate(image.begin(), image.end(), 0.);
 	if( sum == 0 ) {
 		return;
 	}
