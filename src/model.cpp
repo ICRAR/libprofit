@@ -43,8 +43,8 @@
 
 namespace profit {
 
-Model::Model() :
-	width(0), height(0),
+Model::Model(unsigned int width, unsigned int height) :
+	width(width), height(height),
 	scale_x(1), scale_y(1),
 	magzero(0),
 	psf(), psf_width(0), psf_height(0),

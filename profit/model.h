@@ -63,7 +63,7 @@ public:
 	 * It creates a new model to which profiles can be added, and that can be
 	 * used to calculate an image.
 	 */
-	Model();
+	Model(unsigned int width = 0, unsigned int height = 0);
 
 	/**
 	 * Creates a new profile for the given name and adds it to the given model.
