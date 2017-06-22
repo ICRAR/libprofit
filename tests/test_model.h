@@ -24,6 +24,8 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+
 #include <cxxtest/TestSuite.h>
 
 #include "profit/profit.h"
@@ -125,5 +127,43 @@ public:
 		// finally everything is in order...
 		m.psf_height = 1; m.psf_height = 2;
 		m.evaluate();
+	}
+
+	void _add_sersic(Model &m, double xcen, double ycen, double re) {
+		auto sersic = m.add_profile("sersic");
+		sersic->parameter("xcen", xcen);
+		sersic->parameter("ycen", ycen);
+		sersic->parameter("re", re);
+	}
+
+	void test_profile_images_addition() {
+
+		// three individual model images are summed up
+		Model m1(100, 100);
+		_add_sersic(m1, 50, 50, 10);
+		auto image1 = m1.evaluate();
+
+		Model m2(100, 100);
+		_add_sersic(m2, 30, 10, 16);
+		auto image2 = m2.evaluate();
+
+		Model m3(100, 100);
+		_add_sersic(m3, 23, 89, 1.2);
+		auto image3 = m3.evaluate();
+
+		// image1 holds the final result
+		std::transform(image1.begin(), image1.end(), image2.begin(), image1.begin(), std::plus<double>());
+		std::transform(image1.begin(), image1.end(), image3.begin(), image1.begin(), std::plus<double>());
+
+		// A single model image with all profile images
+		Model m4(100, 100);
+		_add_sersic(m4, 50, 50, 10);
+		_add_sersic(m4, 30, 10, 16);
+		_add_sersic(m4, 23, 89, 1.2);
+		auto image4 = m4.evaluate();
+
+		// They should be the same! We add them in the same order to make sure
+		// that floating-point rounding yields the same result
+		TS_ASSERT(image1 == image4);
 	}
 };
