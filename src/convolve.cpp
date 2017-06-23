@@ -135,7 +135,7 @@ FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
 Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
 {
 
-	using complex = std::complex<double>;
+	typedef std::complex<double> complex;
 
 	auto src_width = src.getWidth();
 	auto src_height = src.getHeight();
