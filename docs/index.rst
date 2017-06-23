@@ -15,6 +15,7 @@ libprofit
    usage.rst
    coordinates.rst
    profiles.rst
+   convolution.rst
    new_profile.rst
    bindings.rst
    api.rst

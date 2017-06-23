@@ -19,6 +19,16 @@ Exceptions
 .. doxygenclass:: profit::invalid_parameter
    :project: libprofit
 
+Convolvers
+----------
+
+.. doxygenclass:: profit::Convolver
+   :members: convolve
+
+.. doxygenclass:: profit::BruteForceConvolver
+
+.. doxygenclass:: profit::FFTConvolver
+
 Model class
 -----------
 
