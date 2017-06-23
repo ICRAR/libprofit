@@ -67,6 +67,9 @@ matrix:
       packages: [g++-6, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-6 CXXFLAGS="-coverage" LDFLAGS="-coverage"
   - compiler: clang
+    addons:
+     apt:
+      packages: [libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=clang++
 
 # We use cmake, but in precise we still have 2.8...
