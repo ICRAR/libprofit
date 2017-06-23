@@ -25,6 +25,7 @@
  */
 
 #include <algorithm>
+#include <memory>
 
 #include <cxxtest/TestSuite.h>
 
@@ -129,11 +130,12 @@ public:
 		m.evaluate();
 	}
 
-	void _add_sersic(Model &m, double xcen, double ycen, double re) {
+	void _add_sersic(Model &m, double xcen, double ycen, double re, bool convolve = false) {
 		auto sersic = m.add_profile("sersic");
 		sersic->parameter("xcen", xcen);
 		sersic->parameter("ycen", ycen);
 		sersic->parameter("re", re);
+		sersic->parameter("convolve", convolve);
 	}
 
 	void test_profile_images_addition() {
@@ -165,5 +167,39 @@ public:
 		// They should be the same! We add them in the same order to make sure
 		// that floating-point rounding yields the same result
 		TS_ASSERT(image1 == image4);
+	}
+
+	void test_profile_images_addition_after_convolving() {
+
+		auto convolver = std::make_shared<BruteForceConvolver>();
+		auto psf = {0., 1., 2., 3.};
+
+		// two individual model images are summed up
+		// the second is actually convolved with a psf
+		Model m1(100, 100);
+		_add_sersic(m1, 50, 50, 10);
+		auto image1 = m1.evaluate();
+
+		Model m2(100, 100);
+		m2.convolver = convolver;
+		m2.psf = psf; m2.psf_width = 2; m2.psf_height = 2;
+		_add_sersic(m2, 30, 10, 16, true);
+		auto image2 = m2.evaluate();
+
+		// image1 holds the final result
+		std::transform(image1.begin(), image1.end(), image2.begin(), image1.begin(), std::plus<double>());
+
+		// A single model image with all profile images
+		Model m3(100, 100);
+		m3.convolver = convolver;
+		m3.psf = psf; m3.psf_width = 2; m3.psf_height = 2;
+		_add_sersic(m3, 50, 50, 10);
+		_add_sersic(m3, 30, 10, 16, true);
+		auto image3 = m3.evaluate();
+
+		// They should be the same! We add them in the same order to make sure
+		// that floating-point rounding yields the same result
+		TS_ASSERT(image1 == image3);
+
 	}
 };
