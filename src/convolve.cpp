@@ -37,25 +37,19 @@
 namespace profit
 {
 
-std::vector<double> convolve(
-         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
-         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-         const std::vector<bool> &mask)
-{
-	return BruteForceConvolver().convolve(src, src_width, src_height, krn, krn_width, krn_height, mask);
-}
-
 Convolver::~Convolver()
 {
 	// no-op
 }
 
 
-std::vector<double> BruteForceConvolver::convolve(
-         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
-         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-         const std::vector<bool> &mask)
+Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
 {
+
+	auto src_width = src.getWidth();
+	auto src_height = src.getHeight();
+	auto krn_width = krn.getWidth();
+	auto krn_height = krn.getHeight();
 
 	double pixel;
 	unsigned int i, j, k, l;
@@ -64,12 +58,13 @@ std::vector<double> BruteForceConvolver::convolve(
 	unsigned int krn_size = krn_width * krn_height;
 	int src_i, src_j;
 
-	std::vector<double> convolution(src_width * src_height);
+	Image convolution(src_width, src_height);
 
-	double *out = convolution.data() - 1;
-	const double *srcPtr1 = src.data() - 1, *srcPtr2;
+	const double *krn_data = krn.getData().data();
+	double *out = convolution.getData().data() - 1;
+	const double *srcPtr1 = src.getData().data() - 1, *srcPtr2;
 	const double *krnPtr;
-	std::vector<bool>::const_iterator mask_it = mask.begin();
+	auto mask_it = mask.getData().begin();
 
 	/* Convolve! */
 	/* Loop around the output image first... */
@@ -88,7 +83,7 @@ std::vector<double> BruteForceConvolver::convolve(
 			}
 
 			pixel = 0;
-			krnPtr = krn.data() + krn_size - 1;
+			krnPtr = krn_data + krn_size - 1;
 			srcPtr2 = srcPtr1 - krn_half_width - krn_half_height*src_width;
 
 			/* ... now loop around the kernel */
@@ -137,25 +132,27 @@ FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
 	plan = std::unique_ptr<FFTPlan>(new FFTPlan(convolution_size, effort, plan_omp_threads));
 }
 
-std::vector<double> FFTConvolver::convolve(
-        const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
-        const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-        const std::vector<bool> &mask)
+Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
 {
 
-	typedef std::complex<double> complex;
+	using complex = std::complex<double>;
+
+	auto src_width = src.getWidth();
+	auto src_height = src.getHeight();
+	auto krn_width = krn.getWidth();
+	auto krn_height = krn.getHeight();
 
 	// Create extended images first
-	auto krn_start_x = (src_width - krn_width) / 2;
-	auto krn_start_y = (src_height - krn_height) / 2;
 	auto ext_width = 2 * src_width;
 	auto ext_height = 2 * src_height;
-	auto ext_img = extend(src, src_width, src_height, ext_width, ext_height, 0, 0);
-	auto ext_krn = extend(krn, krn_width, krn_height, ext_width, ext_height, krn_start_x, krn_start_y);
+	Image ext_img = src.extend(ext_width, ext_height, 0, 0);
 
 	// Forward FFTs
 	std::vector<complex> src_fft = plan->forward(ext_img);
 	if (krn_fft.empty()) {
+		auto krn_start_x = (src_width - krn_width) / 2;
+		auto krn_start_y = (src_height - krn_height) / 2;
+		Image ext_krn = krn.extend(ext_width, ext_height, krn_start_x, krn_start_y);
 		krn_fft = plan->forward(ext_krn);
 	}
 
@@ -167,12 +164,10 @@ std::vector<double> FFTConvolver::convolve(
 	}
 
 	// inverse FFT and scale down
-	using namespace std::placeholders;
-	std::vector<double> res = plan->backward_real(src_fft);
-	std::transform(res.begin(), res.end(), res.begin(),
-	               std::bind(std::divides<double>(), _1, res.size()));
+	Image res(plan->backward_real(src_fft), ext_width, ext_height);
+	res /= res.getSize();
 
-	// crop the image to original size
+	// crop the image to original size, apply the mask, and good bye
 	auto x_offset = src_width / 2;
 	auto y_offset = src_height / 2;
 
@@ -184,14 +179,8 @@ std::vector<double> FFTConvolver::convolve(
 		y_offset -= 1;
 	}
 
-	auto cropped = crop(res, ext_width, ext_height, src_width, src_height, x_offset, y_offset);
-
-	// apply mask and good bye
-	if (!mask.empty()) {
-		std::transform(cropped.begin(), cropped.end(), mask.begin(), cropped.begin(), [](const double i, const bool m) {
-			return m ? i : 0.;
-		});
-	}
+	auto cropped = res.crop(src_width, src_height, x_offset, y_offset);
+	cropped &= mask;
 	return cropped;
 }
 

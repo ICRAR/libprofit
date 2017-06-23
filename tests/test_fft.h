@@ -245,6 +245,25 @@ public:
 		_check_images_within_tolerance(m);
 	}
 
+	void test_fftconvolver_reusage() {
+		Mask mask;
+		Image src(100, 100);
+		Image krn(25, 25);
+		for(auto &d: src.getData()) {
+			d = (rand() % 10000) / 10000.0;
+		}
+		for(auto &d: krn.getData()) {
+			d = (rand() % 10000) / 10000.0;
+		}
+
+		FFTConvolver convolver(100, 100, 25, 25, FFTPlan::ESTIMATE, 1, true);
+		Image result1 = convolver.convolve(src, krn, mask);
+		Image result2 = convolver.convolve(src, krn, mask);
+		Image result3 = convolver.convolve(src, krn, mask);
+		TS_ASSERT(result1 == result2);
+		TS_ASSERT(result2 == result3);
+	}
+
 };
 
 #endif // PROFIT_FFTW

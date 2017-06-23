@@ -30,7 +30,7 @@
 include_directories(${CXXTEST_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 set(CXXTEST_TESTGEN_ARGS --error-printer --have-eh)
 
-set(LIBPROFIT_TEST_NAMES model profile psf radial sersic sky utils)
+set(LIBPROFIT_TEST_NAMES image model profile psf radial sersic sky utils)
 if( OpenCL_FOUND )
 	set(LIBPROFIT_TEST_NAMES ${LIBPROFIT_TEST_NAMES} opencl)
 endif()

@@ -154,8 +154,6 @@ std::vector<double> Model::evaluate() {
 		}
 	}
 
-	std::vector<double> image(this->width * this->height, 0);
-
 	/*
 	 * Validate all profiles.
 	 * Each profile can fail during validation in which case we don't proceed any further
@@ -164,9 +162,12 @@ std::vector<double> Model::evaluate() {
 		profile->validate();
 	}
 
+	// The image we'll eventually return
+	Image image(width, height);
+
 	/* so long folks! */
 	if( dry_run ) {
-		return image;
+		return image.getData();
 	}
 
 	/*
@@ -177,11 +178,11 @@ std::vector<double> Model::evaluate() {
 	 * probably we should study what is the best way to go here (e.g.,
 	 * parallelize only if we have more than 2 or 3 profiles)
 	 */
-	std::vector<std::vector<double>> profile_images;
+	std::vector<Image> profile_images;
 	for(auto &profile: this->profiles) {
-		std::vector<double> profile_image(this->width * this->height, 0);
-		profile->evaluate(profile_image);
-		profile_images.push_back(move(profile_image));
+		Image profile_image(width, height);
+		profile->evaluate(profile_image.getData());
+		profile_images.push_back(std::move(profile_image));
 	}
 
 	/*
@@ -195,28 +196,32 @@ std::vector<double> Model::evaluate() {
 	for(auto &profile: this->profiles) {
 		if( profile->do_convolve() ) {
 			do_convolve = true;
-			add_images(image, *it);
+			image += *it;
 		}
 		it++;
 	}
 	if( do_convolve ) {
-		std::vector<double> psf(this->psf);
-		normalize(psf);
+		Image psf_img(psf, psf_width, psf_height);
+		psf_img.normalize();
 		if (!convolver) {
 			convolver = create_convolver();
 		}
-		image = convolver->convolve(image, width, height, psf, psf_width, psf_height, calcmask);
+		Mask mask_img;
+		if (!calcmask.empty()) {
+			mask_img = Mask(calcmask, width, height);
+		}
+		image = convolver->convolve(image, psf_img, mask_img);
 	}
 	it = profile_images.begin();
 	for(auto &profile: this->profiles) {
 		if( !profile->do_convolve() ) {
-			add_images(image, *it);
+			image += *it;
 		}
 		it++;
 	}
 
 	/* Done! Good job :-) */
-	return image;
+	return image.getData();
 }
 
 

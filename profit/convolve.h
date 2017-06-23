@@ -31,31 +31,11 @@
 #include <vector>
 
 #include "profit/common.h"
+#include "profit/image.h"
 #include "profit/fft.h"
 
 namespace profit
 {
-
-/**
- * Brute-force convolves image `src` with the kernel `krn`.
- *
- * A mask parameter also controls which pixels from the original image should be
- * convolved. If NULL all pixels are convolved.
-
- * @param src The source image
- * @param src_width The source image's width
- * @param src_height The source image's height
- * @param krn The convolution kernel
- * @param krn_width The kernel's width
- * @param krn_height The kernel's height
- * @param mask An optional boolean mask indicating which pixels of the resulting
- *             image should be convolved
- * @return The convolved image
- */
-std::vector<double>
-convolve(const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
-         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-         const std::vector<bool> &mask);
 
 /**
  * A convolver object convolves two images
@@ -71,20 +51,13 @@ public:
 	 * should be convolved. If empty, all pixels are convolved.
 
 	 * @param src The source image
-	 * @param src_width The source image's width
-	 * @param src_height The source image's height
 	 * @param krn The convolution kernel
-	 * @param krn_width The kernel's width
-	 * @param krn_height The kernel's height
-	 * @param mask An optional boolean mask indicating which pixels of the resulting
-	 *             image should be convolved
+	 * @param mask An mask indicating which pixels of the resulting image should
+	 *             be convolved
 	 * @return The convolved image
 	 */
 	virtual
-	std::vector<double>
-	convolve(const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
-	         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-	         const std::vector<bool> &mask) = 0;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask) = 0;
 
 };
 
@@ -94,11 +67,7 @@ public:
 class BruteForceConvolver : public Convolver {
 
 public:
-
-	std::vector<double> convolve(
-	         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
-	         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-	         const std::vector<bool> &mask) override;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
 
 };
 
@@ -130,10 +99,7 @@ public:
 	             FFTPlan::effort_t effort, unsigned int plan_omp_threads,
 	             bool reuse_krn_fft);
 
-	std::vector<double> convolve(
-	         const std::vector<double> &src, unsigned int src_width, unsigned int src_height,
-	         const std::vector<double> &krn, unsigned int krn_width, unsigned int krn_height,
-	         const std::vector<bool> &mask) override;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
 
 private:
 	std::unique_ptr<FFTPlan> plan;

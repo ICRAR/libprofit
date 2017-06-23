@@ -197,6 +197,7 @@ set(PROFIT_SRC
    src/exceptions.cpp
    src/ferrer.cpp
    src/fft.cpp
+   src/image.cpp
    src/king.cpp
    src/model.cpp
    src/moffat.cpp
@@ -229,6 +230,7 @@ install(FILES
         profit/convolve.h
         profit/exceptions.h
         profit/fft.h
+        profit/image.h
         profit/model.h
         profit/opencl.h
         profit/profile.h
