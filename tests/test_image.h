@@ -131,9 +131,9 @@ public:
 		im2 += im1;
 
 		// Both sums should have worked
-		for(const Image &im: {std::move(im3), std::move(im2)}) {
+		for(auto im: {&im3, &im2}) {
 			for(unsigned int i = 0; i < 4; i++) {
-				TS_ASSERT_DELTA(im.getData()[i], data[i] * 2, 1e-6);
+				TS_ASSERT_DELTA(im->getData()[i], data[i] * 2, 1e-6);
 			}
 		}
 	}
@@ -147,9 +147,9 @@ public:
 		im1 /= 2;
 
 		// Both divisions should have worked
-		for(const Image &im: {std::move(im1), std::move(im2)}) {
+		for(auto im: {&im1, &im2}) {
 			for(unsigned int i = 0; i < 4; i++) {
-				TS_ASSERT_DELTA(im.getData()[i], data[i] / 2, 1e-6);
+				TS_ASSERT_DELTA(im->getData()[i], data[i] / 2, 1e-6);
 			}
 		}
 	}
@@ -160,16 +160,16 @@ public:
 		Image im1({1, 2, 3, 4}, 2, 2);
 		Image im2 = static_cast<const Image &>(im1).normalize();
 		im1.normalize();
-		for(const Image &im: {std::move(im1), std::move(im2)}) {
-			TS_ASSERT_DELTA(1, im.getTotal(), 1e-6);
+		for(auto im: {&im1, &im2}) {
+			TS_ASSERT_DELTA(1, im->getTotal(), 1e-6);
 		}
 
 		// A zero-values image doesn't get normalized
 		Image im3({0, 0, 0, 0}, 2, 2);
 		Image im4 = static_cast<const Image &>(im3).normalize();
 		im3.normalize();
-		for(const Image &im: {std::move(im3), std::move(im4)}) {
-			TS_ASSERT_DELTA(0, im.getTotal(), 1e-6);
+		for(auto im: {&im3, &im4}) {
+			TS_ASSERT_DELTA(0, im->getTotal(), 1e-6);
 		}
 
 		// Re-normalizing should get us to the same place
