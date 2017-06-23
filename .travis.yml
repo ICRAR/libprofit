@@ -25,7 +25,7 @@
 #
 
 language: cpp
-sudo: required
+sudo: false
 
 # safelist
 branches:
@@ -33,35 +33,38 @@ branches:
   - master
 
 # We try with both GNU and LLVM
-# When running with gcc we also collect coverage information
+# When running with gcc-6 we also collect coverage information
 # and upload it to coveralls
 matrix:
  include:
   - compiler: gcc
+    addons:
+     apt:
+      packages: [libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-4.6 CXXFLAGS="-std=c++0x"
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: g++-4.7
+      packages: [g++-4.7, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-4.7
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: g++-4.9
+      packages: [g++-4.9, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-4.9
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: g++-5
+      packages: [g++-5, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-5
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-6, libfftw3-dev]
+      packages: [g++-6, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-6 CXXFLAGS="-coverage" LDFLAGS="-coverage"
   - compiler: clang
     env: COMPILER=clang++
@@ -74,7 +77,6 @@ before_install:
  - export PATH=${TRAVIS_BUILD_DIR}/cmake-3.1.3-Linux-x86_64/bin:$PATH
  - export CMAKE_MODULE_PATH=${TRAVIS_BUILD_DIR}/cmake-3.1.3-Linux-x86_64/share/cmake-3.1/Modules:${CMAKE_MODULE_PATH}
  - git clone https://github.com/CxxTest/cxxtest
- - sudo apt-get install libgsl0-dev opencl-headers
  - pip install --user cpp-coveralls
 
 install:
