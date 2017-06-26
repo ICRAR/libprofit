@@ -242,6 +242,12 @@ std::shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, u
 	const char *coresersic_double =
 #include "cl/coresersic-double.cl"
 	;
+	const char *convolve_float =
+#include "cl/convolve-float.cl"
+	;
+	const char *convolve_double =
+#include "cl/convolve-double.cl"
+	;
 
 	cl::Program::Sources sources;
 	sources.push_back(common_float);
@@ -251,6 +257,7 @@ std::shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, u
 	sources.push_back(king_float);
 	sources.push_back(brokenexp_float);
 	sources.push_back(coresersic_float);
+	sources.push_back(convolve_float);
 	if( use_double ) {
 		sources.push_back(common_double);
 		sources.push_back(sersic_double);
@@ -259,6 +266,7 @@ std::shared_ptr<OpenCL_env> _get_opencl_environment(unsigned int platform_idx, u
 		sources.push_back(king_double);
 		sources.push_back(brokenexp_double);
 		sources.push_back(coresersic_double);
+		sources.push_back(convolve_double);
 	}
 
 	cl::Context context(device);

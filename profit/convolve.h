@@ -33,6 +33,7 @@
 #include "profit/common.h"
 #include "profit/image.h"
 #include "profit/fft.h"
+#include "profit/opencl.h"
 
 namespace profit
 {
@@ -110,6 +111,32 @@ private:
 };
 
 #endif /* PROFIT_FFTW */
+
+#ifdef PROFIT_OPENCL
+
+/**
+ * A brute-force convolver that is implemented using OpenCL
+ *
+ * Depending on the floating-point support found at runtime in the given OpenCL
+ * environment this convolver will use a float-based or a double-based kernel.
+ */
+class OpenCLConvolver : public Convolver {
+
+public:
+	OpenCLConvolver(std::shared_ptr<OpenCL_env> opencl_env);
+
+	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
+
+private:
+	std::shared_ptr<OpenCL_env> env;
+
+	Image _convolve(const Image &src, const Image &krn, const Mask &mask);
+
+	template<typename T>
+	Image _clpadded_convolve(const Image &src, const Image &krn, const Image &orig_src);
+};
+
+#endif // PROFIT_OPENCL
 
 } /* namespace profit */
 
