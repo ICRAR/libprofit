@@ -337,28 +337,6 @@ void RadialProfile::evaluate_cpu(std::vector<double> &image) {
 #ifdef PROFIT_OPENCL
 
 /*
- * Small trait that describes specific floating types
- */
-template <typename T>
-struct float_traits {
-	const static bool is_float = false;
-	const static bool is_double = false;
-	constexpr const static char * name = "unknown";
-};
-template <>
-struct float_traits<float> {
-	const static bool is_float = true;
-	const static bool is_double = false;
-	constexpr const static char * name = "float";
-};
-template <>
-struct float_traits<double> {
-	const static bool is_float = false;
-	const static bool is_double = true;
-	constexpr const static char * name = "double";
-};
-
-/*
  * Simple structure holding a 2D point
  */
 template <typename FT>

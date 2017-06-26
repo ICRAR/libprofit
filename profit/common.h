@@ -43,6 +43,29 @@
 
 namespace profit {
 	typedef unsigned int nsecs_t;
+
+	/// Trait describing specific float and double floating types
+	template <typename FT>
+	struct float_traits {
+		const static bool is_float = false;
+		const static bool is_double = false;
+		constexpr const static char * name = "unknown";
+	};
+
+	template <>
+	struct float_traits<float> {
+		const static bool is_float = true;
+		const static bool is_double = false;
+		constexpr const static char * name = "float";
+	};
+
+	template <>
+	struct float_traits<double> {
+		const static bool is_float = false;
+		const static bool is_double = true;
+		constexpr const static char * name = "double";
+	};
+
 }
 
 #endif /* PROFIT_COMMON_H */
