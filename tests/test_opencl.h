@@ -93,7 +93,32 @@ static OpenCLFixtures openCLFixtures;
 
 class TestOpenCL : public CxxTest::TestSuite {
 
-public:
+private:
+
+	void _pixels_within_tolerance(std::vector<double> original_im, std::vector<double> opencl_im,
+	                              unsigned int i, unsigned int width,
+	                              double tolerance) {
+
+		double original = original_im[i];
+		double opencl = opencl_im[i];
+		auto diff = std::abs(original - opencl);
+		if ( !diff ) {
+			// all good
+			return;
+		}
+
+		// avoid NaNs due to divide-by-zero
+		auto denomin = original;
+		if ( !denomin ) {
+			denomin = opencl;
+		}
+		auto relative_diff = diff / denomin;
+
+		std::ostringstream msg;
+		msg << "Pixel [" << i % width << "," << i / width << "] has values that are too different: ";
+		msg << original << " v/s " << opencl;
+		TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), relative_diff, tolerance);
+	}
 
 	void _check_images_within_tolerance(Model &m) {
 
@@ -109,29 +134,11 @@ public:
 
 		// Pixel by pixel the images should be fairly similar
 		for(unsigned int i=0; i!=original.size(); i++) {
-
-			auto original_pixel = original[i];
-			auto opencl_pixel = opencl_produced[i];
-
-			auto diff = std::abs(original_pixel - opencl_pixel);
-			if ( !diff ) {
-				// all good
-				continue;
-			}
-
-			// avoid NaNs due to divide-by-zero
-			auto denomin = original_pixel;
-			if ( !denomin ) {
-				denomin = opencl_pixel;
-			}
-			auto relative_diff = diff / denomin;
-
-			std::ostringstream msg;
-			msg << "Pixel [" << i%m.width << "," << i/m.width << "] has values that are too different: ";
-			msg << original_pixel << " v/s " << opencl_pixel;
-			TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), relative_diff, openCLFixtures.tolerance);
+			_pixels_within_tolerance(original, opencl_produced, i, m.width, openCLFixtures.tolerance);
 		}
 	}
+
+public:
 
 	void test_opencldiff_brokenexp() {
 		Model m;
