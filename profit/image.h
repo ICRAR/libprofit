@@ -171,6 +171,14 @@ class Image : public _2ddata<double> {
 public:
 
 	// Constructors that look that those from _2ddata
+	//
+	// C++11 supports inheriting ctors like this:
+	//
+	// using _2ddata::_2ddata;
+	//
+	// Sadly, gcc supports this only since 4.8. Since we still want to keep
+	// supporting gcc >= 4.6.3 for a while, we still need to keep this verbose
+	// code that simply forwards each of the arguments to the parent ctor
 	Image(unsigned int width = 0, unsigned int height = 0);
 	Image(const std::vector<double> &data, unsigned int width, unsigned int height);
 	Image(std::vector<double> &&data, unsigned int width, unsigned int height);
