@@ -25,6 +25,11 @@ different convolver types will be available to be used:
   that uses Fast Fourier transformations to perform convolution.
   Its complexity is lower than the :class:`BruteForceConvolver`,
   but its creation can be more expensive.
+* :class:`OpenCLConvolver` is a brute-force convolver
+  implemented in OpenCL.
+  It offers both single and double floating-point precision
+  and its performance is usually better
+  that that of the `BruteForceConvolver`.
 
 If a :class:`Model` needs to perform convolution
 and a :class:`Convolver` has been set

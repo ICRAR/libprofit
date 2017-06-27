@@ -27,6 +27,8 @@ Convolvers
 
 .. doxygenclass:: profit::BruteForceConvolver
 
+.. doxygenclass:: profit::OpenCLConvolver
+
 .. doxygenclass:: profit::FFTConvolver
 
 Model class
