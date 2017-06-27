@@ -56,6 +56,18 @@ class Model {
 
 public:
 
+	/**
+	 * The types of convolvers this Model can internally create
+	 */
+	enum ConvolverType {
+		BRUTE = 0,
+#ifdef PROFIT_OPENCL
+		OPENCL,
+#endif // PROFIT_OPENCL
+#ifdef PROFIT_FFTW
+		FFT,
+#endif // PROFIT_FFTW
+	};
 
 	/**
 	 * Constructor
@@ -185,6 +197,12 @@ public:
 	std::shared_ptr<Convolver> convolver;
 
 	/**
+	 * Which type of convolver should be constructed if one is required,
+	 * but missing.
+	 */
+	ConvolverType convolver_type;
+
+	/**
 	 * Whether the actual evaluation of profiles should be skipped or not.
 	 * Profile validation still occurs.
 	 */
@@ -204,12 +222,6 @@ public:
 #endif /* PROFIT_OPENMP */
 
 #ifdef PROFIT_FFTW
-	/**
-	 * Whether or not this Model try to use FFT-based convolution.
-	 * If a convolver is set, it overrides this setting.
-	 */
-	bool use_fft;
-
 	/**
 	 * Whether or not a copy of the FFT'd version of the PSF should be kept
 	 * by the FFT-based convolver (if used).

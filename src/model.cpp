@@ -51,6 +51,7 @@ Model::Model(unsigned int width, unsigned int height) :
 	psf_scale_x(1), psf_scale_y(1),
 	calcmask(),
 	convolver(),
+	convolver_type(BRUTE),
 	dry_run(false),
 #ifdef PROFIT_OPENCL
 	opencl_env(),
@@ -59,7 +60,6 @@ Model::Model(unsigned int width, unsigned int height) :
 	omp_threads(0),
 #endif /* PROFIT_OPENMP */
 #ifdef PROFIT_FFTW
-	use_fft(false),
 	reuse_psf_fft(false),
 	fft_effort(FFTPlan::ESTIMATE),
 #endif /* PROFIT_FFTW */
@@ -227,20 +227,37 @@ std::vector<double> Model::evaluate() {
 
 std::shared_ptr<Convolver> Model::create_convolver() const
 {
-#ifndef PROFIT_FFTW
-	return std::make_shared<BruteForceConvolver>();
-#else
-	if (!use_fft) {
-		return std::make_shared<BruteForceConvolver>();
-	}
 
 	int threads = 1;
+	switch (convolver_type) {
+
+		case BRUTE:
+			break;
+
+#ifdef PROFIT_OPENCL
+		case OPENCL:
+			if (opencl_env) {
+				return std::make_shared<OpenCLConvolver>(opencl_env);
+			}
+			break;
+#endif // PROFIT_OPENCL
+
+#ifdef PROFIT_FFTW
+		case FFT:
 #ifdef PROFIT_FFTW_OPENMP
-	threads = omp_threads;
-#endif /* PROFIT_FFTW_OPENMP */
-	return std::make_shared<FFTConvolver>(width, height, psf_width, psf_height,
-	                                      fft_effort, threads, reuse_psf_fft);
-#endif /* PROFIT_FFTW */
+			threads = omp_threads;
+#endif // PROFIT_FFTW_OPENMP
+			return std::make_shared<FFTConvolver>(width, height, psf_width, psf_height,
+			                                      fft_effort, threads, reuse_psf_fft);
+			break;
+#endif // PROFIT_FFTW
+
+		default:
+			throw invalid_parameter("Unknown convolver type: " + std::to_string(static_cast<int>(convolver_type)));
+	}
+
+	// Create the brute-force convolver as a last resort
+	return std::make_shared<BruteForceConvolver>();
 }
 
 

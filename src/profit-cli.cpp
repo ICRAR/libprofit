@@ -320,6 +320,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -f <file> Output image as fits file\n");
 	fprintf(file,"  -i <n>    Output performance information after evaluating the model n times\n");
 	fprintf(file,"  -s        Show runtime stats\n");
+	fprintf(file,"  -T <conv> Use this type of convolver (see below)\n");
 #ifdef PROFIT_OPENCL
 	fprintf(file,"  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)\n");
 	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
@@ -328,8 +329,8 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -n <n>    Use n OpenMP threads to calculate profiles\n");
 #endif /* PROFIT_OPENMP */
 #ifdef PROFIT_FFTW
-	fprintf(file,"  -F <n>    Convolve with FFTW. Plan created with n effort (more takes longer)\n");
-	fprintf(file,"  -r        Reuse FFT-transformed PSF across model evaluations\n");
+	fprintf(file,"  -F <n>    FFTW plans created with n effort (more takes longer)\n");
+	fprintf(file,"  -r        Reuse FFT-transformed PSF across evaluations (if -T fft)\n");
 #endif /* PROFIT_FFTW */
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
 	fprintf(file,"  -y        Image height. Defaults to 100\n");
@@ -339,7 +340,15 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -P        PSF function (specified as w:h:val1,val2..., or as a FITS filename)\n");
 	fprintf(file,"  -h,-?     Show this help and exit\n");
 	fprintf(file,"  -V        Show the program version and exit\n\n");
-	fprintf(file,"Profiles should be specified as follows:\n\n");
+	fprintf(file,"The following convolver types are supported:\n\n");
+	fprintf(file," * brute: A brute-force convolver\n");
+#ifdef PROFIT_OPENCL
+	fprintf(file," * opencl: An OpenCL-based brute-force convolver\n");
+#endif // PROFIT_OPENCL
+#ifdef PROFIT_FFTW
+	fprintf(file," * fft: An FFT-based convolver\n");
+#endif // PROFIT_FFTW
+	fprintf(file,"\nProfiles should be specified as follows:\n\n");
 	fprintf(file,"-p name:param1=val1:param2=val2:...\n\n");
 	fprintf(file,"The following profiles (and parameters) are currently accepted:\n\n");
 	fprintf(file," * psf: xcen, ycen, mag\n");
@@ -628,6 +637,25 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	return 0;
 }
 
+Model::ConvolverType read_convolver_type(const char *conv_type) {
+
+	if (strcmp("brute", conv_type) == 0) {
+		return Model::BRUTE;
+	}
+#ifdef PROFIT_OPENCL
+	else if (strcmp("opencl", conv_type) == 0) {
+		return Model::OPENCL;
+	}
+#endif // PROFIT_OPENCL
+#ifdef PROFIT_FFTW
+	else if (strcmp("fft", conv_type) == 0) {
+		return Model::FFT;
+	}
+#endif // PROFIT_FFTW
+
+	throw invalid_cmdline(std::string("Invalid option value for -T: ") + conv_type);
+}
+
 vector<double> run(unsigned int iterations, Model &m) {
 
 	using chrono::system_clock;
@@ -688,7 +716,7 @@ int parse_and_run(int argc, char *argv[]) {
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
 
-	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:"
+	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:T:"
 #ifdef PROFIT_OPENCL
 	                      "C:c"
 #endif /* PROFIT_OPENCL */
@@ -736,9 +764,12 @@ int parse_and_run(int argc, char *argv[]) {
 				show_stats = true;
 				break;
 
+			case 'T':
+				m.convolver_type = read_convolver_type(optarg);
+				break;
+
 #ifdef PROFIT_FFTW
 			case 'F':
-				m.use_fft = true;
 				m.fft_effort = FFTPlan::effort_t(std::atoi(optarg));
 				break;
 
