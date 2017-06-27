@@ -870,11 +870,6 @@ int parse_and_run(int argc, char *argv[]) {
 		return 1;
 	}
 
-	/* We default to text output */
-	if( output == none ) {
-		output = text;
-	}
-
 	m.width   = width;
 	m.height  = height;
 	m.scale_x = scale_x;
@@ -896,6 +891,9 @@ int parse_and_run(int argc, char *argv[]) {
 	vector<double> image = run(iterations, m);
 
 	switch(output) {
+
+		case none:
+			break;
 
 		case binary:
 			fwrite(image.data(), sizeof(double), m.width * m.height, stdout);
