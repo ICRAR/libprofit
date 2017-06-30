@@ -40,8 +40,8 @@ __kernel void convolve_double(
 	const int Y = get_global_id(1);
 	const int W = get_global_size(0);
 	const int H = get_global_size(1);
-	const int half_krn_w = (krn_w - 1)/ 2;
-	const int half_krn_h = (krn_h - 1)/ 2;
+	const int half_krn_w = krn_w / 2;
+	const int half_krn_h = krn_h / 2;
 
 	/* No need to do these */
 	if (X >= src_w || Y >= src_h) {

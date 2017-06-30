@@ -54,8 +54,8 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 
 	double pixel;
 	unsigned int i, j, k, l;
-	unsigned int krn_half_width = (krn_width - 1) / 2;
-	unsigned int krn_half_height = (krn_height - 1) / 2;
+	unsigned int krn_half_width = krn_width / 2;
+	unsigned int krn_half_height = krn_height / 2;
 	unsigned int krn_size = krn_width * krn_height;
 	int src_i, src_j;
 
@@ -173,10 +173,10 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 	auto y_offset = src_height / 2;
 
 	// even image and odd kernel requires slight adjustment
-	if (src_width % 2 == 0 and krn_width % 2 == 1) {
+	if (src_width % 2 == 0 or krn_width % 2 == 0) {
 		x_offset -= 1;
 	}
-	if (src_height % 2 == 0 and krn_height % 2 == 1) {
+	if (src_height % 2 == 0 or krn_height % 2 == 0) {
 		y_offset -= 1;
 	}
 
