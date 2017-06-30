@@ -138,6 +138,30 @@ private:
 		}
 	}
 
+	void _check_convolver(Convolver &&clConvolver) {
+		for(auto im_dim: {100, 101}) {
+			for(auto krn_dim: {24, 25}) {
+				Mask mask;
+				Image src(im_dim, im_dim);
+				Image krn(krn_dim, krn_dim);
+				for(auto &d: src.getData()) {
+					d = (rand() % 10000) / 10000.0;
+				}
+				for(auto &d: krn.getData()) {
+					d = (rand() % 10000) / 10000.0;
+				}
+
+				BruteForceConvolver bConvolver;
+				Image result1 = bConvolver.convolve(src, krn, mask);
+				Image result2 = clConvolver.convolve(src, krn, mask);
+				for(unsigned int i = 0; i < src.getSize(); i++) {
+					// Hopefully within 0.1% of error?
+					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
+				}
+			}
+		}
+	}
+
 public:
 
 	void test_opencldiff_brokenexp() {
@@ -237,28 +261,11 @@ public:
 	}
 
 	void test_convolver() {
-
 		if( !openCLFixtures.opencl_env ) {
 			TS_SKIP("No OpenCL environment found to run OpenCL tests");
 		}
+		_check_convolver(OpenCLConvolver{openCLFixtures.opencl_env});
 
-		Mask mask;
-		Image src(100, 100);
-		Image krn(25, 25);
-		for(auto &d: src.getData()) {
-			d = (rand() % 10000) / 10000.0;
-		}
-		for(auto &d: krn.getData()) {
-			d = (rand() % 10000) / 10000.0;
-		}
-
-		BruteForceConvolver bConvolver;
-		OpenCLConvolver clConvolver(openCLFixtures.opencl_env);
-		Image result1 = bConvolver.convolve(src, krn, mask);
-		Image result2 = clConvolver.convolve(src, krn, mask);
-		for(unsigned int i = 0; i < src.getSize(); i++) {
-			// Hopefully within 0.1% of error?
-			_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
 		}
 	}
 
