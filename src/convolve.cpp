@@ -232,7 +232,6 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	using cl::Buffer;
 	using cl::Event;
 	using cl::Kernel;
-	using cl::Local;
 	using cl::NDRange;
 	using cl::NullRange;
 
