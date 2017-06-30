@@ -63,6 +63,7 @@ public:
 		BRUTE = 0,
 #ifdef PROFIT_OPENCL
 		OPENCL,
+		OPENCL_LOCAL,
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
 		FFT,

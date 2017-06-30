@@ -344,6 +344,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file," * brute: A brute-force convolver\n");
 #ifdef PROFIT_OPENCL
 	fprintf(file," * opencl: An OpenCL-based brute-force convolver\n");
+	fprintf(file," * opencl-local: An OpenCL-based local-memory caching brute-force convolver\n");
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
 	fprintf(file," * fft: An FFT-based convolver\n");
@@ -645,6 +646,9 @@ Model::ConvolverType read_convolver_type(const char *conv_type) {
 #ifdef PROFIT_OPENCL
 	else if (strcmp("opencl", conv_type) == 0) {
 		return Model::OPENCL;
+	}
+	else if (strcmp("opencl-local", conv_type) == 0) {
+		return Model::OPENCL_LOCAL;
 	}
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW

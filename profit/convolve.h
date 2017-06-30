@@ -136,6 +136,26 @@ private:
 	Image _clpadded_convolve(const Image &src, const Image &krn, const Image &orig_src);
 };
 
+/**
+ * Like OpenCLConvolver, but uses a local memory cache
+ */
+class OpenCLLocalConvolver : public Convolver {
+
+public:
+	OpenCLLocalConvolver(std::shared_ptr<OpenCL_env> opencl_env);
+
+	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
+
+private:
+	std::shared_ptr<OpenCL_env> env;
+
+	Image _convolve(const Image &src, const Image &krn, const Mask &mask);
+
+	template<typename T>
+	Image _clpadded_convolve(const Image &src, const Image &krn, const Image &orig_src);
+};
+
+
 #endif // PROFIT_OPENCL
 
 } /* namespace profit */

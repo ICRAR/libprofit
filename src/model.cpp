@@ -240,6 +240,12 @@ std::shared_ptr<Convolver> Model::create_convolver() const
 				return std::make_shared<OpenCLConvolver>(opencl_env);
 			}
 			break;
+
+		case OPENCL_LOCAL:
+			if (opencl_env) {
+				return std::make_shared<OpenCLLocalConvolver>(opencl_env);
+			}
+			break;
 #endif // PROFIT_OPENCL
 
 #ifdef PROFIT_FFTW

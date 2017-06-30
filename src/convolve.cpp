@@ -286,6 +286,107 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	return conv;
 }
 
+
+OpenCLLocalConvolver::OpenCLLocalConvolver(std::shared_ptr<OpenCL_env> opencl_env) :
+	env(opencl_env)
+{
+}
+
+Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+{
+	try {
+		return _convolve(src, krn, mask);
+	} catch (const cl::Error &e) {
+		std::ostringstream os;
+		os << "OpenCL error while convolving: " << e.what() << ". OpenCL error code: " << e.err();
+		throw opencl_error(os.str());
+	}
+}
+
+Image OpenCLLocalConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask) {
+
+	// We use a group size of 16x16, so let's extend the src image
+	// to the next multiple of 16
+	auto clpad_x = (16 - (src.getWidth() % 16)) % 16;
+	auto clpad_y = (16 - (src.getHeight() % 16)) % 16;
+	const Image clpad_src = src.extend(src.getWidth() + clpad_x,
+	                                   src.getHeight() + clpad_y, 0, 0);
+
+	// Convolve using the appropriate data type
+	Image result;
+	if (env->use_double) {
+		result = _clpadded_convolve<double>(clpad_src, krn, src);
+	}
+	else {
+		result = _clpadded_convolve<float>(clpad_src, krn, src);
+	}
+
+	// Crop the resulting image, mask
+	return result.crop(src.getWidth(), src.getHeight(), 0, 0) & mask;
+}
+
+template<typename T>
+Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &krn, const Image &orig_src) {
+
+	using cl::Buffer;
+	using cl::Event;
+	using cl::Kernel;
+	using cl::Local;
+	using cl::NDRange;
+	using cl::NullRange;
+
+	auto src_size = sizeof(T) * src.getSize();
+	auto krn_size = sizeof(T) * krn.getSize();
+
+	Buffer src_buf(env->context, CL_MEM_READ_ONLY, src_size);
+	Buffer krn_buf(env->context, CL_MEM_READ_ONLY, krn_size);
+	Buffer conv_buf(env->context, CL_MEM_WRITE_ONLY, src_size);
+
+	std::vector<T> src_data(src.getSize());
+	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());
+	std::vector<T> krn_data(krn.getSize());
+	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
+
+	// Write both images' data to the device
+	Event src_wevt, krn_wevt;
+	env->queue.enqueueWriteBuffer(src_buf, CL_FALSE, 0, src_size, src_data.data(), NULL, &src_wevt);
+	env->queue.enqueueWriteBuffer(krn_buf, CL_FALSE, 0, krn_size, krn_data.data(), NULL, &krn_wevt);
+
+	// We need this much local memory on each local group
+	auto local_size = sizeof(T);
+	local_size *= (16 + 2 * (krn.getWidth() / 2));
+	local_size *= (16 + 2 * (krn.getHeight() / 2));
+
+	// Prepare the kernel
+	auto kname = std::string("convolve_local_") + float_traits<T>::name;
+	Kernel clKernel(env->program, kname.c_str());
+	clKernel.setArg(0, src_buf);
+	clKernel.setArg(1, orig_src.getWidth());
+	clKernel.setArg(2, orig_src.getHeight());
+	clKernel.setArg(3, krn_buf);
+	clKernel.setArg(4, krn.getWidth());
+	clKernel.setArg(5, krn.getHeight());
+	clKernel.setArg(6, conv_buf);
+	clKernel.setArg(7, Local(local_size));
+
+	// Execute
+	Event exec_evt;
+	std::vector<Event> exec_wait_evts {src_wevt, krn_wevt};
+	env->queue.enqueueNDRangeKernel(clKernel, NullRange, NDRange(src.getWidth(), src.getHeight()), NDRange(16, 16), &exec_wait_evts, &exec_evt);
+
+	// Read and good bye
+	Event read_evt;
+	std::vector<Event> read_wait_evts {exec_evt};
+	std::vector<T> conv_data(src.getSize());
+	env->queue.enqueueReadBuffer(conv_buf, CL_FALSE, 0, src_size, conv_data.data(), &read_wait_evts, &read_evt);
+	read_evt.wait();
+
+	Image conv(src.getWidth(), src.getHeight());
+	std::copy(conv_data.begin(), conv_data.end(), conv.getData().begin());
+	return conv;
+}
+
+
 #endif // PROFIT_OPENCL
 
 } /* namespace profit */

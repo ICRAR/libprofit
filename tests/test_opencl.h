@@ -265,8 +265,13 @@ public:
 			TS_SKIP("No OpenCL environment found to run OpenCL tests");
 		}
 		_check_convolver(OpenCLConvolver{openCLFixtures.opencl_env});
+	}
 
+	void test_local_convolver() {
+		if( !openCLFixtures.opencl_env ) {
+			TS_SKIP("No OpenCL environment found to run OpenCL tests");
 		}
+		_check_convolver(OpenCLLocalConvolver{openCLFixtures.opencl_env});
 	}
 
 };

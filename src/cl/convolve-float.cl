@@ -69,4 +69,100 @@ __kernel void convolve_float(
 	output[X  + Y * W] = sum;
 }
 
+__kernel void convolve_local_float(
+	const __global float *src,
+	const int src_w,
+	const int src_h,
+	__constant float *krn,
+	const __private int krn_w,
+	const __private int krn_h,
+	__global float *output,
+	__local float *cache
+)
+{
+
+	const int half_krn_w = krn_w / 2;
+	const int half_krn_h = krn_h / 2;
+
+	const int X = get_global_id(0);
+	const int Y = get_global_id(1);
+	const int W = get_global_size(0);
+	const int H = get_global_size(1);
+
+	/* l is for "local" */
+	const int LX = get_local_id(0);
+	const int LY = get_local_id(1);
+	const int LW = get_local_size(0);
+	const int LH = get_local_size(1);
+
+	/* C is for "cache" */
+	const int CW = LW + 2 * half_krn_w;
+	const int CH = LH + 2 * half_krn_h;
+
+	/* no need to do these */
+	if (X >= src_w || Y >= src_h) {
+		barrier(CLK_LOCAL_MEM_FENCE);
+		return;
+	}
+
+	/*
+	 * Populate cache with global values.
+	 * The cache is the size of the local group padded by half the kernel size
+	 * on each direction; in other words its size is
+	 *
+	 *  (LW + 2 * half_krn_w) * (LH + 2 * half_krn_h)
+	 *
+	 * This work group's size on the other hand is LW * LH. the diff is:
+    *
+	 *  2 * (LW * half_krn_h + half_krn_w * LH + 2 * half_krn_h * half_krn_w
+    *
+	 * The cache is logically centered around the center of this
+	 * work group, and its values are meant to be simply a copy of the corresponding
+	 * global input values that correspond to this kernel's global position.
+	 *
+	 */
+	// todo: replace with async_work_group_copy??
+	const __global float *src_it = src + X - half_krn_w + (Y - half_krn_h) * W;
+	__local float *cache_it = cache;
+	if (LX == 0 && LY == 0) {
+		for(int j = 0; j < CH; j++) {
+			int r = Y + j - half_krn_h;
+			for(int i = 0; i < CW; i++) {
+				int c = X + i - half_krn_w;
+				if (c >= 0 && c < src_w &&
+				    r >= 0 && r < src_h) {
+					*cache_it = *src_it;
+				}
+				else {
+					*cache_it = 0;
+				}
+				src_it++;
+				cache_it++;
+			}
+			src_it += W - CW;
+		}
+	}
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	/* perform convolution using local cache */
+	__constant float *krn_ptr = krn + krn_w * krn_h - 1;
+	const __local float *cache_ptr = cache + LX  + LY * CW;
+	float sum = 0;
+	for (int j = 0; j < krn_h; j++) {
+		int r = Y + j - half_krn_h;
+		for (int i = 0; i < krn_w; i++) {
+			int c = X + i - half_krn_w;
+			if (c >= 0 && c < src_w &&
+			    r >= 0 && r < src_h) {
+				sum += *cache_ptr * *krn_ptr;
+			}
+			cache_ptr++;
+			krn_ptr--;
+		}
+		cache_ptr += CW - krn_w;
+	}
+
+	output[X + Y * W] = sum;
+}
+
 )==="
