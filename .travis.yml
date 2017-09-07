@@ -40,7 +40,8 @@ matrix:
   - compiler: gcc
     addons:
      apt:
-      packages: [libfftw3-dev, libgsl0-dev, opencl-headers]
+      sources: ubuntu-toolchain-r-test
+      packages: [g++-4.6, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-4.6 CXXFLAGS="-std=c++0x"
   - compiler: gcc
     addons:
