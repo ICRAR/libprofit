@@ -294,6 +294,18 @@ std::shared_ptr<OpenCL_env> get_opencl_environment(unsigned int platform_idx, un
 	}
 }
 
+cl::Event OpenCL_env::queue_write(const cl::Buffer &buffer, const void *data, const std::vector<cl::Event>* wait_evts) {
+	cl::Event wevt;
+	queue.enqueueWriteBuffer(buffer, CL_FALSE, 0, buffer.getInfo<CL_MEM_SIZE>(), data, wait_evts, &wevt);
+	return wevt;
+}
+
+cl::Event OpenCL_env::queue_read(const cl::Buffer &buffer, void *data, const std::vector<cl::Event>* wait_evts) {
+	cl::Event revt;
+	queue.enqueueReadBuffer(buffer, CL_FALSE, 0, buffer.getInfo<CL_MEM_SIZE>(), data, wait_evts, &revt);
+	return revt;
+}
+
 }
 
 #endif /* PROFIT_OPENCL */

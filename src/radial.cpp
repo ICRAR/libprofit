@@ -458,7 +458,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 	add_common_kernel_parameters<FT>(arg, kernel);
 	t_kprep = system_clock::now();
 
-	cl::Event fill_im_evt, fill_ss_points_evt, kernel_evt, read_evt, read_ss_points_evt;
+	cl::Event fill_im_evt, fill_ss_points_evt, kernel_evt, read_evt;
 
 	// OpenCL 1.2 allows to do this; otherwise the work has to be done in the kernel
 	// (which we do)
@@ -479,13 +479,13 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 	// Otherwise we have to copy element by element to convert from float to double
 	cl::vector<cl::Event> read_waiting_evts{kernel_evt};
 	if( float_traits<FT>::is_double ) {
-		env->queue.enqueueReadBuffer(image_buffer, CL_FALSE, 0, sizeof(double)*imsize, image.data(), &read_waiting_evts, &read_evt);
+		read_evt = env->queue_read(image_buffer, image.data(), &read_waiting_evts);
 		read_evt.wait();
 		t_opencl = system_clock::now();
 	}
 	else {
 		std::vector<FT> image_from_kernel(image.size());
-		env->queue.enqueueReadBuffer(image_buffer, CL_FALSE, 0, sizeof(FT)*imsize, image_from_kernel.data(), &read_waiting_evts, &read_evt);
+		read_evt = env->queue_read(image_buffer, image_from_kernel.data(), &read_waiting_evts);
 		read_evt.wait();
 		t_opencl = system_clock::now();
 		std::copy(image_from_kernel.begin(), image_from_kernel.end(), image.begin());
@@ -514,7 +514,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 	}
 
 	std::vector<point_t> ss_points(image.size());
-	env->queue.enqueueReadBuffer(subsampling_points_buffer, CL_TRUE, 0, sizeof(point_t)*imsize, ss_points.data(), &read_waiting_evts, &read_ss_points_evt);
+	cl::Event read_ss_points_evt = env->queue_read(subsampling_points_buffer, ss_points.data(), &read_waiting_evts);
 	read_ss_points_evt.wait();
 	if( env->use_profiling ) {
 		cl_times0.reading_times += cl_cmd_times(read_ss_points_evt);
@@ -596,11 +596,11 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 			});
 			t_trans_h2k = system_clock::now();
 
-			env->queue.enqueueWriteBuffer(ss_kinfo_buf, CL_FALSE, 0, sizeof(ss_kinfo_t)*subsamples, ss_kinfo.data(), NULL, &w_ss_kinfo_evt);
+			w_ss_kinfo_evt = env->queue_write(ss_kinfo_buf, ss_kinfo.data(), NULL);
 			cl::vector<cl::Event> kernel_waiting_evts{w_ss_kinfo_evt};
 			env->queue.enqueueNDRangeKernel(subsample_kernel, cl::NullRange, cl::NDRange(subsamples), cl::NullRange, &kernel_waiting_evts, &kernel_evt);
 			cl::vector<cl::Event> read_waiting_evts{kernel_evt};
-			env->queue.enqueueReadBuffer(ss_kinfo_buf, CL_FALSE, 0, sizeof(ss_kinfo_t)*subsamples, ss_kinfo.data(), &read_waiting_evts, &r_ss_kinfo_evt);
+			r_ss_kinfo_evt = env->queue_read(ss_kinfo_buf, ss_kinfo.data(), &read_waiting_evts);
 			env->queue.finish();
 			t_opencl = system_clock::now();
 

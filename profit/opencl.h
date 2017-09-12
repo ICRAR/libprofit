@@ -154,6 +154,16 @@ typedef struct _OpenCL_env {
 	 */
 	bool use_profiling;
 
+	/**
+	 * Queues a write of `data` into `buffer` and returns the generated event.
+	 */
+	cl::Event queue_write(const cl::Buffer &buffer, const void *data, const std::vector<cl::Event>* wait_evts = NULL);
+
+	/**
+	 * Queues a read of `buffer` into `data` and returns the generated event.
+	 */
+	cl::Event queue_read(const cl::Buffer &buffer, void *data, const std::vector<cl::Event>* wait_evts = NULL);
+
 } OpenCL_env;
 
 /**

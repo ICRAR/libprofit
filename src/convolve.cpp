@@ -248,9 +248,8 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
 
 	// Write both images' data to the device
-	Event src_wevt, krn_wevt;
-	env->queue.enqueueWriteBuffer(src_buf, CL_FALSE, 0, src_size, src_data.data(), NULL, &src_wevt);
-	env->queue.enqueueWriteBuffer(krn_buf, CL_FALSE, 0, krn_size, krn_data.data(), NULL, &krn_wevt);
+	Event src_wevt = env->queue_write(src_buf, src_data.data(), NULL);
+	Event krn_wevt = env->queue_write(krn_buf, krn_data.data(), NULL);
 
 	// We need this much local memory on each local group
 	auto local_size = sizeof(T);
@@ -274,10 +273,9 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	env->queue.enqueueNDRangeKernel(clKernel, NullRange, NDRange(src.getWidth(), src.getHeight()), NDRange(16, 16), &exec_wait_evts, &exec_evt);
 
 	// Read and good bye
-	Event read_evt;
 	std::vector<Event> read_wait_evts {exec_evt};
 	std::vector<T> conv_data(src.getSize());
-	env->queue.enqueueReadBuffer(conv_buf, CL_FALSE, 0, src_size, conv_data.data(), &read_wait_evts, &read_evt);
+	Event read_evt = env->queue_read(conv_buf, conv_data.data(), &read_wait_evts);
 	read_evt.wait();
 
 	Image conv(src.getWidth(), src.getHeight());
@@ -347,9 +345,8 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
 
 	// Write both images' data to the device
-	Event src_wevt, krn_wevt;
-	env->queue.enqueueWriteBuffer(src_buf, CL_FALSE, 0, src_size, src_data.data(), NULL, &src_wevt);
-	env->queue.enqueueWriteBuffer(krn_buf, CL_FALSE, 0, krn_size, krn_data.data(), NULL, &krn_wevt);
+	Event src_wevt = env->queue_write(src_buf, src_data.data(), NULL);
+	Event krn_wevt = env->queue_write(krn_buf, krn_data.data(), NULL);
 
 	// We need this much local memory on each local group
 	auto local_size = sizeof(T);
@@ -374,10 +371,9 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	env->queue.enqueueNDRangeKernel(clKernel, NullRange, NDRange(src.getWidth(), src.getHeight()), NDRange(16, 16), &exec_wait_evts, &exec_evt);
 
 	// Read and good bye
-	Event read_evt;
-	std::vector<Event> read_wait_evts {exec_evt};
 	std::vector<T> conv_data(src.getSize());
-	env->queue.enqueueReadBuffer(conv_buf, CL_FALSE, 0, src_size, conv_data.data(), &read_wait_evts, &read_evt);
+	std::vector<Event> read_wait_evts {exec_evt};
+	Event read_evt = env->queue_read(conv_buf, conv_data.data(), &read_wait_evts);
 	read_evt.wait();
 
 	Image conv(src.getWidth(), src.getHeight());
