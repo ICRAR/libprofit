@@ -29,7 +29,7 @@ __kernel void convolve_double(
 	const __global double *src,
 	const int src_w,
 	const int src_h,
-	__constant double *krn,
+	const __global double *krn,
 	const __private int krn_w,
 	const __private int krn_h,
 	__global double *output
@@ -49,7 +49,7 @@ __kernel void convolve_double(
 	}
 
 	/* perform convolution */
-	__constant double *krn_ptr = krn + krn_w * krn_h - 1;
+	const __global double *krn_ptr = krn + krn_w * krn_h - 1;
 	const __global double *src_ptr = src + X - half_krn_w  + (Y - half_krn_h) * W;
 	double sum = 0.0f;
 	for (int j = 0; j < krn_h; j++) {
@@ -73,7 +73,7 @@ __kernel void convolve_local_double(
 	const __global double *src,
 	const int src_w,
 	const int src_h,
-	__constant double *krn,
+	const __global double *krn,
 	const __private int krn_w,
 	const __private int krn_h,
 	__global double *output,
@@ -145,7 +145,7 @@ __kernel void convolve_local_double(
 	barrier(CLK_LOCAL_MEM_FENCE);
 
 	/* perform convolution using local cache */
-	__constant double *krn_ptr = krn + krn_w * krn_h - 1;
+	const __global double *krn_ptr = krn + krn_w * krn_h - 1;
 	const __local double *cache_ptr = cache + LX  + LY * CW;
 	double sum = 0;
 	for (int j = 0; j < krn_h; j++) {

@@ -29,7 +29,7 @@ __kernel void convolve_float(
 	const __global float *src,
 	const int src_w,
 	const int src_h,
-	__constant float *krn,
+	const __global float *krn,
 	const __private int krn_w,
 	const __private int krn_h,
 	__global float *output
@@ -49,7 +49,7 @@ __kernel void convolve_float(
 	}
 
 	/* perform convolution */
-	__constant float *krn_ptr = krn + krn_w * krn_h - 1;
+	const __global float *krn_ptr = krn + krn_w * krn_h - 1;
 	const __global float *src_ptr = src + X - half_krn_w  + (Y - half_krn_h) * W;
 	float sum = 0.0f;
 	for (int j = 0; j < krn_h; j++) {
@@ -73,7 +73,7 @@ __kernel void convolve_local_float(
 	const __global float *src,
 	const int src_w,
 	const int src_h,
-	__constant float *krn,
+	const __global float *krn,
 	const __private int krn_w,
 	const __private int krn_h,
 	__global float *output,
@@ -145,7 +145,7 @@ __kernel void convolve_local_float(
 	barrier(CLK_LOCAL_MEM_FENCE);
 
 	/* perform convolution using local cache */
-	__constant float *krn_ptr = krn + krn_w * krn_h - 1;
+	const __global float *krn_ptr = krn + krn_w * krn_h - 1;
 	const __local float *cache_ptr = cache + LX  + LY * CW;
 	float sum = 0;
 	for (int j = 0; j < krn_h; j++) {
