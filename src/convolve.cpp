@@ -353,6 +353,13 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	local_size *= (16 + 2 * (krn.getWidth() / 2));
 	local_size *= (16 + 2 * (krn.getHeight() / 2));
 
+	if (env->max_local_memory() < local_size) {
+		std::ostringstream os;
+		os << "Not enough local memory available for OpenCL local 2D convolution. ";
+		os << "Required: " << local_size << ", available: " << env->max_local_memory();
+		throw opencl_error(os.str());
+	}
+
 	// Prepare the kernel
 	auto kname = std::string("convolve_local_") + float_traits<T>::name;
 	Kernel clKernel(env->program, kname.c_str());

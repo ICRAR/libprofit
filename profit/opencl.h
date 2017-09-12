@@ -155,6 +155,18 @@ typedef struct _OpenCL_env {
 	bool use_profiling;
 
 	/**
+	 * Returns the amount of memory, in bytes, that each OpenCL Compute Unit
+	 * has.
+	 */
+	unsigned long max_local_memory();
+
+	/**
+	 * Returns the number of Computer Units available in the device wrapped
+	 * by this OpenCL environment.
+	 */
+	unsigned int compute_units();
+
+	/**
 	 * Queues a write of `data` into `buffer` and returns the generated event.
 	 */
 	cl::Event queue_write(const cl::Buffer &buffer, const void *data, const std::vector<cl::Event>* wait_evts = NULL);
