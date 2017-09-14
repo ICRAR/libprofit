@@ -600,7 +600,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 			auto ss_kernel_evt = env->queue_kernel(subsample_kernel, cl::NDRange(subsamples), &kernel_waiting_evts);
 			cl::vector<cl::Event> read_waiting_evts{ss_kernel_evt};
 			auto r_ss_kinfo_evt = env->queue_read(ss_kinfo_buf, ss_kinfo.data(), &read_waiting_evts);
-			env->queue.finish();
+			r_ss_kinfo_evt.wait();
 			t_opencl = system_clock::now();
 
 			// Feed back the kinfo to the main subsampling info vectors
