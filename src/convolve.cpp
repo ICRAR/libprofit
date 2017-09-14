@@ -235,12 +235,9 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	using cl::NDRange;
 	using cl::NullRange;
 
-	auto src_size = sizeof(T) * src.getSize();
-	auto krn_size = sizeof(T) * krn.getSize();
-
-	Buffer src_buf(env->context, CL_MEM_READ_ONLY, src_size);
-	Buffer krn_buf(env->context, CL_MEM_READ_ONLY, krn_size);
-	Buffer conv_buf(env->context, CL_MEM_WRITE_ONLY, src_size);
+	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.getSize());
+	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.getSize());
+	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.getSize());
 
 	std::vector<T> src_data(src.getSize());
 	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());
@@ -332,12 +329,9 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	using cl::NDRange;
 	using cl::NullRange;
 
-	auto src_size = sizeof(T) * src.getSize();
-	auto krn_size = sizeof(T) * krn.getSize();
-
-	Buffer src_buf(env->context, CL_MEM_READ_ONLY, src_size);
-	Buffer krn_buf(env->context, CL_MEM_READ_ONLY, krn_size);
-	Buffer conv_buf(env->context, CL_MEM_WRITE_ONLY, src_size);
+	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.getSize());
+	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.getSize());
+	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.getSize());
 
 	std::vector<T> src_data(src.getSize());
 	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());

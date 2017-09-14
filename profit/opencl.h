@@ -167,6 +167,15 @@ typedef struct _OpenCL_env {
 	unsigned int compute_units();
 
 	/**
+	 * Returns a buffer that can hold `n_elements` elements of type `T`.
+	 * The buffer is created with the given `flags`.
+	 */
+	template <typename T>
+	cl::Buffer get_buffer(int flags, cl::size_type n_elements) {
+		return cl::Buffer(context, flags, sizeof(T) * n_elements);
+	}
+
+	/**
 	 * Queues a write of `data` into `buffer` and returns the generated event.
 	 */
 	cl::Event queue_write(const cl::Buffer &buffer, const void *data, const std::vector<cl::Event>* wait_evts = NULL);

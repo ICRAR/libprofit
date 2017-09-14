@@ -445,8 +445,8 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 	t0 = system_clock::now();
 	unsigned int arg = 0;
 	auto kname = name + "_" + float_traits<FT>::name;
-	cl::Buffer image_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
-	cl::Buffer subsampling_points_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(point_t)*imsize);
+	cl::Buffer image_buffer = env->get_buffer<FT>(CL_MEM_WRITE_ONLY, imsize);
+	cl::Buffer subsampling_points_buffer = env->get_buffer<point_t>(CL_MEM_WRITE_ONLY, imsize);
 	cl::Kernel kernel = env->get_kernel(kname);
 	kernel.setArg(arg++, image_buffer);
 	kernel.setArg(arg++, subsampling_points_buffer);
@@ -579,7 +579,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 
 		try {
 
-			cl::Buffer ss_kinfo_buf(env->context, CL_MEM_READ_WRITE, sizeof(ss_kinfo_t)*subsamples);
+			cl::Buffer ss_kinfo_buf = env->get_buffer<ss_kinfo_t>(CL_MEM_READ_WRITE, subsamples);
 
 			arg = 0;
 			subsample_kernel.setArg(arg++, ss_kinfo_buf);
