@@ -123,25 +123,16 @@ OpenCL_command_times cl_cmd_times(const cl::Event &evt);
  * This structure holds all the required information to make libprofit work
  * against a given device in a particular platform.
  */
-typedef struct _OpenCL_env {
+class OpenCL_env {
 
-	/** The device to be used throughout OpenCL operations */
-	cl::Device device;
+public:
 
-	/** The OpenCL supported by the platform this device belongs to */
-	cl_ver_t version;
-
-	/** The OpenCL context used throughout the OpenCL operations */
-	cl::Context context;
-
-	/** The queue set up against this device to be used by libprofit */
-	cl::CommandQueue queue;
-
-	/**
-	 * The set of kernels and routines compiled against this device and
-	 * required by libprofit
-	 */
-	cl::Program program;
+	OpenCL_env(cl::Device device, cl_ver_t version, cl::Context context,
+	           cl::CommandQueue queue, cl::Program program,
+	           bool use_double, bool use_profiling) :
+		use_double(use_double), use_profiling(use_profiling),
+		device(device), version(version), context(context), queue(queue), program(program)
+	{ }
 
 	/**
 	 * Whether double floating-point precision has been requested on this device
@@ -215,7 +206,27 @@ typedef struct _OpenCL_env {
 	 */
 	cl::Kernel get_kernel(const std::string &name);
 
-} OpenCL_env;
+private:
+
+	/** The device to be used throughout OpenCL operations */
+	cl::Device device;
+
+	/** The OpenCL supported by the platform this device belongs to */
+	cl_ver_t version;
+
+	/** The OpenCL context used throughout the OpenCL operations */
+	cl::Context context;
+
+	/** The queue set up against this device to be used by libprofit */
+	cl::CommandQueue queue;
+
+	/**
+	 * The set of kernels and routines compiled against this device and
+	 * required by libprofit
+	 */
+	cl::Program program;
+
+};
 
 /**
  * A structure holding information about a specific OpenCL device
