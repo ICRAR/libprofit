@@ -155,6 +155,13 @@ typedef struct _OpenCL_env {
 	bool use_profiling;
 
 	/**
+	 * Returns the maximum OpenCL version supported by the underlying device.
+	 */
+	cl_ver_t get_version() {;
+		return version;
+	}
+
+	/**
 	 * Returns the amount of memory, in bytes, that each OpenCL Compute Unit
 	 * has.
 	 */

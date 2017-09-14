@@ -467,7 +467,7 @@ void print_stats(const Model &m) {
 		auto prefix1 = "  ";
 		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
 		if( rprofile_stats && m.opencl_env ) {
-			bool opencl_120 = m.opencl_env->version >= 120;
+			bool opencl_120 = m.opencl_env->get_version() >= 120;
 			print_cl_stats(prefix0, opencl_120, rprofile_stats->cl_times);
 			print_stats_line(prefix0, "Pre-loop", rprofile_stats->subsampling.pre_subsampling / 1e6 );
 			print_stats_line(prefix0, "Subsampling loop", rprofile_stats->subsampling.total / 1e6 );
