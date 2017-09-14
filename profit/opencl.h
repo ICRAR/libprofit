@@ -188,6 +188,15 @@ typedef struct _OpenCL_env {
 	cl::Event queue_write(const cl::Buffer &buffer, const void *data, const std::vector<cl::Event>* wait_evts = NULL);
 
 	/**
+	 * Queues the execution of `kernel` in the `global` NDRange. The execution
+	 * waits on `wait_evts` before commencing. It also uses the `local` NDRange
+	 * to control the work group sizes.
+	 */
+	cl::Event queue_kernel(const cl::Kernel &kernel, const cl::NDRange global,
+	                       const std::vector<cl::Event>* wait_evts = NULL,
+	                       const cl::NDRange &local = cl::NullRange);
+
+	/**
 	 * Queues a read of `buffer` into `data` and returns the generated event.
 	 */
 	cl::Event queue_read(const cl::Buffer &buffer, void *data, const std::vector<cl::Event>* wait_evts = NULL);

@@ -308,6 +308,12 @@ cl::Event OpenCL_env::queue_write(const cl::Buffer &buffer, const void *data, co
 	return wevt;
 }
 
+cl::Event OpenCL_env::queue_kernel(const cl::Kernel &kernel, const cl::NDRange global, const std::vector<cl::Event>* wait_evts, const cl::NDRange &local) {
+	cl::Event kevt;
+	queue.enqueueNDRangeKernel(kernel, cl::NullRange, global, local, wait_evts, &kevt);
+	return kevt;
+}
+
 cl::Event OpenCL_env::queue_read(const cl::Buffer &buffer, void *data, const std::vector<cl::Event>* wait_evts) {
 	cl::Event revt;
 	queue.enqueueReadBuffer(buffer, CL_FALSE, 0, buffer.getInfo<CL_MEM_SIZE>(), data, wait_evts, &revt);

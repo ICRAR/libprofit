@@ -458,7 +458,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 	add_common_kernel_parameters<FT>(arg, kernel);
 	t_kprep = system_clock::now();
 
-	cl::Event fill_im_evt, fill_ss_points_evt, kernel_evt, read_evt;
+	cl::Event fill_im_evt, fill_ss_points_evt, read_evt;
 
 	// OpenCL 1.2 allows to do this; otherwise the work has to be done in the kernel
 	// (which we do)
@@ -473,7 +473,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 #endif /* CL_HPP_TARGET_OPENCL_VERSION >= 120 */
 
 	// Enqueue the kernel, and read back the resulting image + set of points to subsample
-	env->queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(imsize), cl::NullRange, &k_wait_evts, &kernel_evt);
+	auto kernel_evt = env->queue_kernel(kernel, cl::NDRange(imsize), &k_wait_evts);
 
 	// If FT is double we directly store the result in the profile image
 	// Otherwise we have to copy element by element to convert from float to double
@@ -586,7 +586,6 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 			subsample_kernel.setArg(arg++, AS_FT(acc));
 			add_common_kernel_parameters<FT>(arg, subsample_kernel);
 
-			cl::Event kernel_evt;
 			t_kprep = system_clock::now();
 
 			// The information we pass down to the kernels is a subset of the original
@@ -598,8 +597,8 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 
 			auto w_ss_kinfo_evt = env->queue_write(ss_kinfo_buf, ss_kinfo.data());
 			cl::vector<cl::Event> kernel_waiting_evts{w_ss_kinfo_evt};
-			env->queue.enqueueNDRangeKernel(subsample_kernel, cl::NullRange, cl::NDRange(subsamples), cl::NullRange, &kernel_waiting_evts, &kernel_evt);
-			cl::vector<cl::Event> read_waiting_evts{kernel_evt};
+			auto ss_kernel_evt = env->queue_kernel(subsample_kernel, cl::NDRange(subsamples), &kernel_waiting_evts);
+			cl::vector<cl::Event> read_waiting_evts{ss_kernel_evt};
 			auto r_ss_kinfo_evt = env->queue_read(ss_kinfo_buf, ss_kinfo.data(), &read_waiting_evts);
 			env->queue.finish();
 			t_opencl = system_clock::now();
@@ -636,7 +635,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 			ss_cl_times.kernel_prep += to_nsecs(t_kprep - t_newsamples);
 			ss_cl_times.total += to_nsecs(t_opencl - t_trans_h2k);
 			if( env->use_profiling ) {
-				ss_cl_times.kernel_times += cl_cmd_times(kernel_evt);
+				ss_cl_times.kernel_times += cl_cmd_times(ss_kernel_evt);
 				ss_cl_times.writing_times += cl_cmd_times(w_ss_kinfo_evt);
 				ss_cl_times.reading_times += cl_cmd_times(r_ss_kinfo_evt);
 			}

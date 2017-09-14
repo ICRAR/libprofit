@@ -265,9 +265,8 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	clKernel.setArg(6, conv_buf);
 
 	// Execute
-	Event exec_evt;
 	std::vector<Event> exec_wait_evts {src_wevt, krn_wevt};
-	env->queue.enqueueNDRangeKernel(clKernel, NullRange, NDRange(src.getWidth(), src.getHeight()), NDRange(16, 16), &exec_wait_evts, &exec_evt);
+	auto exec_evt = env->queue_kernel(clKernel, NDRange(src.getWidth(), src.getHeight()), &exec_wait_evts, NDRange(16, 16));
 
 	// Read and good bye
 	std::vector<Event> read_wait_evts {exec_evt};
@@ -367,9 +366,8 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	clKernel.setArg(7, Local(local_size));
 
 	// Execute
-	Event exec_evt;
 	std::vector<Event> exec_wait_evts {src_wevt, krn_wevt};
-	env->queue.enqueueNDRangeKernel(clKernel, NullRange, NDRange(src.getWidth(), src.getHeight()), NDRange(16, 16), &exec_wait_evts, &exec_evt);
+	auto exec_evt = env->queue_kernel(clKernel, NDRange(src.getWidth(), src.getHeight()), &exec_wait_evts, NDRange(16, 16));
 
 	// Read and good bye
 	std::vector<T> conv_data(src.getSize());
