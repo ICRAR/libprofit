@@ -314,6 +314,10 @@ cl::Event OpenCL_env::queue_read(const cl::Buffer &buffer, void *data, const std
 	return revt;
 }
 
+cl::Kernel OpenCL_env::get_kernel(const std::string &name) {
+	return cl::Kernel(program, name.c_str());
+}
+
 }
 
 #endif /* PROFIT_OPENCL */

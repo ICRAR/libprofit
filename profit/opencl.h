@@ -176,6 +176,11 @@ typedef struct _OpenCL_env {
 	 */
 	cl::Event queue_read(const cl::Buffer &buffer, void *data, const std::vector<cl::Event>* wait_evts = NULL);
 
+	/**
+	 * Get a reference to the named kernel
+	 */
+	cl::Kernel get_kernel(const std::string &name);
+
 } OpenCL_env;
 
 /**

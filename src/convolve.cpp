@@ -258,7 +258,7 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 
 	// Prepare the kernel
 	auto kname = std::string("convolve_") + float_traits<T>::name;
-	Kernel clKernel(env->program, kname.c_str());
+	Kernel clKernel = env->get_kernel(kname);
 	clKernel.setArg(0, src_buf);
 	clKernel.setArg(1, orig_src.getWidth());
 	clKernel.setArg(2, orig_src.getHeight());
@@ -362,7 +362,7 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 
 	// Prepare the kernel
 	auto kname = std::string("convolve_local_") + float_traits<T>::name;
-	Kernel clKernel(env->program, kname.c_str());
+	Kernel clKernel = env->get_kernel(kname);
 	clKernel.setArg(0, src_buf);
 	clKernel.setArg(1, orig_src.getWidth());
 	clKernel.setArg(2, orig_src.getHeight());

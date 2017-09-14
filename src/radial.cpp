@@ -447,7 +447,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 	auto kname = name + "_" + float_traits<FT>::name;
 	cl::Buffer image_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(FT)*imsize);
 	cl::Buffer subsampling_points_buffer(env->context, CL_MEM_WRITE_ONLY, sizeof(point_t)*imsize);
-	cl::Kernel kernel = cl::Kernel(env->program, kname.c_str());
+	cl::Kernel kernel = env->get_kernel(kname);
 	kernel.setArg(arg++, image_buffer);
 	kernel.setArg(arg++, subsampling_points_buffer);
 	kernel.setArg(arg++, model.width);
@@ -535,7 +535,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 	}
 
 	auto ss_kname = name + "_subsample_" + float_traits<FT>::name;
-	cl::Kernel subsample_kernel = cl::Kernel(env->program, ss_kname.c_str());
+	cl::Kernel subsample_kernel = env->get_kernel(ss_kname);
 
 	typedef struct _im_result {
 		point_t point;
