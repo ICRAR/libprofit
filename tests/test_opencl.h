@@ -38,13 +38,36 @@
 
 using namespace profit;
 
+void tokenize(const std::string &s, std::vector<std::string> &tokens, const std::string &delims) {
+
+	std::string::size_type lastPos = s.find_first_not_of(delims, 0);
+	std::string::size_type pos     = s.find_first_of(delims, lastPos);
+
+	while (std::string::npos != pos || std::string::npos != lastPos) {
+		tokens.push_back(s.substr(lastPos, pos - lastPos));
+		lastPos = s.find_first_not_of(delims, pos);
+		pos = s.find_first_of(delims, lastPos);
+	}
+
+}
+
 class OpenCLFixtures : CxxTest::GlobalFixture {
 
 public:
 	OpenCLFixtures() {
 
 		int plat_idx = -1, dev_idx = -1;
-		bool use_double;
+		bool use_double = true;
+
+		// User is forcing an environment, use that one
+		if (const char *cl_spec = std::getenv("LIBPROFIT_OPENCL_TESTSPEC")) {
+			std::vector<std::string> tokens;
+			tokenize(cl_spec, tokens, ",");
+			plat_idx = std::stod(tokens[0]);
+			dev_idx = std::stod(tokens[1]);
+			use_double = static_cast<bool>(std::stod(tokens[2]));
+			goto chosen;
+		}
 
 		// Look preferably for an OpenCL device that has double support
 		try {
