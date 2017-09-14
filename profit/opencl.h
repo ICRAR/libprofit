@@ -201,6 +201,15 @@ typedef struct _OpenCL_env {
 	 */
 	cl::Event queue_read(const cl::Buffer &buffer, void *data, const std::vector<cl::Event>* wait_evts = NULL);
 
+#if CL_HPP_TARGET_OPENCL_VERSION >= 120
+	template <typename PatternType>
+	cl::Event queue_fill(const cl::Buffer &buffer, PatternType pattern, const std::vector<cl::Event>* wait_evts = NULL) {
+		cl::Event fevt;
+		queue.enqueueFillBuffer(buffer, pattern, 0, buffer.getInfo<CL_MEM_SIZE>(), wait_evts, &fevt);
+		return fevt;
+	}
+#endif
+
 	/**
 	 * Get a reference to the named kernel
 	 */

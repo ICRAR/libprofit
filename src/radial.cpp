@@ -465,8 +465,8 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 	cl::vector<cl::Event> k_wait_evts;
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
 	if( env->get_version() >= 120 ) {
-		env->queue.enqueueFillBuffer<FT>(image_buffer, 0, 0, sizeof(FT)*imsize, NULL, &fill_im_evt);
-		env->queue.enqueueFillBuffer<point_t>(subsampling_points_buffer, {-1, -1}, 0, sizeof(point_t)*imsize, NULL, &fill_ss_points_evt);
+		fill_im_evt = env->queue_fill<FT>(image_buffer, 0);
+		fill_ss_points_evt = env->queue_fill<point_t>(subsampling_points_buffer, {-1, -1});
 		k_wait_evts.push_back(fill_im_evt);
 		k_wait_evts.push_back(fill_ss_points_evt);
 	}
