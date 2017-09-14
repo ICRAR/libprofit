@@ -586,7 +586,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 			subsample_kernel.setArg(arg++, AS_FT(acc));
 			add_common_kernel_parameters<FT>(arg, subsample_kernel);
 
-			cl::Event kernel_evt, w_ss_kinfo_evt, r_ss_kinfo_evt;
+			cl::Event kernel_evt;
 			t_kprep = system_clock::now();
 
 			// The information we pass down to the kernels is a subset of the original
@@ -596,11 +596,11 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 			});
 			t_trans_h2k = system_clock::now();
 
-			w_ss_kinfo_evt = env->queue_write(ss_kinfo_buf, ss_kinfo.data(), NULL);
+			auto w_ss_kinfo_evt = env->queue_write(ss_kinfo_buf, ss_kinfo.data());
 			cl::vector<cl::Event> kernel_waiting_evts{w_ss_kinfo_evt};
 			env->queue.enqueueNDRangeKernel(subsample_kernel, cl::NullRange, cl::NDRange(subsamples), cl::NullRange, &kernel_waiting_evts, &kernel_evt);
 			cl::vector<cl::Event> read_waiting_evts{kernel_evt};
-			r_ss_kinfo_evt = env->queue_read(ss_kinfo_buf, ss_kinfo.data(), &read_waiting_evts);
+			auto r_ss_kinfo_evt = env->queue_read(ss_kinfo_buf, ss_kinfo.data(), &read_waiting_evts);
 			env->queue.finish();
 			t_opencl = system_clock::now();
 

@@ -245,8 +245,8 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
 
 	// Write both images' data to the device
-	Event src_wevt = env->queue_write(src_buf, src_data.data(), NULL);
-	Event krn_wevt = env->queue_write(krn_buf, krn_data.data(), NULL);
+	Event src_wevt = env->queue_write(src_buf, src_data.data());
+	Event krn_wevt = env->queue_write(krn_buf, krn_data.data());
 
 	// We need this much local memory on each local group
 	auto local_size = sizeof(T);
@@ -339,8 +339,8 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
 
 	// Write both images' data to the device
-	Event src_wevt = env->queue_write(src_buf, src_data.data(), NULL);
-	Event krn_wevt = env->queue_write(krn_buf, krn_data.data(), NULL);
+	Event src_wevt = env->queue_write(src_buf, src_data.data());
+	Event krn_wevt = env->queue_write(krn_buf, krn_data.data());
 
 	// We need this much local memory on each local group
 	auto local_size = sizeof(T);
