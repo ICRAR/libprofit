@@ -39,7 +39,25 @@ namespace profit
 {
 
 /**
- * A convolver object convolves two images
+ * The types of convolvers supported by libprofit
+ */
+enum ConvolverType {
+	BRUTE = 0,
+#ifdef PROFIT_OPENCL
+	OPENCL,
+	OPENCL_LOCAL,
+#endif // PROFIT_OPENCL
+#ifdef PROFIT_FFTW
+	FFT,
+#endif // PROFIT_FFTW
+};
+
+
+/**
+ * A convolver object convolves two images.
+ *
+ * This is the base class for all Convolvers. Deriving classes must implement
+ * the convolve method, which performs the actual operation.
  */
 class Convolver {
 
@@ -157,6 +175,81 @@ private:
 
 
 #endif // PROFIT_OPENCL
+
+
+///
+/// A set of preferences used to create convolvers.
+///
+class ConvolverCreationPreferences {
+
+public:
+	ConvolverCreationPreferences() :
+		src_width(0),
+		src_height(0),
+		krn_width(0),
+		krn_height(0)
+#ifdef PROFIT_OPENCL
+		,opencl_env()
+#endif // PROFIT_OPENCL
+#ifdef PROFIT_FFTW
+		,effort(FFTPlan::ESTIMATE)
+		,plan_omp_threads()
+		,reuse_krn_fft(false)
+#endif // PROFIT_FFTW
+	{};
+
+	/// The width of the image being convolved.
+	unsigned int src_width;
+
+	/// The height of the image being convolved.
+	unsigned int src_height;
+
+	/// The width of the convolution kernel.
+	unsigned int krn_width;
+
+	/// The height of the convolution kernel.
+	unsigned int krn_height;
+
+#ifdef PROFIT_OPENCL
+	/// A pointer to an OpenCL environment. Used by the OpenCL convolvers.
+	std::shared_ptr<OpenCL_env> opencl_env;
+#endif // PROFIT_OPENCL
+
+#ifdef PROFIT_FFTW
+
+	/// The amount of effort to put into the plan creation. Used by the FFT convolver.
+	FFTPlan::effort_t effort;
+
+	/// The amount of OpenMP threads (if OpenMP is available) to use to create
+	/// and execute the plan. Used by the FFT convolver.
+	unsigned int plan_omp_threads;
+
+	/// Whether to reuse or not the FFT'd kernel or not. Used by the FFT convolver.
+	bool reuse_krn_fft;
+#endif // PROFIT_FFTW
+
+};
+
+/**
+ * Creates a new convolver of type `type` with preferences `prefs`
+ *
+ * @param type The type of convolver to create
+ * @param prefs The creation preferences used to create the new convolver
+ * @return A shared pointer to a new convolver
+ */
+std::shared_ptr<Convolver>
+create_convolver(const ConvolverType type,
+                 const ConvolverCreationPreferences &prefs = ConvolverCreationPreferences());
+
+/**
+ * Like create_convolver(ConvolverType, const ConvolverCreationPreferences &),
+ * but indicating the convolver type as a string.
+ *
+ * @overload
+ */
+std::shared_ptr<Convolver>
+create_convolver(const std::string &type,
+                 const ConvolverCreationPreferences &prefs = ConvolverCreationPreferences());
 
 } /* namespace profit */
 

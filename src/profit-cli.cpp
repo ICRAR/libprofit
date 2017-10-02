@@ -638,47 +638,18 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	return 0;
 }
 
-Model::ConvolverType read_convolver_type(const char *conv_type) {
-
-	if (strcmp("brute", conv_type) == 0) {
-		return Model::BRUTE;
-	}
-#ifdef PROFIT_OPENCL
-	else if (strcmp("opencl", conv_type) == 0) {
-		return Model::OPENCL;
-	}
-	else if (strcmp("opencl-local", conv_type) == 0) {
-		return Model::OPENCL_LOCAL;
-	}
-#endif // PROFIT_OPENCL
-#ifdef PROFIT_FFTW
-	else if (strcmp("fft", conv_type) == 0) {
-		return Model::FFT;
-	}
-#endif // PROFIT_FFTW
-
-	throw invalid_cmdline(std::string("Invalid option value for -T: ") + conv_type);
-}
-
 vector<double> run(unsigned int iterations, Model &m) {
 
 	using chrono::system_clock;
 
-	auto start = system_clock::now();
-	m.convolver = m.create_convolver();
-	auto end = system_clock::now();
-	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
-	cout << std::fixed << std::setprecision(3);
-	cout << "Created convolver in " << duration << " [ms]" << endl;
-
 	/* This means that we evaluated the model once, but who cares */
 	vector<double> image;
-	start = system_clock::now();
+	auto start = system_clock::now();
 	for(unsigned i=0; i!=iterations; i++) {
 		image = m.evaluate();
 	}
-	end = system_clock::now();
-	duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+	auto end = system_clock::now();
+	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 
 	double dur_secs = (double)duration/1000;
 	double dur_per_iter = (double)duration/iterations;
@@ -711,6 +682,8 @@ int parse_and_run(int argc, char *argv[]) {
 	string fits_output;
 	output_t output = none;
 	Model m;
+	string convolver_type = "brute";
+	ConvolverCreationPreferences convolver_prefs;
 	struct stat stat_buf;
 	bool show_stats = false;
 
@@ -769,16 +742,16 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'T':
-				m.convolver_type = read_convolver_type(optarg);
+				convolver_type = optarg;
 				break;
 
 #ifdef PROFIT_FFTW
 			case 'F':
-				m.fft_effort = FFTPlan::effort_t(std::atoi(optarg));
+				convolver_prefs.effort = FFTPlan::effort_t(std::atoi(optarg));
 				break;
 
 			case 'r':
-				m.reuse_psf_fft = true;
+				convolver_prefs.reuse_krn_fft = true;
 				break;
 #endif /* PROFIT_FFTW */
 
@@ -805,7 +778,7 @@ int parse_and_run(int argc, char *argv[]) {
 
 #ifdef PROFIT_OPENMP
 			case 'n':
-				m.omp_threads = (unsigned int)atoi(optarg);
+				convolver_prefs.plan_omp_threads = m.omp_threads = (unsigned int)atoi(optarg);
 				break;
 #endif
 
@@ -816,6 +789,8 @@ int parse_and_run(int argc, char *argv[]) {
 				else {
 					m.psf = parse_psf(optarg, m.psf_width, m.psf_height, m.psf_scale_x, m.psf_scale_y);
 				}
+				convolver_prefs.krn_width = m.psf_width;
+				convolver_prefs.krn_height = m.psf_height;
 				break;
 
 			case 'w':
@@ -874,8 +849,8 @@ int parse_and_run(int argc, char *argv[]) {
 		return 1;
 	}
 
-	m.width   = width;
-	m.height  = height;
+	m.width   = convolver_prefs.src_width = width;
+	m.height  = convolver_prefs.src_height = height;
 	m.scale_x = scale_x;
 	m.scale_y = scale_y;
 	m.magzero = magzero;
@@ -892,6 +867,16 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 #endif /* PROFIT_OPENCL */
 
+	// Create the convolver
+	auto start = system_clock::now();
+	m.convolver = create_convolver(convolver_type);
+	auto end = system_clock::now();
+
+	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+	cout << std::fixed << std::setprecision(3);
+	cout << "Created convolver in " << duration << " [ms]" << endl;
+
+	// Now run the model as many times as requested
 	vector<double> image = run(iterations, m);
 
 	switch(output) {

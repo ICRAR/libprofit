@@ -383,4 +383,53 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 
 #endif // PROFIT_OPENCL
 
+std::shared_ptr<Convolver> create_convolver(const ConvolverType type, const ConvolverCreationPreferences &prefs)
+{
+	switch(type) {
+		case BRUTE:
+			return std::make_shared<BruteForceConvolver>();
+#ifdef PROFIT_OPENCL
+		case OPENCL:
+			return std::make_shared<OpenCLConvolver>(prefs.opencl_env);
+		case OPENCL_LOCAL:
+			return std::make_shared<OpenCLLocalConvolver>(prefs.opencl_env);
+#endif // PROFIT_OPENCL
+#ifdef PROFIT_FFTW
+		case FFT:
+			return std::make_shared<FFTConvolver>(prefs.src_width, prefs.src_height,
+			                                      prefs.krn_width, prefs.krn_height,
+			                                      prefs.effort, prefs.plan_omp_threads,
+			                                      prefs.reuse_krn_fft);
+#endif // PROFIT_FFTW
+		default:
+			// Shouldn't happen
+			throw invalid_parameter("Unsupported convolver type: " + std::to_string(type));
+	}
+}
+
+std::shared_ptr<Convolver> create_convolver(const std::string &type, const ConvolverCreationPreferences &prefs)
+{
+	if (type == "brute") {
+		return create_convolver(BRUTE, prefs);
+	}
+#ifdef PROFIT_OPENCL
+	else if (type == "opencl") {
+		return create_convolver(OPENCL, prefs);
+	}
+	else if (type == "opencl-local") {
+		return create_convolver(OPENCL_LOCAL, prefs);
+	}
+#endif // PROFIT_OPENCL
+#ifdef PROFIT_FFTW
+	else if (type == "fft") {
+		return create_convolver(FFT, prefs);
+	}
+#endif // PROFIT_FFTW
+
+	std::ostringstream os;
+	os << "Convolver of type " << type << " is not supported";
+	throw invalid_parameter(os.str());
+}
+
+
 } /* namespace profit */

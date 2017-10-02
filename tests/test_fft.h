@@ -113,7 +113,6 @@ public:
 		m.psf_height = fftFixtures.psf_height;
 
 		// evaluate normally first, and then using the FFTPlan
-		m.convolver_type = Model::BRUTE;
 		m.convolver.reset();
 		std::vector<double> original = m.evaluate();
 		m.convolver = fftFixtures.fft_convolver;
