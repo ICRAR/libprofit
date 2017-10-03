@@ -191,6 +191,9 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 OpenCLConvolver::OpenCLConvolver(std::shared_ptr<OpenCL_env> opencl_env) :
 	env(opencl_env)
 {
+	if (!env) {
+		throw invalid_parameter("Empty OpenCL environment given to OpenCLConvolver");
+	}
 }
 
 Image OpenCLConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
@@ -283,6 +286,9 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 OpenCLLocalConvolver::OpenCLLocalConvolver(std::shared_ptr<OpenCL_env> opencl_env) :
 	env(opencl_env)
 {
+	if (!env) {
+		throw invalid_parameter("Empty OpenCL environment given to OpenCLLocalConvolver");
+	}
 }
 
 Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
