@@ -778,7 +778,10 @@ int parse_and_run(int argc, char *argv[]) {
 
 #ifdef PROFIT_OPENMP
 			case 'n':
-				convolver_prefs.plan_omp_threads = m.omp_threads = (unsigned int)atoi(optarg);
+				m.omp_threads = (unsigned int)atoi(optarg);
+#ifdef PROFIT_FFTW
+				convolver_prefs.plan_omp_threads = m.omp_threads;
+#endif // PROFIT_FFTW
 				break;
 #endif
 
