@@ -110,7 +110,7 @@ public:
 	}
 
 	double tolerance;
-	std::shared_ptr<OpenCL_env> opencl_env;
+	OpenCLEnvPtr opencl_env;
 };
 static OpenCLFixtures openCLFixtures;
 
