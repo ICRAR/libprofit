@@ -95,4 +95,4 @@ script:
  - make CTEST_OUTPUT_ON_FAILURE=1 test
 
 after_success:
- - if [ "$COMPILER" == "g++-6" ]; then cd ${TRAVIS_BUILD_DIR}; cpp-coveralls --gcov `which gcov-6` -r . -i build/CMakeFiles/profit.dir/src/ -i src/ -i profit/; fi
+ - if [ "$COMPILER" == "g++-6" ]; then cd ${TRAVIS_BUILD_DIR}; cpp-coveralls --gcov `which gcov-6` -r . -i build/CMakeFiles/profit.dir/src/ -i src/ -i profit/ -e src/profit-cli.cpp; fi
