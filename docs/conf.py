@@ -12,6 +12,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import datetime
 import os
 import subprocess
 import sys
@@ -55,7 +56,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'libprofit'
-copyright = u'2016, Aaron Robotham, Dan Taranu, Rodrigo Tobar'
+year = datetime.datetime.now().year
+copyright = u'%d, Aaron Robotham, Dan Taranu, Rodrigo Tobar' % year
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
