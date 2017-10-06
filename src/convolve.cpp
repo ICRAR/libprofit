@@ -269,7 +269,7 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 
 	// Execute
 	std::vector<Event> exec_wait_evts {src_wevt, krn_wevt};
-	auto exec_evt = env->queue_kernel(clKernel, NDRange(src.getWidth(), src.getHeight()), &exec_wait_evts, NDRange(16, 16));
+	auto exec_evt = env->queue_kernel(clKernel, NDRange(src.getWidth(), src.getHeight()), &exec_wait_evts);
 
 	// Read and good bye
 	std::vector<Event> read_wait_evts {exec_evt};
