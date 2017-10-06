@@ -31,6 +31,14 @@ Convolvers
 
 .. doxygenclass:: profit::FFTConvolver
 
+.. doxygenfunction:: profit::create_convolver(const ConvolverType, const ConvolverCreationPreferences&)
+
+.. doxygenfunction:: profit::create_convolver(const std::string&, const ConvolverCreationPreferences&)
+
+.. doxygenclass:: profit::ConvolverCreationPreferences
+   :members:
+
+
 Model class
 -----------
 
