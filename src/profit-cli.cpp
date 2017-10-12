@@ -865,6 +865,7 @@ int parse_and_run(int argc, char *argv[]) {
 		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double, show_stats);
 		auto end = system_clock::now();
 		m.opencl_env = opencl_env;
+		convolver_prefs.opencl_env = opencl_env;
 		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 		cout << "OpenCL environment created in " << opencl_duration << " [ms]" << endl;
 	}
@@ -872,7 +873,7 @@ int parse_and_run(int argc, char *argv[]) {
 
 	// Create the convolver
 	auto start = system_clock::now();
-	m.convolver = create_convolver(convolver_type);
+	m.convolver = create_convolver(convolver_type, convolver_prefs);
 	auto end = system_clock::now();
 
 	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
