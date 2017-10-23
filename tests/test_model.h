@@ -171,7 +171,7 @@ public:
 
 	void test_profile_images_addition_after_convolving() {
 
-		auto convolver = std::make_shared<BruteForceConvolver>();
+		auto convolver = create_convolver(ConvolverType::BRUTE);
 		auto psf = {0., 1., 2., 3.};
 
 		// two individual model images are summed up
