@@ -404,7 +404,7 @@ ConvolverPtr create_convolver(const ConvolverType type, const ConvolverCreationP
 		case FFT:
 			return std::make_shared<FFTConvolver>(prefs.src_width, prefs.src_height,
 			                                      prefs.krn_width, prefs.krn_height,
-			                                      prefs.effort, prefs.plan_omp_threads,
+			                                      prefs.effort, prefs.omp_threads,
 			                                      prefs.reuse_krn_fft);
 #endif // PROFIT_FFTW
 		default:
