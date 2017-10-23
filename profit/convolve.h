@@ -91,7 +91,6 @@ public:
 };
 
 #ifdef PROFIT_FFTW
-
 /**
  * A convolver that uses an FFTPlan to carry out FFT-based convolution.
  *
