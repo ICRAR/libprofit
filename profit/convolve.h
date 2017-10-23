@@ -81,13 +81,19 @@ public:
 };
 
 /**
- * A brute-force convolver.
+ * A brute-force convolver. It optionally uses OpenMP to accelerate the
+ * convolution.
  */
 class BruteForceConvolver : public Convolver {
 
 public:
+	BruteForceConvolver(unsigned int omp_threads) :
+		omp_threads(omp_threads) {}
+
 	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
 
+private:
+	unsigned int omp_threads;
 };
 
 #ifdef PROFIT_FFTW

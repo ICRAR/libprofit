@@ -47,53 +47,49 @@ Convolver::~Convolver()
 Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
 {
 
-	auto src_width = src.getWidth();
-	auto src_height = src.getHeight();
-	auto krn_width = krn.getWidth();
-	auto krn_height = krn.getHeight();
+	const auto src_width = src.getWidth();
+	const auto src_height = src.getHeight();
+	const auto krn_width = krn.getWidth();
+	const auto krn_height = krn.getHeight();
 
-	double pixel;
-	unsigned int i, j, k, l;
-	unsigned int krn_half_width = krn_width / 2;
-	unsigned int krn_half_height = krn_height / 2;
-	unsigned int krn_size = krn_width * krn_height;
-	int src_i, src_j;
+	const unsigned int krn_half_width = krn_width / 2;
+	const unsigned int krn_half_height = krn_height / 2;
 
 	Image convolution(src_width, src_height);
 
-	const double *krn_data = krn.getData().data();
-	double *out = convolution.getData().data() - 1;
-	const double *srcPtr1 = src.getData().data() - 1, *srcPtr2;
-	const double *krnPtr;
-	auto mask_it = mask.getData().begin();
+	auto krn_end = krn.getData().cend();
+	const auto &src_data = src.getData();
+	auto &out = convolution.getData();
+	const auto &mask_data = mask.getData();
 
 	/* Convolve! */
 	/* Loop around the output image first... */
-	for (j = 0; j < src_height; j++) {
-		for (i = 0; i < src_width; i++) {
+#ifdef PROFIT_OPENMP
+	bool use_omp = omp_threads > 1;
+	#pragma omp parallel for collapse(2) schedule(dynamic, 10) if(use_omp) num_threads(omp_threads)
+#endif // PROFIT_OPENMP
+	for (unsigned int j = 0; j < src_height; j++) {
+		for (unsigned int i = 0; i < src_width; i++) {
 
-			out++;
-			srcPtr1++;
+			auto im_idx = i + j * src_width;
 
 			/* Don't convolve this pixel */
-			if( !mask.empty() ) {
-				if( !*mask_it++ ) {
-					*out = 0;
-					continue;
-				}
+			if( !mask.empty() and mask_data[im_idx]) {
+				out[im_idx] = 0;
+				continue;
 			}
 
-			pixel = 0;
-			krnPtr = krn_data + krn_size - 1;
-			srcPtr2 = srcPtr1 - krn_half_width - krn_half_height*src_width;
+			double pixel = 0;
+			auto krnPtr = krn_end - 1;
+			auto srcPtr2 = src_data.begin() + im_idx - krn_half_width - krn_half_height*src_width;
 
 			/* ... now loop around the kernel */
-			for (l = 0; l < krn_height; l++) {
+			for (unsigned int l = 0; l < krn_height; l++) {
 
-				src_j = (int)j + (int)l - (int)krn_half_height;
-				for (k = 0; k < krn_width; k++) {
+				int src_j = (int)j + (int)l - (int)krn_half_height;
+				for (unsigned int k = 0; k < krn_width; k++) {
 
-					src_i = (int)i + (int)k - (int)krn_half_width;
+					int src_i = (int)i + (int)k - (int)krn_half_width;
 
 					if( src_i >= 0 && (unsigned int)src_i < src_width &&
 					    src_j >= 0 && (unsigned int)src_j < src_height ) {
@@ -106,7 +102,7 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 				srcPtr2 += src_width - krn_width;
 			}
 
-			*out = pixel;
+			out[im_idx] = pixel;
 		}
 	}
 
@@ -393,7 +389,7 @@ ConvolverPtr create_convolver(const ConvolverType type, const ConvolverCreationP
 {
 	switch(type) {
 		case BRUTE:
-			return std::make_shared<BruteForceConvolver>();
+			return std::make_shared<BruteForceConvolver>(prefs.omp_threads);
 #ifdef PROFIT_OPENCL
 		case OPENCL:
 			return std::make_shared<OpenCLConvolver>(prefs.opencl_env);
