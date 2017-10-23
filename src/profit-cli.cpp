@@ -714,7 +714,8 @@ int parse_and_run(int argc, char *argv[]) {
 				return 0;
 
 			case 'V':
-				cout << "libprofit version " << PROFIT_VERSION << endl;
+				cout << "libprofit version " << PROFIT_VERSION_MAJOR << "."
+				     << PROFIT_VERSION_MINOR << "." << PROFIT_VERSION_PATCH << endl;
 				cout << "OpenCL support: ";
 #ifdef PROFIT_OPENCL
 				cout << "Yes (up to " << PROFIT_OPENCL_MAJOR << "." << PROFIT_OPENCL_MINOR << ")";

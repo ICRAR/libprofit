@@ -26,6 +26,10 @@ cmake_minimum_required(VERSION 3.1)
 
 # We have the version here
 file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION PROFIT_VERSION)
+string(REPLACE "." ";" VERSION_LIST ${PROFIT_VERSION})
+list(GET VERSION_LIST 0 PROFIT_VERSION_MAJOR)
+list(GET VERSION_LIST 1 PROFIT_VERSION_MINOR)
+list(GET VERSION_LIST 2 PROFIT_VERSION_PATCH)
 
 # We have only C++ sources, but until cmake 3.4 the check_symbol_exists
 # macro didn't work properly if only defining C++ as the project language
