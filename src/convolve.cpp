@@ -553,8 +553,10 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 ConvolverPtr create_convolver(const ConvolverType type, const ConvolverCreationPreferences &prefs)
 {
 	switch(type) {
-		case BRUTE:
+		case BRUTE_OLD:
 			return std::make_shared<BruteForceConvolver>(prefs.omp_threads);
+		case BRUTE:
+			return std::make_shared<AssociativeBruteForceConvolver>(prefs.omp_threads);
 #ifdef PROFIT_OPENCL
 		case OPENCL:
 			return std::make_shared<OpenCLConvolver>(prefs.opencl_env);
@@ -576,7 +578,10 @@ ConvolverPtr create_convolver(const ConvolverType type, const ConvolverCreationP
 
 ConvolverPtr create_convolver(const std::string &type, const ConvolverCreationPreferences &prefs)
 {
-	if (type == "brute") {
+	if (type == "brute-old") {
+		return create_convolver(BRUTE_OLD, prefs);
+	}
+	else if (type == "brute") {
 		return create_convolver(BRUTE, prefs);
 	}
 #ifdef PROFIT_OPENCL

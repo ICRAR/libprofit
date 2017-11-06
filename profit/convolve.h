@@ -42,7 +42,8 @@ namespace profit
  * The types of convolvers supported by libprofit
  */
 enum ConvolverType {
-	BRUTE = 0,
+	BRUTE_OLD = 0,
+	BRUTE,
 #ifdef PROFIT_OPENCL
 	OPENCL,
 	OPENCL_LOCAL,

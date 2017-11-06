@@ -342,6 +342,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -V        Show the program version and exit\n\n");
 	fprintf(file,"The following convolver types are supported:\n\n");
 	fprintf(file," * brute: A brute-force convolver\n");
+	fprintf(file," * brute-old: An older, slower brute-force convolver (used only for comparisons)\n");
 #ifdef PROFIT_OPENCL
 	fprintf(file," * opencl: An OpenCL-based brute-force convolver\n");
 	fprintf(file," * opencl-local: An OpenCL-based local-memory caching brute-force convolver\n");
