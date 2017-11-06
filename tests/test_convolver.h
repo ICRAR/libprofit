@@ -70,20 +70,18 @@ private:
 					d = (rand() % 10000) / 10000.0;
 				}
 
-				auto bConvolver = create_convolver(ConvolverType::BRUTE);
+				auto bConvolver = create_convolver(ConvolverType::BRUTE_OLD);
 				Image result1 = bConvolver->convolve(src, krn, mask);
 				Image result2 = otherConvolver.convolve(src, krn, mask);
 				for(unsigned int i = 0; i < src.getSize(); i++) {
 					// Hopefully within 0.1% of error?
-					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
+					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-12);
 				}
 			}
 		}
 	}
 
-public:
-
-	void test_openmp_convolver() {
+	void _test_openmp_convolver(ConvolverType type) {
 
 		// Random images
 		auto im_dim = 50;
@@ -101,8 +99,8 @@ public:
 		// A normal and an OpenMP-accelerated brute-force convolver
 		auto prefs = ConvolverCreationPreferences();
 		prefs.omp_threads = 2;
-		auto brute = create_convolver(ConvolverType::BRUTE);
-		auto openmp = create_convolver(ConvolverType::BRUTE, prefs);
+		auto brute = create_convolver(type);
+		auto openmp = create_convolver(type, prefs);
 
 		// Results should be fully identical
 		auto res1 = brute->convolve(src, krn, mask);
@@ -111,8 +109,18 @@ public:
 
 	}
 
+public:
+
 	void test_new_bruteforce_convolver() {
 		_check_convolver(AssociativeBruteForceConvolver(1));
+	}
+
+	void test_old_bruteforce_openmp() {
+		_test_openmp_convolver(ConvolverType::BRUTE_OLD);
+	}
+
+	void test_new_bruteforce_openmp() {
+		_test_openmp_convolver(ConvolverType::BRUTE);
 	}
 
 };

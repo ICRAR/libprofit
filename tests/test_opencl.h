@@ -174,7 +174,7 @@ private:
 					d = (rand() % 10000) / 10000.0;
 				}
 
-				auto bConvolver = create_convolver(ConvolverType::BRUTE);
+				auto bConvolver = create_convolver(ConvolverType::BRUTE_OLD);
 				Image result1 = bConvolver->convolve(src, krn, mask);
 				Image result2 = clConvolver.convolve(src, krn, mask);
 				for(unsigned int i = 0; i < src.getSize(); i++) {
