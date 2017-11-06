@@ -73,7 +73,7 @@ private:
 				auto bConvolver = create_convolver(ConvolverType::BRUTE_OLD);
 				Image result1 = bConvolver->convolve(src, krn, mask);
 				Image result2 = otherConvolver.convolve(src, krn, mask);
-				for(unsigned int i = 0; i < src.getSize(); i++) {
+				for(unsigned int i = 0; i < src.size(); i++) {
 					// Hopefully within 0.1% of error?
 					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
 				}

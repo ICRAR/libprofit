@@ -327,7 +327,7 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 
 	// inverse FFT and scale down
 	Image res(plan->backward_real(src_fft), ext_width, ext_height);
-	res /= res.getSize();
+	res /= res.size();
 
 	// crop the image to original size, apply the mask, and good bye
 	auto x_offset = src_width / 2;
@@ -399,13 +399,13 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	using cl::NDRange;
 	using cl::NullRange;
 
-	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.getSize());
-	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.getSize());
-	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.getSize());
+	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.size());
+	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.size());
+	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.size());
 
-	std::vector<T> src_data(src.getSize());
+	std::vector<T> src_data(src.size());
 	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());
-	std::vector<T> krn_data(krn.getSize());
+	std::vector<T> krn_data(krn.size());
 	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
 
 	// Write both images' data to the device
@@ -434,7 +434,7 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 
 	// Read and good bye
 	std::vector<Event> read_wait_evts {exec_evt};
-	std::vector<T> conv_data(src.getSize());
+	std::vector<T> conv_data(src.size());
 	Event read_evt = env->queue_read(conv_buf, conv_data.data(), &read_wait_evts);
 	read_evt.wait();
 
@@ -495,13 +495,13 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	using cl::NDRange;
 	using cl::NullRange;
 
-	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.getSize());
-	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.getSize());
-	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.getSize());
+	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.size());
+	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.size());
+	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.size());
 
-	std::vector<T> src_data(src.getSize());
+	std::vector<T> src_data(src.size());
 	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());
-	std::vector<T> krn_data(krn.getSize());
+	std::vector<T> krn_data(krn.size());
 	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
 
 	// Write both images' data to the device
@@ -537,7 +537,7 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	auto exec_evt = env->queue_kernel(clKernel, NDRange(src.getWidth(), src.getHeight()), &exec_wait_evts, NDRange(16, 16));
 
 	// Read and good bye
-	std::vector<T> conv_data(src.getSize());
+	std::vector<T> conv_data(src.size());
 	std::vector<Event> read_wait_evts {exec_evt};
 	Event read_evt = env->queue_read(conv_buf, conv_data.data(), &read_wait_evts);
 	read_evt.wait();

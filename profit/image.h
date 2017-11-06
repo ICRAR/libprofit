@@ -109,7 +109,7 @@ public:
 		return height;
 	}
 
-	unsigned int getSize() const {
+	unsigned int size() const {
 		return width * height;
 	}
 

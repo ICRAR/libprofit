@@ -38,7 +38,7 @@ private:
 		TS_ASSERT_EQUALS(0, im.getData().size());
 		TS_ASSERT_EQUALS(0, im.getWidth());
 		TS_ASSERT_EQUALS(0, im.getHeight());
-		TS_ASSERT_EQUALS(0, im.getSize());
+		TS_ASSERT_EQUALS(0, im.size());
 	}
 
 	void assert_not_empty(const Image &im) {
@@ -46,7 +46,7 @@ private:
 		TS_ASSERT_DIFFERS(0, im.getData().size());
 		TS_ASSERT_DIFFERS(0, im.getWidth());
 		TS_ASSERT_DIFFERS(0, im.getHeight());
-		TS_ASSERT_DIFFERS(0, im.getSize());
+		TS_ASSERT_DIFFERS(0, im.size());
 	}
 
 public:
