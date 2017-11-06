@@ -96,6 +96,35 @@ private:
 	unsigned int omp_threads;
 };
 
+/**
+ * A faster brute-force convolver. It optionally uses OpenMP to accelerate the
+ * convolution.
+ *
+ * The difference between this and the BruteForceConvolver is that this
+ * convolver explicitly states that the sums of the dot products that
+ * make up the result of a single pixel are associative, and can be computed
+ * separately, which enables better pipelining in most CPUs and thus faster
+ * compute times (we have seen up to ~3x speedups). The result is not guaranteed
+ * to be the exact same as the one coming from BruteForceConvolver. This is not
+ * because one of them is mathematically incorrect (neither is actually), but
+ * because IEEE floating-point math is not associative, and therefore different
+ * operation sequences *might* yield different results.
+ *
+ * The internal loop structure of this class is also slightly different from
+ * BruteForceConvolver, but is still pure CPU-based code.
+ */
+class AssociativeBruteForceConvolver : public Convolver {
+
+public:
+	AssociativeBruteForceConvolver(unsigned int omp_threads) :
+		omp_threads(omp_threads) {}
+
+	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
+
+private:
+	unsigned int omp_threads;
+};
+
 #ifdef PROFIT_FFTW
 /**
  * A convolver that uses an FFTPlan to carry out FFT-based convolution.

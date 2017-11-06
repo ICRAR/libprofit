@@ -109,6 +109,171 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 	return convolution;
 }
 
+
+Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+{
+
+	const auto src_width = src.getWidth();
+	const auto src_height = src.getHeight();
+	const auto krn_width = krn.getWidth();
+	const auto krn_height = krn.getHeight();
+
+	const unsigned int krn_half_width = krn_width / 2;
+	const unsigned int krn_half_height = krn_height / 2;
+
+	Image convolution(src_width, src_height);
+
+	const auto &src_data = src.getData();
+	auto &out = convolution.getData();
+	const auto &mask_data = mask.getData();
+	const auto &krn_data = krn.getData();
+	const size_t src_krn_offset = krn_half_width + krn_half_height*src_width;
+	const auto src_skip = src_width - krn_width;
+
+	/* Convolve! */
+	/* Loop around the output image first... */
+#ifdef PROFIT_OPENMP
+	bool use_omp = omp_threads > 1;
+	#pragma omp parallel for collapse(2) schedule(dynamic, 10) if(use_omp) num_threads(omp_threads)
+#endif // PROFIT_OPENMP
+	for (unsigned int j = 0; j < src_height; j++) {
+		for (unsigned int i = 0; i < src_width; i++) {
+
+			auto im_idx = i + j * src_width;
+
+			/* Don't convolve this pixel */
+			if (!mask.empty() and mask_data[im_idx]) {
+				out[im_idx] = 0;
+				continue;
+			}
+
+			double pixel = 0;
+
+			size_t krnPtr = krn_data.size() - 1;
+			size_t srcPtr2 = im_idx;
+			bool suboffset = false;
+
+			unsigned int l_min = 0;
+			unsigned int l_max = krn_height;
+			unsigned int l_incr = 0;
+
+			if (j < krn_half_height) {
+				l_min = krn_half_height - j;
+				srcPtr2 += l_min * src_width;
+				krnPtr -= l_min * krn_width;
+			}
+			else if ((j + krn_half_height) >= src_height) {
+				// TODO: maybe shouldn't be an else if we support krn > img size?
+				l_max = src_height + krn_half_height - j;
+				l_incr = krn_height - l_max;
+			}
+
+			for (size_t l = l_min; l < l_max; l++) {
+
+				unsigned int k_min = 0;
+				unsigned int k_max = krn_width;
+				unsigned int k_incr = 0;
+
+				if (i < krn_half_width) {
+					k_min = krn_half_width - i;
+					srcPtr2 += k_min;
+					krnPtr -= k_min;
+				}
+				else if ((i + krn_half_width) >= src_width)
+				{
+					// TODO: maybe shouldn't be an else-if if we support krn > img size?
+					k_max = src_width + krn_half_width - i;
+					k_incr = krn_width - k_max;
+				}
+
+				if (!suboffset and srcPtr2 >= src_krn_offset)
+				{
+					srcPtr2 -= src_krn_offset;
+					suboffset = true;
+				}
+				const size_t k_n = k_max - k_min;
+
+				// Sum multiplications first, then add up to pixel.
+				// This means we explicitly tell the compiler that:
+				//
+				//  a + b + c + d == (a + b + c) + d
+				//
+				// By default floating point arithmetic is not associative,
+				// and therefore the compiler will not create the temporary
+				// "buf" variable, unless compiling with -ffast-math et al.
+				// Doing this buffering allows compilers to use an extra
+				// register, which in turn yields better instruction pipelining.
+				double buf = 0;
+
+				// On top of the associativity described above,
+				// we also manually unroll the for loop into four separate
+				// multiply-add operations. allows compilers to optimize even
+				// further, because there is more explicit associativity and
+				// thus better pipelining
+				//
+				// Also, note that clang needs an explicit -ffp-contract=fast
+				// to generate fused multiply-add instructions (which gcc does
+				// for default). This is not only important here, but also in
+				// the original version of our convolution method.
+				//
+				// TODO: The generated SSE/AVX instructions are still not
+				//       vectorized (e.g., vfmaddsd instead of vfmaddpd). This
+				//       is because the compiler cannot guarantee the alignment
+				//       of the arrays. The difficulty on doing that lies on the
+				//       the fact that both arrays move separately, so it's
+				//       difficult to make that bring that kind of assurance
+				//       (other than copying data to an aligned buffer).
+				//       An additional benefit from generating vectorized
+				//       instructions is that the compiler can fully use the
+				//       YMM registers (and not only half of the XMM registers,
+				//       as it is doing now) leading to yet better performance.
+				for (size_t k = 0; k < k_n / 4; k++) {
+					double tmp1 = src_data[srcPtr2 + k * 4]     * krn_data[krnPtr - k * 4];
+					double tmp2 = src_data[srcPtr2 + k * 4 + 1] * krn_data[krnPtr - k * 4 - 1];
+					double tmp3 = src_data[srcPtr2 + k * 4 + 2] * krn_data[krnPtr - k * 4 - 2];
+					double tmp4 = src_data[srcPtr2 + k * 4 + 3] * krn_data[krnPtr - k * 4 - 3];
+					buf += (tmp1 + tmp3) + (tmp2 + tmp4);
+				}
+				switch (k_n % 4) {
+					case 3:
+						buf += src_data[srcPtr2 + k_n - 3] * krn_data[krnPtr - k_n + 3] + \
+						       src_data[srcPtr2 + k_n - 2] * krn_data[krnPtr - k_n + 2] + \
+						       src_data[srcPtr2 + k_n - 1] * krn_data[krnPtr - k_n + 1];
+						break;
+
+					case 2:
+						buf += src_data[srcPtr2 + k_n - 2] * krn_data[krnPtr - k_n + 2] + \
+						       src_data[srcPtr2 + k_n - 1] * krn_data[krnPtr - k_n + 1];
+						break;
+
+					case 1:
+						buf += src_data[srcPtr2 + k_n - 1] * krn_data[krnPtr - k_n + 1];
+						break;
+
+					case 0:
+						break;
+				}
+
+				pixel += buf;
+				srcPtr2 += k_n;
+				krnPtr -= k_n;
+
+				srcPtr2 += k_incr;
+				krnPtr -= k_incr;
+				srcPtr2 += src_skip;
+			}
+
+			srcPtr2 += l_incr * krn_width;
+			krnPtr -= l_incr * krn_width;
+
+			out[im_idx] = pixel;
+		}
+	}
+
+	return convolution;
+
+}
+
 #ifdef PROFIT_FFTW
 FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
                            unsigned int krn_width, unsigned int krn_height,

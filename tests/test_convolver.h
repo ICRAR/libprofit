@@ -30,6 +30,57 @@ using namespace profit;
 
 class TestConvolver : public CxxTest::TestSuite {
 
+private:
+
+	void _pixels_within_tolerance(std::vector<double> original_im, std::vector<double> new_im,
+	                              unsigned int i, unsigned int width,
+	                              double tolerance) {
+
+		double original = original_im[i];
+		double new_pixel = new_im[i];
+		auto diff = std::abs(original - new_pixel);
+		if ( !diff ) {
+			// all good
+			return;
+		}
+
+		// avoid NaNs due to divide-by-zero
+		auto denomin = original;
+		if ( !denomin ) {
+			denomin = new_pixel;
+		}
+		auto relative_diff = diff / denomin;
+
+		std::ostringstream msg;
+		msg << "Pixel [" << i % width << "," << i / width << "] has values that are too different: ";
+		msg << original << " v/s " << new_pixel;
+		TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), relative_diff, tolerance);
+	}
+
+	void _check_convolver(Convolver &&otherConvolver) {
+		for(auto im_dim: {100, 101}) {
+			for(auto krn_dim: {24, 25}) {
+				Mask mask;
+				Image src(im_dim, im_dim);
+				Image krn(krn_dim, krn_dim);
+				for(auto &d: src.getData()) {
+					d = (rand() % 10000) / 10000.0;
+				}
+				for(auto &d: krn.getData()) {
+					d = (rand() % 10000) / 10000.0;
+				}
+
+				auto bConvolver = create_convolver(ConvolverType::BRUTE);
+				Image result1 = bConvolver->convolve(src, krn, mask);
+				Image result2 = otherConvolver.convolve(src, krn, mask);
+				for(unsigned int i = 0; i < src.getSize(); i++) {
+					// Hopefully within 0.1% of error?
+					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
+				}
+			}
+		}
+	}
+
 public:
 
 	void test_openmp_convolver() {
@@ -58,6 +109,10 @@ public:
 		auto res2 = openmp->convolve(src, krn, mask);
 		TS_ASSERT(res1 == res2);
 
+	}
+
+	void test_new_bruteforce_convolver() {
+		_check_convolver(AssociativeBruteForceConvolver(1));
 	}
 
 };
