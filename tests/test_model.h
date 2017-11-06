@@ -154,8 +154,7 @@ public:
 		auto image3 = m3.evaluate();
 
 		// image1 holds the final result
-		std::transform(image1.begin(), image1.end(), image2.begin(), image1.begin(), std::plus<double>());
-		std::transform(image1.begin(), image1.end(), image3.begin(), image1.begin(), std::plus<double>());
+		image1 = image1 + image2 + image3;
 
 		// A single model image with all profile images
 		Model m4(100, 100);
@@ -187,7 +186,7 @@ public:
 		auto image2 = m2.evaluate();
 
 		// image1 holds the final result
-		std::transform(image1.begin(), image1.end(), image2.begin(), image1.begin(), std::plus<double>());
+		image1 = image1 + image2;
 
 		// A single model image with all profile images
 		Model m3(100, 100);

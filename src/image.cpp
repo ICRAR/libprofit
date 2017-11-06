@@ -177,7 +177,7 @@ Image &Image::operator+=(const Image& rhs)
 	return *this;
 }
 
-const Image Image::operator+(const Image& rhs) const
+Image Image::operator+(const Image& rhs) const
 {
 	Image sum(*this);
 	sum += rhs;

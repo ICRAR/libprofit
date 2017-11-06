@@ -246,7 +246,7 @@ public:
 	Image &operator+=(const Image &rhs);
 
 	/// Addition of another image
-	const Image operator+(const Image &rhs) const;
+	Image operator+(const Image &rhs) const;
 
 	/// Division assignment against a double denominator
 	Image &operator/=(double denominator);
