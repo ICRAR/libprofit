@@ -132,6 +132,10 @@ public:
 		return *this;
 	}
 
+	operator std::vector<T>() {
+		return std::vector<T>(data);
+	}
+
 protected:
 	void setWidth(unsigned int width) {
 		this->width = width;

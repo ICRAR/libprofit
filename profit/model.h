@@ -86,13 +86,11 @@ public:
 
 	/**
 	 * Calculates an image using the information contained in the model.
-	 * The result of the computation is stored in the image field.
+	 * The result of the computation is returned as an Image.
 	 *
-	 * @returns The image created by libprofit. The data is organized by rows
-	 *          first, columns later; i.e pixel ``(x,y)`` is accessed by
-	 *          ``image[y*width + x]``
+	 * @returns The image created by libprofit.
 	 */
-	std::vector<double> evaluate();
+	Image evaluate();
 
 #ifdef PROFIT_DEBUG
 	std::map<std::string, std::map<int, int>> get_profile_integrations() const;

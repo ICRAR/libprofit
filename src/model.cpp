@@ -106,7 +106,7 @@ std::shared_ptr<Profile> Model::add_profile(const std::string &profile_name) {
 	return profile;
 }
 
-std::vector<double> Model::evaluate() {
+Image Model::evaluate() {
 
 	/* Check limits */
 	if( !this->width ) {
@@ -162,7 +162,7 @@ std::vector<double> Model::evaluate() {
 
 	/* so long folks! */
 	if( dry_run ) {
-		return image.getData();
+		return image;
 	}
 
 	/*
@@ -211,7 +211,7 @@ std::vector<double> Model::evaluate() {
 	}
 
 	/* Done! Good job :-) */
-	return image.getData();
+	return image;
 }
 
 std::map<std::string, std::shared_ptr<ProfileStats>> Model::get_stats() const {

@@ -567,7 +567,7 @@ vector<double> read_image_from_fits_file(const string &filename, unsigned int &w
 	return psf;
 }
 
-int to_fits(Model &m, vector<double> image, string fname) {
+int to_fits(Model &m, const Image image, string fname) {
 
 	FILE *f;
 	unsigned int i, pos, padding;
@@ -593,9 +593,9 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	fprintf(f, "%-80s", "SIMPLE  =                    T / File conforms to FITS standard");
 	fprintf(f, "%-80s", "BITPIX  =                  -64 / Bits per pixel");
 	fprintf(f, "%-80s", "NAXIS   =                    2 / Number of axes");
-	sprintf(hdr, "NAXIS1  =           %10.0u / Width", m.width);
+	sprintf(hdr, "NAXIS1  =           %10.0u / Width", image.getWidth());
 	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "NAXIS2  =           %10.0u / Height", m.height);
+	sprintf(hdr, "NAXIS2  =           %10.0u / Height", image.getHeight());
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CRPIX1  = 1");
 	sprintf(hdr, "CRVAL1  = %f", 0.5*m.scale_x);
@@ -620,14 +620,15 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	}
 
 	/* data has to be big-endian */
-	size_t image_size = m.width * m.height;
+	size_t image_size = image.size();
+	auto &imdata = image.getData();
 	if( is_little_endian() ) {
 		vector<double> big_endian_image(image_size);
-		transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
+		transform(imdata.begin(), imdata.end(), big_endian_image.begin(), swap_bytes);
 		fwrite(big_endian_image.data(), sizeof(double), image_size, f);
 	}
 	else {
-		fwrite(image.data(), sizeof(double), image_size, f);
+		fwrite(imdata.data(), sizeof(double), image_size, f);
 	}
 
 	/* Pad with zeroes until we complete the current 36*80 block */
@@ -639,12 +640,12 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	return 0;
 }
 
-vector<double> run(unsigned int iterations, Model &m) {
+Image run(unsigned int iterations, Model &m) {
 
 	using chrono::system_clock;
 
 	/* This means that we evaluated the model once, but who cares */
-	vector<double> image;
+	Image image;
 	auto start = system_clock::now();
 	for(unsigned i=0; i!=iterations; i++) {
 		image = m.evaluate();
@@ -881,7 +882,8 @@ int parse_and_run(int argc, char *argv[]) {
 	cout << "Created convolver in " << duration << " [ms]" << endl;
 
 	// Now run the model as many times as requested
-	vector<double> image = run(iterations, m);
+	Image image = run(iterations, m);
+	auto &imdata = image.getData();
 
 	switch(output) {
 
@@ -889,13 +891,13 @@ int parse_and_run(int argc, char *argv[]) {
 			break;
 
 		case binary:
-			fwrite(image.data(), sizeof(double), m.width * m.height, stdout);
+			fwrite(imdata.data(), sizeof(double), image.size(), stdout);
 			break;
 
 		case text:
-			for(j=0; j!=m.height; j++) {
-				for(i=0; i!=m.width; i++) {
-					cout << image[j*m.width + i] << " ";
+			for(j=0; j!=image.getHeight(); j++) {
+				for(i=0; i!=image.getWidth(); i++) {
+					cout << imdata[j*image.getWidth() + i] << " ";
 				}
 				cout << endl;
 			}
