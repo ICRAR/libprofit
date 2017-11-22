@@ -30,6 +30,83 @@
 
 using namespace profit;
 
+class Test2DCoordinates : public CxxTest::TestSuite {
+
+public:
+
+	void test_create() {
+		TS_ASSERT_EQUALS(0, Point().x);
+		TS_ASSERT_EQUALS(0, Point().y);
+	}
+
+	void test_equality() {
+		TS_ASSERT_EQUALS(Point(), Point());
+		TS_ASSERT_EQUALS(Point(1, 1), Point(1, 1));
+		TS_ASSERT_EQUALS(Point(34, 890), Point(34, 890));
+
+		TS_ASSERT_DIFFERS(Point(0, 0), Point(0, 1));
+		TS_ASSERT_DIFFERS(Point(1, 0), Point(0, 1));
+		TS_ASSERT_DIFFERS(Point(0, 1), Point(1, 0));
+		TS_ASSERT_DIFFERS(Point(34, 890), Point(34, 89));
+	}
+
+	void test_copy() {
+
+		Point p1(1, 1);
+		Point p2(p1);
+		Point p3 = p1;
+
+		TS_ASSERT_EQUALS(p1, p2);
+		TS_ASSERT_EQUALS(p2, p3);
+		TS_ASSERT_EQUALS(p1, p3);
+	}
+
+	void test_move() {
+
+		Point p1(1, 1);
+		Point p2(std::move(p1));
+		TS_ASSERT_DIFFERS(p1, p2);
+		TS_ASSERT_EQUALS(0, p1.x);
+		TS_ASSERT_EQUALS(0, p1.y);
+
+		p1 = Point(0, 1);
+		Point p3 = std::move(p1);
+		TS_ASSERT_DIFFERS(p1, p3);
+		TS_ASSERT_EQUALS(0, p1.x);
+		TS_ASSERT_EQUALS(0, p1.y);
+	}
+
+	void test_sum() {
+		Point p1(1, 10);
+		Point p2(2, 20);
+		TS_ASSERT_EQUALS(p1 + p2, Point(3, 30));
+	}
+
+	void test_sub() {
+		Point p1(1, 10);
+		Point p2(3, 30);
+		TS_ASSERT_EQUALS(p2 - p1, Point(2, 20));
+	}
+
+	void test_multiply() {
+		Point p1(1, 10);
+		TS_ASSERT_EQUALS(p1 * 10, Point(10, 100));
+		TS_ASSERT_EQUALS(p1 * 15, Point(15, 150));
+	}
+
+	void test_divide() {
+		Point p1(100, 300);
+		TS_ASSERT_EQUALS(p1 / 10, Point(10, 30));
+		TS_ASSERT_EQUALS(p1 / 3, Point(33, 100));
+	}
+
+	void test_mixed_operations() {
+		Point p = Point(34, 56);
+		TS_ASSERT_EQUALS((p * 2 + p + p) / 4, p);
+	}
+
+};
+
 class TestImage : public CxxTest::TestSuite {
 
 private:
@@ -183,10 +260,10 @@ public:
 
 		// Dimensions are correct
 		Image im1({1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 5, 2);
-		Image im2 = im1.crop(2, 2, 0, 0);
+		Image im2 = im1.crop({2, 2}, {0, 0});
 		TS_ASSERT_EQUALS(2, im2.getWidth());
 		TS_ASSERT_EQUALS(2, im2.getHeight());
-		im2 = im1.crop(4, 1, 0, 1);
+		im2 = im1.crop({4, 1}, {0, 1});
 		TS_ASSERT_EQUALS(4, im2.getWidth());
 		TS_ASSERT_EQUALS(1, im2.getHeight());
 
@@ -194,33 +271,33 @@ public:
 		im1 = Image({1, 2, 3, 4}, 2, 2);
 
 		// Should get one pixel at a time
-		im2 = im1.crop(1, 1, 0, 0);
+		im2 = im1.crop({1, 1}, {0, 0});
 		TS_ASSERT_DELTA(1, im2.getData()[0], 1e-6);
-		im2 = im1.crop(1, 1, 1, 0);
+		im2 = im1.crop({1, 1}, {1, 0});
 		TS_ASSERT_DELTA(2, im2.getData()[0], 1e-6);
-		im2 = im1.crop(1, 1, 0, 1);
+		im2 = im1.crop({1, 1}, {0, 1});
 		TS_ASSERT_DELTA(3, im2.getData()[0], 1e-6);
-		im2 = im1.crop(1, 1, 1, 1);
+		im2 = im1.crop({1, 1}, {1, 1});
 		TS_ASSERT_DELTA(4, im2.getData()[0], 1e-6);
 
 		// should get the one row at a time
-		im2 = im1.crop(2, 1, 0, 0);
+		im2 = im1.crop({2, 1}, {0, 0});
 		TS_ASSERT_DELTA(1, im2.getData()[0], 1e-6);
 		TS_ASSERT_DELTA(2, im2.getData()[1], 1e-6);
-		im2 = im1.crop(2, 1, 0, 1);
+		im2 = im1.crop({2, 1}, {0, 1});
 		TS_ASSERT_DELTA(3, im2.getData()[0], 1e-6);
 		TS_ASSERT_DELTA(4, im2.getData()[1], 1e-6);
 
 		// should get one column at a time
-		im2 = im1.crop(1, 2, 0, 0);
+		im2 = im1.crop({1, 2}, {0, 0});
 		TS_ASSERT_DELTA(1, im2.getData()[0], 1e-6);
 		TS_ASSERT_DELTA(3, im2.getData()[1], 1e-6);
-		im2 = im1.crop(1, 2, 1, 0);
+		im2 = im1.crop({1, 2}, {1, 0});
 		TS_ASSERT_DELTA(2, im2.getData()[0], 1e-6);
 		TS_ASSERT_DELTA(4, im2.getData()[1], 1e-6);
 
 		// gotta get them all!
-		im2 = im1.crop(2, 2, 0, 0);
+		im2 = im1.crop({2, 2}, {0, 0});
 		TS_ASSERT(im2 == im1);
 	}
 
@@ -229,16 +306,16 @@ public:
 		Image im({1, 2, 3, 4}, 2, 2);
 
 		// too wide
-		TS_ASSERT_THROWS(im.crop(3, 1, 0, 0), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({3, 1}, {0, 0}), std::invalid_argument);
 
 		// too tall
-		TS_ASSERT_THROWS(im.crop(1, 3, 0, 0), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({1, 3}, {0, 0}), std::invalid_argument);
 
 		// horizontally overflows
-		TS_ASSERT_THROWS(im.crop(0, 0, 3, 1), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({0, 0}, {3, 1}), std::invalid_argument);
 
 		// vertically overflows
-		TS_ASSERT_THROWS(im.crop(0, 0, 1, 3), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({0, 0}, {1, 3}), std::invalid_argument);
 	}
 
 	void test_extend() {
@@ -246,30 +323,30 @@ public:
 		Image im({1, 2, 3, 4}, 2, 2);
 
 		// Correct dimensions
-		for(auto x: {4, 10}) {
-			for(auto y: {4, 10}) {
-				Image im2 = im.extend(x, y, 0, 0);
+		for(auto x: {4u, 10u}) {
+			for(auto y: {4u, 10u}) {
+				Image im2 = im.extend({x, y}, {0, 0});
 				TS_ASSERT_EQUALS(im2.getWidth(), x);
 				TS_ASSERT_EQUALS(im2.getHeight(), y);
 			}
 		}
 
 		// leave at 0, 0
-		auto im2 = im.extend(3, 3, 0, 0);
+		auto im2 = im.extend({3, 3}, {0, 0});
 		TS_ASSERT_EQUALS(im.getData()[0], im2.getData()[0]);
 		TS_ASSERT_EQUALS(im.getData()[1], im2.getData()[1]);
 		TS_ASSERT_EQUALS(im.getData()[2], im2.getData()[3]);
 		TS_ASSERT_EQUALS(im.getData()[3], im2.getData()[4]);
 
 		// leave at 1, 1
-		im2 = im.extend(3, 3, 1, 1);
+		im2 = im.extend({3, 3}, {1, 1});
 		TS_ASSERT_EQUALS(im.getData()[0], im2.getData()[4]);
 		TS_ASSERT_EQUALS(im.getData()[1], im2.getData()[5]);
 		TS_ASSERT_EQUALS(im.getData()[2], im2.getData()[7]);
 		TS_ASSERT_EQUALS(im.getData()[3], im2.getData()[8]);
 
 		// extend to the same dimensions, should be equals
-		im2 = im.extend(2, 2, 0, 0);
+		im2 = im.extend({2, 2}, {0, 0});
 		TS_ASSERT(im == im2);
 	}
 
@@ -278,16 +355,16 @@ public:
 		Image im({1, 2, 3, 4}, 2, 2);
 
 		// too thin
-		TS_ASSERT_THROWS(im.extend(1, 5, 0, 0), std::invalid_argument);
+		TS_ASSERT_THROWS(im.extend({1, 5}, {0, 0}), std::invalid_argument);
 
 		// too short
-		TS_ASSERT_THROWS(im.crop(5, 1, 0, 0), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({5, 1}, {0, 0}), std::invalid_argument);
 
 		// horizontally overflows
-		TS_ASSERT_THROWS(im.crop(5, 5, 4, 0), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({5, 5}, {4, 0}), std::invalid_argument);
 
 		// vertically overflows
-		TS_ASSERT_THROWS(im.crop(5, 5, 0, 4), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({5, 5}, {0, 4}), std::invalid_argument);
 
 	}
 };

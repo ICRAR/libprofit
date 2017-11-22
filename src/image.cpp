@@ -33,30 +33,83 @@
 
 namespace profit {
 
+Mask::Mask(unsigned int width, unsigned int height) :
+	surface({width, height})
+{
+}
+
+Mask::Mask(Dimensions dimensions) :
+	surface(dimensions)
+{
+}
+
+Mask::Mask(const std::vector<bool>& data, unsigned int width, unsigned int height) :
+	surface(data, {width, height})
+{
+}
+
+Mask::Mask(const std::vector<bool>& data, Dimensions dimensions) :
+	surface(data, dimensions)
+{
+}
+
+Mask::Mask(std::vector<bool>&& data, unsigned int width, unsigned int height) :
+	surface(std::move(data), {width, height})
+{
+}
+
+Mask::Mask(std::vector<bool>&& data, Dimensions dimensions) :
+	surface(std::move(data), dimensions)
+{
+}
+
+Mask::Mask(const Mask& other) :
+	surface(other)
+{
+}
+
+Mask::Mask(Mask&& other) :
+	surface(std::move(other))
+{
+}
+
 Image::Image(unsigned int width, unsigned int height) :
-	_2ddata(width, height)
+	surface({width, height})
 {
 }
 
-Image::Image(const std::vector<double>& data, unsigned int width,
-		unsigned int height) :
-	_2ddata(data, width, height)
+Image::Image(Dimensions dimensions) :
+	surface(dimensions)
 {
 }
 
-Image::Image(std::vector<double>&& data, unsigned int width,
-		unsigned int height) :
-	_2ddata(std::move(data), width, height)
+Image::Image(const std::vector<double>& data, unsigned int width, unsigned int height) :
+	surface(data, {width, height})
+{
+}
+
+Image::Image(const std::vector<double>& data, Dimensions dimensions) :
+	surface(data, dimensions)
+{
+}
+
+Image::Image(std::vector<double> &&data, unsigned int width, unsigned int height) :
+	surface(std::move(data), {width, height})
+{
+}
+
+Image::Image(std::vector<double>&& data, Dimensions dimensions) :
+	surface(std::move(data), dimensions)
 {
 }
 
 Image::Image(const Image& other) :
-	_2ddata(other)
+	surface(other)
 {
 }
 
 Image::Image(Image&& other) :
-	_2ddata(std::move(other))
+	surface(std::move(other))
 {
 }
 
@@ -80,66 +133,6 @@ Image Image::normalize() const
 	return normalized;
 }
 
-Image Image::extend(unsigned int new_width, unsigned int new_height,
-                    unsigned int start_x, unsigned int start_y) const
-{
-	auto width = getWidth();
-	auto height = getHeight();
-
-	if (new_width < width) {
-		throw std::invalid_argument("new_width should be >= width");
-	}
-	if (new_height < height) {
-		throw std::invalid_argument("new_height should be >= height");
-	}
-	if (start_x + width > new_width) {
-		throw std::invalid_argument("start_x + new_width should be <= width");
-	}
-	if (start_y + height > new_height) {
-		throw std::invalid_argument("start_y + new_height <= image.height");
-	}
-
-	Image extended(new_width, new_height);
-	const auto &data = getData();
-	auto &extended_data = extended.getData();
-	for(unsigned int j = 0; j < height; j++) {
-		for(unsigned int i = 0; i < width; i++) {
-			extended_data[(i+start_x) + (j+start_y)*new_width] = data[i + j*width];
-		}
-	}
-	return extended;
-}
-
-Image Image::crop(unsigned int new_width, unsigned int new_height,
-                  unsigned int start_x, unsigned int start_y) const
-{
-	auto width = getWidth();
-	auto height = getHeight();
-
-	if (new_width > width) {
-		throw std::invalid_argument("new_width should be <= width");
-	}
-	if (new_height > height) {
-		throw std::invalid_argument("new_height should be <= height");
-	}
-	if (start_x + new_width > width) {
-		throw std::invalid_argument("start_x + new_width should be <= image.width");
-	}
-	if (start_y + new_height > height) {
-		throw std::invalid_argument("start_y + new_height should be <= image.height");
-	}
-
-	Image crop(new_width, new_height);
-	const auto &data = getData();
-	auto &crop_data = crop.getData();
-	for(unsigned int j = 0; j < new_height; j++) {
-		for(unsigned int i = 0; i < new_width; i++) {
-			crop_data[i + j * new_width] = data[(i + start_x) + (j + start_y) * width];
-		}
-	};
-	return crop;
-}
-
 Image &Image::operator&=(const Mask &mask)
 {
 	// Don't apply empty masks
@@ -161,12 +154,6 @@ const Image Image::operator&(const Mask &mask) const
 	Image masked(*this);
 	masked &= mask;
 	return masked;
-}
-
-Image &Image::operator=(Image &&rhs)
-{
-	_2ddata<double>::operator=(std::move(rhs));
-	return *this;
 }
 
 Image &Image::operator+=(const Image& rhs)
@@ -194,11 +181,21 @@ Image &Image::operator/=(double denominator)
 	return *this;
 }
 
-const Image Image::operator/(double denominator) const
+Image Image::operator/(double denominator) const
 {
 	Image sum(*this);
 	sum /= denominator;
 	return sum;
+}
+
+Image Image::operator/(int denominator) const
+{
+	return operator/(static_cast<double>(denominator));
+}
+
+Image Image::operator/(unsigned int denominator) const
+{
+	return operator/(static_cast<double>(denominator));
 }
 
 }
