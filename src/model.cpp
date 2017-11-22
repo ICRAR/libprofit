@@ -177,10 +177,9 @@ Image Model::evaluate() {
 
 	/*
 	 * Sum up all results
-	 *
-	 * We first sum up all images that need convolving, we convolve them
-	 * and after that we add up the remaining images.
 	 */
+
+	// We first sum up all images that need convolving
 	bool do_convolve = false;
 	auto it = profile_images.begin();
 	for(auto &profile: this->profiles) {
@@ -190,6 +189,13 @@ Image Model::evaluate() {
 		}
 		it++;
 	}
+
+	// Now perform convolution on these images
+	// The convolution process might produce a larger image;
+	// thus we keep track of this bigger size, and the offset
+	// of the original image with respect to the new, larger one
+	Point conv_offset(0, 0);
+	Dimensions conv_dims = image.getDimensions();
 	if( do_convolve ) {
 		Image psf_img(psf, psf_width, psf_height);
 		psf_img.normalize();
@@ -200,14 +206,28 @@ Image Model::evaluate() {
 		if (!calcmask.empty()) {
 			mask_img = Mask(calcmask, width, height);
 		}
-		image = convolver->convolve(image, psf_img, mask_img);
+
+		image = convolver->convolve(image, psf_img, mask_img, true, conv_offset);
+		conv_dims = image.getDimensions();
 	}
+
+	// Sum images of profiles that do not require convolution
+	Image no_convolved_images(width, height);
 	it = profile_images.begin();
 	for(auto &profile: this->profiles) {
 		if( !profile->do_convolve() ) {
-			image += *it;
+			no_convolved_images += *it;
 		}
 		it++;
+	}
+
+	// Add non-convolved images on top of the convolved ones
+	// taking into account the convolution extension/offset, if any
+	if (conv_dims != Dimensions(width, height)) {
+		image += no_convolved_images.extend(conv_dims, conv_offset);
+	}
+	else {
+		image += no_convolved_images;
 	}
 
 	/* Done! Good job :-) */

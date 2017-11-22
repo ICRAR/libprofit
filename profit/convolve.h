@@ -42,17 +42,23 @@ namespace profit
  * The types of convolvers supported by libprofit
  */
 enum ConvolverType {
+
+	/// @copydoc BruteForceConvolver
 	BRUTE_OLD = 0,
+
+	/// @copydoc AssociativeBruteForceConvolver
 	BRUTE,
 #ifdef PROFIT_OPENCL
+	/// @copydoc OpenCLConvolver
 	OPENCL,
+	/// Ignore
 	OPENCL_LOCAL,
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
+	/// @copydoc FFTConvolver
 	FFT,
 #endif // PROFIT_FFTW
 };
-
 
 /**
  * A convolver object convolves two images.
@@ -69,16 +75,39 @@ public:
 	 * Convolves image `src` with the kernel `krn`.
 	 * A mask parameter also controls which pixels from the original image
 	 * should be convolved. If empty, all pixels are convolved.
-
+	 *
+	 * If the convolver extends the original image to perform the convolution,
+	 * users might want to have the extended image returned, instead of getting
+	 * a cropped image (that will be the same size as `src`). This behaviour is
+	 * controlled with the `crop` parameter. If the image is not cropped, the
+	 * offset of the otherwise cropped result with respect to the uncropped one
+	 * is optionally stored in offset_out.
+	 *
 	 * @param src The source image
 	 * @param krn The convolution kernel
 	 * @param mask An mask indicating which pixels of the resulting image should
 	 *             be convolved
-	 * @return The convolved image
+	 * @param crop If ``true`` return an image with the same dimensions of ``src``.
+	 *             If ``false`` the image returned might be potentially bigger,
+	 *             depending on the internal workings of the convolver.
+	 * @param offset_out If `crop` is ``false`` and ``offset`` is different from
+	 *             NO_OFFSET, stores the potential offset of the original image
+	 *             with respect to the uncropped image returned by this method.
+	 * @return The convolved image, optionally without the cropping caused due
+	 *         to internal implementation details of the convolver. The potential
+	 *         offset is written into offset_out.
 	 */
 	virtual
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) = 0;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask,
+	               bool crop = true, Point &offset_out = NO_OFFSET) = 0;
 
+protected:
+
+	Image mask_and_crop(Image &img, const Mask &mask, bool crop,
+	                    const Dimensions orig_dims, const Dimensions &ext_dims,
+	                    const Point &ext_offset, Point &offset_out);
+
+	static Point NO_OFFSET;
 };
 
 /**
@@ -91,7 +120,7 @@ public:
 	BruteForceConvolver(unsigned int omp_threads) :
 		omp_threads(omp_threads) {}
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	unsigned int omp_threads;
@@ -120,7 +149,7 @@ public:
 	AssociativeBruteForceConvolver(unsigned int omp_threads) :
 		omp_threads(omp_threads) {}
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	unsigned int omp_threads;
@@ -140,7 +169,7 @@ private:
  * image contains the original image at (0,0), while the extended version of the
  * kernel image contains the original kernel centered at the original image's
  * new mapping (i.e., ``((src_width-krn_width)/2, (src_height-krn_height)/2)``).
- * After convolution the result is cropped back to the original image's
+ * After convolution the result is cropped back (if required) to the original image's
  * dimensions starting at the center of the original image's mapping on the
  * extended image (i.e., ``(src_width/2, src_height/2)`` minus one if the
  * original dimensions are odd).
@@ -153,7 +182,7 @@ public:
 	             FFTPlan::effort_t effort, unsigned int plan_omp_threads,
 	             bool reuse_krn_fft);
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	std::unique_ptr<FFTPlan> plan;
@@ -178,12 +207,12 @@ class OpenCLConvolver : public Convolver {
 public:
 	OpenCLConvolver(OpenCLEnvPtr opencl_env);
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	OpenCLEnvPtr env;
 
-	Image _convolve(const Image &src, const Image &krn, const Mask &mask);
+	Image _convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out);
 
 	template<typename T>
 	Image _clpadded_convolve(const Image &src, const Image &krn, const Image &orig_src);
@@ -197,12 +226,12 @@ class OpenCLLocalConvolver : public Convolver {
 public:
 	OpenCLLocalConvolver(OpenCLEnvPtr opencl_env);
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	OpenCLEnvPtr env;
 
-	Image _convolve(const Image &src, const Image &krn, const Mask &mask);
+	Image _convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out);
 
 	template<typename T>
 	Image _clpadded_convolve(const Image &src, const Image &krn, const Image &orig_src);
@@ -247,7 +276,7 @@ public:
 
 	/// The amount of OpenMP threads (if OpenMP is available) to use by the
 	/// convolver. Used by the FFT convolver (to create and execute the plan
-	/// using OpenMP, when available) and the brute-force convolver.
+	/// using OpenMP, when available) and the brute-force convolvers.
 	unsigned int omp_threads;
 
 #ifdef PROFIT_OPENCL

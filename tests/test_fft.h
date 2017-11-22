@@ -256,9 +256,9 @@ public:
 		}
 
 		FFTConvolver convolver(100, 100, 25, 25, FFTPlan::ESTIMATE, 1, true);
-		Image result1 = convolver.convolve(src, krn, mask);
-		Image result2 = convolver.convolve(src, krn, mask);
-		Image result3 = convolver.convolve(src, krn, mask);
+		Image result1 = convolver.convolve(src, krn, mask, false);
+		Image result2 = convolver.convolve(src, krn, mask, false);
+		Image result3 = convolver.convolve(src, krn, mask, false);
 		TS_ASSERT(result1 == result2);
 		TS_ASSERT(result2 == result3);
 	}

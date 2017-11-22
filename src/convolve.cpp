@@ -38,13 +38,35 @@
 namespace profit
 {
 
+Point Convolver::NO_OFFSET;
+
 Convolver::~Convolver()
 {
 	// no-op
 }
 
+Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Dimensions orig_dims, const Dimensions &ext_dims, const Point &ext_offset, Point &offset_out) {
 
-Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+	// No cropping requested
+	// Extend the mask to the size of the image, apply it,
+	// and save the offset of the original image with respect to the extension
+	// into offset_out
+	if (not crop) {
+		if (&offset_out != &NO_OFFSET) {
+			offset_out = ext_offset;
+		}
+		if (mask) {
+			img &= mask.extend(ext_dims, ext_offset);
+		}
+		return img;
+	}
+
+	// Return cropped, after applying the mask
+	return img.crop(orig_dims, ext_offset) & mask;
+}
+
+
+Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
 	const auto src_dims = src.getDimensions();
@@ -112,7 +134,7 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 }
 
 
-Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
 	const auto src_dims = src.getDimensions();
@@ -298,7 +320,7 @@ FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
 	plan = std::unique_ptr<FFTPlan>(new FFTPlan(convolution_size, effort, plan_omp_threads));
 }
 
-Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
 	typedef std::complex<double> complex;
@@ -329,20 +351,17 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 	Image res(plan->backward_real(src_fft), ext_dims);
 	res /= res.size();
 
-	// crop the image to original size, apply the mask, and good bye
-	auto offset = src_dims / 2;
-
+	// The resulting image now starts at x_offset/y_offset
 	// even image and odd kernel requires slight adjustment
+	auto ext_offset = src_dims / 2;
 	if (src_dims.x % 2 == 0 or krn_dims.x % 2 == 0) {
-		offset.x -= 1;
+		ext_offset.x -= 1;
 	}
 	if (src_dims.y % 2 == 0 or krn_dims.y % 2 == 0) {
-		offset.y -= 1;
+		ext_offset.y -= 1;
 	}
 
-	auto cropped = res.crop(src_dims, offset);
-	cropped &= mask;
-	return cropped;
+	return mask_and_crop(res, mask, crop, src_dims, ext_dims, ext_offset, offset_out);
 }
 
 #endif /* PROFIT_FFTW */
@@ -356,10 +375,10 @@ OpenCLConvolver::OpenCLConvolver(OpenCLEnvPtr opencl_env) :
 	}
 }
 
-Image OpenCLConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+Image OpenCLConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 	try {
-		return _convolve(src, krn, mask);
+		return _convolve(src, krn, mask, crop, offset_out);
 	} catch (const cl::Error &e) {
 		std::ostringstream os;
 		os << "OpenCL error while convolving: " << e.what() << ". OpenCL error code: " << e.err();
@@ -367,13 +386,13 @@ Image OpenCLConvolver::convolve(const Image &src, const Image &krn, const Mask &
 	}
 }
 
-Image OpenCLConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask) {
+Image OpenCLConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out) {
 
 	// We use a group size of 16x16, so let's extend the src image
 	// to the next multiple of 16
-	auto clpad_x = (16 - (src.getWidth() % 16)) % 16;
-	auto clpad_y = (16 - (src.getHeight() % 16)) % 16;
-	auto ext_dims = src.getDimensions() + Dimensions(clpad_x, clpad_y);
+	auto src_dims = src.getDimensions();
+	auto clpad_dims = (16 - (src_dims % 16)) % 16;
+	auto ext_dims = src.getDimensions() + clpad_dims;
 	const Image clpad_src = src.extend(ext_dims);
 
 	// Convolve using the appropriate data type
@@ -385,8 +404,7 @@ Image OpenCLConvolver::_convolve(const Image &src, const Image &krn, const Mask 
 		result = _clpadded_convolve<float>(clpad_src, krn, src);
 	}
 
-	// Crop the resulting image, mask
-	return result.crop(src.getDimensions()) & mask;
+	return mask_and_crop(result, mask, crop, src_dims, ext_dims, {0, 0}, offset_out);
 }
 
 template<typename T>
@@ -451,10 +469,10 @@ OpenCLLocalConvolver::OpenCLLocalConvolver(OpenCLEnvPtr opencl_env) :
 	}
 }
 
-Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 	try {
-		return _convolve(src, krn, mask);
+		return _convolve(src, krn, mask, crop, offset_out);
 	} catch (const cl::Error &e) {
 		std::ostringstream os;
 		os << "OpenCL error while convolving: " << e.what() << ". OpenCL error code: " << e.err();
@@ -462,13 +480,13 @@ Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const M
 	}
 }
 
-Image OpenCLLocalConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask) {
+Image OpenCLLocalConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out) {
 
 	// We use a group size of 16x16, so let's extend the src image
 	// to the next multiple of 16
-	auto clpad_x = (16 - (src.getWidth() % 16)) % 16;
-	auto clpad_y = (16 - (src.getHeight() % 16)) % 16;
-	auto ext_dims = src.getDimensions() + Dimensions(clpad_x, clpad_y);
+	auto src_dims = src.getDimensions();
+	auto clpad_dims = (16 - src_dims % 16) % 16;
+	auto ext_dims = src_dims + clpad_dims;
 	const Image clpad_src = src.extend(ext_dims);
 
 	// Convolve using the appropriate data type
@@ -480,8 +498,7 @@ Image OpenCLLocalConvolver::_convolve(const Image &src, const Image &krn, const 
 		result = _clpadded_convolve<float>(clpad_src, krn, src);
 	}
 
-	// Crop the resulting image, mask
-	return result.crop(src.getDimensions()) & mask;
+	return mask_and_crop(result, mask, crop, src_dims, ext_dims, {0, 0}, offset_out);
 }
 
 template<typename T>
