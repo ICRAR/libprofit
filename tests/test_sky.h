@@ -43,7 +43,7 @@ public:
 		auto skyprof = m.add_profile("sky");
 		skyprof->parameter("bg", 1.);
 
-		std::vector<double> image = m.evaluate();
+		std::vector<double> image = m.evaluate().first;
 		for(auto pixel: image) {
 			TS_ASSERT_EQUALS(1, pixel);
 		}
@@ -60,7 +60,7 @@ public:
 		auto skyprof = m.add_profile("sky");
 		skyprof->parameter("bg", 5.);
 
-		std::vector<double> image = m.evaluate();
+		std::vector<double> image = m.evaluate().first;
 		for(int idx: {0,1,2}) {
 			TS_ASSERT_EQUALS(5, image[idx]);
 		}

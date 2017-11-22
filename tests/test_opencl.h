@@ -151,9 +151,9 @@ private:
 
 		// evaluate normally first, and then using the OpenCL environment,
 		// which they all support
-		std::vector<double> original = m.evaluate();
+		std::vector<double> original = m.evaluate().first;
 		m.opencl_env = openCLFixtures.opencl_env;
-		std::vector<double> opencl_produced = m.evaluate();
+		std::vector<double> opencl_produced = m.evaluate().first;
 
 		// Pixel by pixel the images should be fairly similar
 		for(unsigned int i=0; i!=original.size(); i++) {

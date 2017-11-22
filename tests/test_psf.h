@@ -50,7 +50,7 @@ public:
 		psfprof->parameter("ycen", 2.);
 		psfprof->parameter("mag", 0.);
 
-		std::vector<double> image = m.evaluate();
+		std::vector<double> image = m.evaluate().first;
 		for(auto j=0; j!=2; j++) {
 			for(auto i=0; i!=2; i++) {
 				TS_ASSERT_DELTA(0.25, image[i + j*m.width], 1e9);

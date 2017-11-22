@@ -100,7 +100,7 @@ public:
 		m.calcmask = {false, true, true,
 		              false, true, false,
 		              true, true, false};
-		std::vector<double> image = m.evaluate();
+		std::vector<double> image = m.evaluate().first;
 		for(auto j=0u; j!=m.width; j++) {
 			for(auto i=0u; i!=m.height; i++) {
 				auto idx = i + j*m.width;
@@ -117,7 +117,7 @@ public:
 		m.calcmask = {true, true, true,
 		              true, true, true,
 		              true, true, true};
-		image = m.evaluate();
+		image = m.evaluate().first;
 		for(auto j=0u; j!=m.width; j++) {
 			for(auto i=0u; i!=m.height; i++) {
 				auto idx = i + j*m.width;
@@ -127,7 +127,7 @@ public:
 
 		/* No mask */
 		m.calcmask = {};
-		image = m.evaluate();
+		image = m.evaluate().first;
 		for(auto j=0u; j!=m.width; j++) {
 			for(auto i=0u; i!=m.height; i++) {
 				auto idx = i + j*m.width;

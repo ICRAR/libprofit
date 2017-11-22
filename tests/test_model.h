@@ -54,7 +54,7 @@ public:
 		// We generate the correct size
 		m.width = 100;
 		m.height = 100;
-		TS_ASSERT_EQUALS(m.width * m.height, m.evaluate().size())
+		TS_ASSERT_EQUALS(m.width * m.height, m.evaluate().first.size())
 	}
 
 	void test_valid_scales(void) {
@@ -143,15 +143,15 @@ public:
 		// three individual model images are summed up
 		Model m1(100, 100);
 		_add_sersic(m1, 50, 50, 10);
-		auto image1 = m1.evaluate();
+		auto image1 = m1.evaluate().first;
 
 		Model m2(100, 100);
 		_add_sersic(m2, 30, 10, 16);
-		auto image2 = m2.evaluate();
+		auto image2 = m2.evaluate().first;
 
 		Model m3(100, 100);
 		_add_sersic(m3, 23, 89, 1.2);
-		auto image3 = m3.evaluate();
+		auto image3 = m3.evaluate().first;
 
 		// image1 holds the final result
 		image1 = image1 + image2 + image3;
@@ -161,7 +161,7 @@ public:
 		_add_sersic(m4, 50, 50, 10);
 		_add_sersic(m4, 30, 10, 16);
 		_add_sersic(m4, 23, 89, 1.2);
-		auto image4 = m4.evaluate();
+		auto image4 = m4.evaluate().first;
 
 		// They should be the same! We add them in the same order to make sure
 		// that floating-point rounding yields the same result
@@ -177,13 +177,13 @@ public:
 		// the second is actually convolved with a psf
 		Model m1(100, 100);
 		_add_sersic(m1, 50, 50, 10);
-		auto image1 = m1.evaluate();
+		auto image1 = m1.evaluate().first;
 
 		Model m2(100, 100);
 		m2.convolver = convolver;
 		m2.psf = psf; m2.psf_width = 2; m2.psf_height = 2;
 		_add_sersic(m2, 30, 10, 16, true);
-		auto image2 = m2.evaluate();
+		auto image2 = m2.evaluate().first;
 
 		// image1 holds the final result
 		image1 = image1 + image2;
@@ -194,7 +194,7 @@ public:
 		m3.psf = psf; m3.psf_width = 2; m3.psf_height = 2;
 		_add_sersic(m3, 50, 50, 10);
 		_add_sersic(m3, 30, 10, 16, true);
-		auto image3 = m3.evaluate();
+		auto image3 = m3.evaluate().first;
 
 		// They should be the same! We add them in the same order to make sure
 		// that floating-point rounding yields the same result

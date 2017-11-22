@@ -51,6 +51,7 @@ Model::Model(unsigned int width, unsigned int height) :
 	psf_scale_x(1), psf_scale_y(1),
 	calcmask(),
 	convolver(),
+	crop(true),
 	dry_run(false),
 #ifdef PROFIT_OPENCL
 	opencl_env(),
@@ -106,7 +107,7 @@ std::shared_ptr<Profile> Model::add_profile(const std::string &profile_name) {
 	return profile;
 }
 
-Image Model::evaluate() {
+ImageAndOffset Model::evaluate() {
 
 	/* Check limits */
 	if( !this->width ) {
@@ -159,10 +160,11 @@ Image Model::evaluate() {
 
 	// The image we'll eventually return
 	Image image(width, height);
+	Point offset(0, 0);
 
 	/* so long folks! */
 	if( dry_run ) {
-		return image;
+		return std::make_pair(image, offset);
 	}
 
 	/*
@@ -194,7 +196,6 @@ Image Model::evaluate() {
 	// The convolution process might produce a larger image;
 	// thus we keep track of this bigger size, and the offset
 	// of the original image with respect to the new, larger one
-	Point conv_offset(0, 0);
 	Dimensions conv_dims = image.getDimensions();
 	if( do_convolve ) {
 		Image psf_img(psf, psf_width, psf_height);
@@ -207,7 +208,7 @@ Image Model::evaluate() {
 			mask_img = Mask(calcmask, width, height);
 		}
 
-		image = convolver->convolve(image, psf_img, mask_img, true, conv_offset);
+		image = convolver->convolve(image, psf_img, mask_img, crop, offset);
 		conv_dims = image.getDimensions();
 	}
 
@@ -224,14 +225,14 @@ Image Model::evaluate() {
 	// Add non-convolved images on top of the convolved ones
 	// taking into account the convolution extension/offset, if any
 	if (conv_dims != Dimensions(width, height)) {
-		image += no_convolved_images.extend(conv_dims, conv_offset);
+		image += no_convolved_images.extend(conv_dims, offset);
 	}
 	else {
 		image += no_convolved_images;
 	}
 
 	/* Done! Good job :-) */
-	return image;
+	return std::make_pair(image, offset);
 }
 
 std::map<std::string, std::shared_ptr<ProfileStats>> Model::get_stats() const {
