@@ -42,7 +42,8 @@ To compile *libprofit* run
  $> # optionally for system-wide installation: sudo make install
 
 With ``cmake`` you can also specify additional compilation flags.
-If you want to generate the fastest possible code try this::
+For example, if you want to generate the fastest possible code
+you can try this::
 
  $> cmake .. -DCMAKE_CXX_FLAGS="-O3 -march=native"
 
@@ -59,4 +60,4 @@ Other ``cmake`` options that can be given in the command-line include:
 * ``LIBPROFIT_NO_OPENMP``: disable OpenMP support
 * ``LIBPROFIT_NO_FFTW``: disable FFTW support
 
-Please refer to the ``cmake`` for further options.
+Please refer to the ``cmake`` documentation for further options.

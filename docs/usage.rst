@@ -66,7 +66,16 @@ The basic usage pattern then is as follows:
 
 #. Evaluate the model simply run::
 
-	 std::vector<double> image = model.evaluate();
+	 ImageAndOffset result = model.evaluate();
+
+#. The result of an evaluation consists on a pair
+   containing the resulting image,
+   and an offset, if cropping needs to be applied later on
+   (see :ref:`convolution.model` for details on this).
+   Users can extract these pieces of information like this::
+
+	 Image image = result.first;
+	 Point offset = result.second;
 
 #. If there are have been errors
    while generating the image
@@ -75,7 +84,7 @@ The basic usage pattern then is as follows:
    to identify these situations::
 
 	 try {
-	     std::vector<double> image = model.evaluate();
+	     auto result = model.evaluate();
 	 } catch (invalid_parameter &e) {
 	     cerr << "Oops! There was an error evaluating the model: " << e.what() << endl;
 	 }

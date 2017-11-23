@@ -22,17 +22,22 @@ Depending on the size of the problem,
 and on the libraries available on the system,
 different convolver types will be available to be used:
 
-* :class:`BruteForceConvolver` is the simplest convolver.
+* :enumerator:`BRUTE_OLD` is the simplest convolver.
   It implements a simple, brute-force 2D convolution algorithm.
-* :class:`FFTConvolver` is a convolver
+* :class:`BRUTE` is a brute-force convolver
+  that performs better that :enumerator:`BRUTE_OLD`, but still
+  implements simple, brute-force 2D convolution. It is the default
+  convolver used by a :class:`Model` that hasn't been assigned one,
+  but requires one.
+* :enumerator:`FFT` is a convolver
   that uses Fast Fourier transformations to perform convolution.
-  Its complexity is lower than the :class:`BruteForceConvolver`,
+  Its complexity is lower than the :enumerator:`BRUTE`,
   but its creation can be more expensive.
-* :class:`OpenCLConvolver` is a brute-force convolver
+* :enumerator:`OPENCL` is a brute-force convolver
   implemented in OpenCL.
   It offers both single and double floating-point precision
   and its performance is usually better
-  that that of the `BruteForceConvolver`.
+  that that of the :enumerator:`BRUTE`.
 
 Creating a Convolver
 --------------------
@@ -45,16 +50,88 @@ which type of convolver should be created
 (either using an enumeration, or a standard string value),
 and a set of creation preferences
 that apply differently to different types of Convolvers.
-Once created,
-users can call the :member:`Convolver::convolve` method
-directly on the resulting convolver,
-or assign it to a :class:`Model` instance
-for it to use it.
 
 If a :class:`Model` needs to perform convolution
 and a :class:`Convolver` has been set
 on its :member:`Model::convolver` member
 then that convolver is used.
 If no convolver has been set,
-it creates a new :class:`BruteForceConvolver`
+it creates a new :enumerator:`BRUTE`
 and uses that to perform the convolution.
+
+
+Using a convolver
+-----------------
+
+Once created,
+users can call the :member:`Convolver::convolve` method
+directly on the resulting convolver,
+(or assign it to a :class:`Model` instance for it to use it).
+The :member:`Convolver::convolve` methods needs at least three parameters:
+an image, a kernel and a mask.
+Convolvers will convolve the image with the kernel
+only for the pixels in which the mask is set,
+or for all pixels if an empty mask is passed.
+This implies that the mask, if not empty,
+must have the same dimensions that the image.
+
+
+.. _convolution.image_cropping:
+
+Image cropping
+--------------
+
+Some convolvers internally work
+with images that are larger
+than the original source image
+(mostly due to efficiency reasons).
+After this internal image expansion occurs,
+and the convolution takes place,
+the resulting image
+is usually cropped at the corresponding point
+to match original source image size and positioning
+before being returned to the user.
+
+However, users might want to pick
+into this internal, non-cropped result
+of the convolution process.
+To do this,
+an additional ``crop`` parameter
+in the :member:`Convolver::convolve` method
+determines whether the convolver should return
+the original, and potentially bigger, image.
+When a non-cropped image is returned,
+an additional ``offset_out`` parameter
+can be given to find out the offset
+at which cropping would have started.
+The cropping dimensions do not need to be queried,
+as they always are the same
+of the original source image given to the convolver.
+
+
+.. _convolution.model:
+
+Model convolution
+-----------------
+
+During model evaluation (i.e., a call to :member:`Model::evaluate`)
+users might want to be able to retrieve the non-cropped result
+of the internal convolution that takes place
+during model evaluation
+(as explained in :ref:`convolution.image_cropping`).
+
+To do this, users must first set
+the :member:`Model::crop` flag to ``false``.
+When calling calling :member:`Model::evaluate`,
+used must then take into consideration both elements
+of the result that comes back from this call.
+The first element will be the image
+(in this case, possibly non-cropped).
+The second element will be the offset
+at which the cropping would have started.
+
+
+To do this, users must set the :member:`Model::crop` flag
+to ``false`` before calling :member:`Model::evaluate`,
+which returns a pair containing the non-cropped image
+and the offset to be applied to that image.
