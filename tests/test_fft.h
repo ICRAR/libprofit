@@ -48,13 +48,22 @@ class FFTFixtures : CxxTest::GlobalFixture {
 public:
 	FFTFixtures(unsigned int width, unsigned int height, unsigned int psf_width, unsigned int psf_height, bool reuse_psf_fft) :
 		tolerance(0.01),
-		fft_convolver(std::make_shared<FFTConvolver>(width, height, psf_width, psf_height, FFTPlan::ESTIMATE, 1, reuse_psf_fft)),
+		fft_convolver(nullptr),
 		psf(psf_width * psf_height),
 		psf_width(psf_width),
 		psf_height(psf_height),
 		width(width),
 		height(height)
 	{
+		ConvolverCreationPreferences prefs;
+		prefs.src_width = width;
+		prefs.src_height = height;
+		prefs.krn_width = psf_width;
+		prefs.krn_height = psf_height;
+		prefs.effort = FFTPlan::ESTIMATE;
+		prefs.omp_threads = 1;
+		prefs.reuse_krn_fft = reuse_psf_fft;
+		fft_convolver = create_convolver(ConvolverType::FFT, prefs);
 		// a random psf
 		unsigned int seed = (unsigned int)time(NULL);
 		rand_r(&seed);
@@ -69,7 +78,7 @@ public:
 	}
 
 	double tolerance;
-	std::shared_ptr<FFTConvolver> fft_convolver;
+	ConvolverPtr fft_convolver;
 	std::vector<double> psf;
 	unsigned int psf_width;
 	unsigned int psf_height;
@@ -255,10 +264,17 @@ public:
 			d = (rand() % 10000) / 10000.0;
 		}
 
-		FFTConvolver convolver(100, 100, 25, 25, FFTPlan::ESTIMATE, 1, true);
-		Image result1 = convolver.convolve(src, krn, mask, false);
-		Image result2 = convolver.convolve(src, krn, mask, false);
-		Image result3 = convolver.convolve(src, krn, mask, false);
+		ConvolverCreationPreferences prefs;
+		prefs.src_width = 100;
+		prefs.src_height = 100;
+		prefs.krn_width = 25;
+		prefs.krn_height = 25;
+		prefs.effort = FFTPlan::ESTIMATE;
+		prefs.reuse_krn_fft = true;
+		auto convolver = create_convolver(ConvolverType::FFT, prefs);
+		Image result1 = convolver->convolve(src, krn, mask, false);
+		Image result2 = convolver->convolve(src, krn, mask, false);
+		Image result3 = convolver->convolve(src, krn, mask, false);
 		TS_ASSERT(result1 == result2);
 		TS_ASSERT(result2 == result3);
 	}

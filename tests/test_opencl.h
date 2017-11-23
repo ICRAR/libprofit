@@ -161,7 +161,7 @@ private:
 		}
 	}
 
-	void _check_convolver(Convolver &&clConvolver) {
+	void _check_convolver(ConvolverPtr &&clConvolver) {
 		for(auto im_dim: {100, 101}) {
 			for(auto krn_dim: {24, 25}) {
 				Mask mask;
@@ -176,7 +176,7 @@ private:
 
 				auto bConvolver = create_convolver(ConvolverType::BRUTE_OLD);
 				Image result1 = bConvolver->convolve(src, krn, mask);
-				Image result2 = clConvolver.convolve(src, krn, mask);
+				Image result2 = clConvolver->convolve(src, krn, mask);
 				for(unsigned int i = 0; i < src.size(); i++) {
 					// Hopefully within 0.1% of error?
 					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
@@ -287,14 +287,18 @@ public:
 		if( !openCLFixtures.opencl_env ) {
 			TS_SKIP("No OpenCL environment found to run OpenCL tests");
 		}
-		_check_convolver(OpenCLConvolver{openCLFixtures.opencl_env});
+		ConvolverCreationPreferences prefs;
+		prefs.opencl_env = openCLFixtures.opencl_env;
+		_check_convolver(create_convolver(ConvolverType::OPENCL, prefs));
 	}
 
 	void test_local_convolver() {
 		if( !openCLFixtures.opencl_env ) {
 			TS_SKIP("No OpenCL environment found to run OpenCL tests");
 		}
-		_check_convolver(OpenCLLocalConvolver{openCLFixtures.opencl_env});
+		ConvolverCreationPreferences prefs;
+		prefs.opencl_env = openCLFixtures.opencl_env;
+		_check_convolver(create_convolver(ConvolverType::OPENCL_LOCAL, prefs));
 	}
 
 };

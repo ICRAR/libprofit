@@ -30,7 +30,7 @@
 #include <sstream>
 #include <vector>
 
-#include "profit/convolve.h"
+#include "profit/convolver_impl.h"
 #include "profit/exceptions.h"
 #include "profit/utils.h"
 
