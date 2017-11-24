@@ -252,6 +252,10 @@ protected:
 	double _cos_ang;
 	double _sin_ang;
 
+	/// Whether the CPU evaluation method should be used, even if an OpenCL
+	/// environment has been given (and libprofit has been compiled with OpenCL support)
+	bool force_cpu;
+
 private:
 
 	void evaluate_cpu(std::vector<double> &image);

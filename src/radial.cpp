@@ -255,7 +255,7 @@ void RadialProfile::evaluate(std::vector<double> &image) {
 	 * given, or if there is no OpenCL kernel implementing the profile
 	 */
 	auto env = model.opencl_env;
-	if( !env || !supports_opencl() ) {
+	if( force_cpu or !env or !supports_opencl() ) {
 		evaluate_cpu(image);
 		return;
 	}
@@ -726,7 +726,8 @@ RadialProfile::RadialProfile(const Model &model, const std::string &name) :
 	max_recursions(2), adjust(true),
 	rscale_max(0),
 	rscale(0), _ie(0),
-	_cos_ang(0), _sin_ang(0)
+	_cos_ang(0), _sin_ang(0),
+	force_cpu(false)
 {
 	// no-op
 }
@@ -745,6 +746,7 @@ bool RadialProfile::parameter_impl(const std::string &name, bool value) {
 
 	if( name == "rough" )              { rough = value; }
 	else if( name == "adjust" )        { adjust = value; }
+	else if( name == "force_cpu" )     { force_cpu = value; }
 	else {
 		return false;
 	}

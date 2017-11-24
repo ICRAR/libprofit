@@ -127,6 +127,7 @@ void _keyval_to_radial(Profile &p, const string &key, string &val) {
 	read_uint(p, key, val, "max_recursions");
 	read_bool(p, key, val, "adjust");
 	read_dble(p, key, val, "rscale_max");
+	read_bool(p, key, val, "force_cpu");
 }
 
 static
