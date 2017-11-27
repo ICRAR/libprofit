@@ -36,21 +36,12 @@ namespace profit {
 
 void FFTPlan::initialize()
 {
-	fftw_import_system_wisdom();
-#ifdef PROFIT_FFTW_OPENMP
-	int res = fftw_init_threads();
-	if (!res) {
-		throw fft_error("Error while initializing threads, errno = " + std::to_string(res));
-	}
-#endif /* PROFIT_FFTW_OPENMP */
+	// no-op
 }
 
 void FFTPlan::finalize()
 {
-#ifdef PROFIT_FFTW_OPENMP
-	fftw_cleanup_threads();
-#endif /* PROFIT_FFTW_OPENMP */
-	fftw_cleanup();
+	// no-op
 }
 
 FFTPlan::FFTPlan(unsigned int size, effort_t effort, unsigned int omp_threads) :

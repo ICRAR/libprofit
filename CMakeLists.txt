@@ -238,6 +238,7 @@ set(PROFIT_SRC
    src/ferrer.cpp
    src/fft.cpp
    src/image.cpp
+   src/library.cpp
    src/king.cpp
    src/model.cpp
    src/moffat.cpp

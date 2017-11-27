@@ -311,6 +311,19 @@ vector<double> parse_psf(string optarg,
 	return psf;
 }
 
+void show_version() {
+	cout << "libprofit version " << version() << endl;
+	cout << "OpenCL support: ";
+	if (has_opencl()) {
+		cout << "Yes (up to " << opencl_version_major() << "." << opencl_version_minor() << ")" << endl;
+	}
+	else {
+		cout << "No" << endl;
+	}
+	cout << "OpenMP support: " << (has_openmp() ? "Yes" : "No") << endl;
+	cout << "FFTW support: " << (has_fftw() ? "Yes" : "No") << endl;
+}
+
 void usage(FILE *file, char *argv[]) {
 	fprintf(file,"\n%s: utility program to generate an image out of a model and a set of profiles\n\n", argv[0]);
 	fprintf(file,"This program is licensed under the GPLv3 license.\n\n");
@@ -731,28 +744,7 @@ int parse_and_run(int argc, char *argv[]) {
 				return 0;
 
 			case 'V':
-				cout << "libprofit version " << PROFIT_VERSION_MAJOR << "."
-				     << PROFIT_VERSION_MINOR << "." << PROFIT_VERSION_PATCH << endl;
-				cout << "OpenCL support: ";
-#ifdef PROFIT_OPENCL
-				cout << "Yes (up to " << PROFIT_OPENCL_MAJOR << "." << PROFIT_OPENCL_MINOR << ")";
-#else
-				cout << "No";
-#endif
-				cout << endl << "OpenMP support: ";
-#ifdef PROFIT_OPENMP
-				cout << "Yes";
-#else
-				cout << "No";
-#endif
-				cout << endl;
-				cout << "FFTW support: ";
-#ifdef PROFIT_FFTW
-				cout << "Yes";
-#else
-				cout << "No";
-#endif /* PROFIT_FFTW */
-				cout << endl;
+				show_version();
 				return 0;
 
 			case 's':
@@ -938,9 +930,10 @@ int parse_and_run(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 
-#ifdef PROFIT_FFTW
-	FFTPlan::initialize();
-#endif
+	if (not profit::init()) {
+		cerr << "Error initializing libprofit" << endl;
+		return 1;
+	}
 
 	int ret;
 	try {
@@ -967,9 +960,7 @@ int main(int argc, char *argv[]) {
 	}
 #endif /* PROFIT_FFT */
 
-#ifdef PROFIT_FFTW
-	FFTPlan::initialize();
-#endif
+	profit::finish();
 
 	return ret;
 }
