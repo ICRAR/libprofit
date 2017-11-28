@@ -109,6 +109,47 @@ private:
 
 	}
 
+	void _test_masked_convolution(ConvolverType type)
+	{
+		// The mask kind of draws an arrow pointing to the upper-left corner
+		std::vector<double> src {1, 1, 1, 1,
+		                         1, 1, 1, 1,
+		                         1, 1, 1, 1,
+		                         1, 1, 1, 1};
+		std::vector<bool> mask {true, true, true, false,
+		                        true, true, false, false,
+		                        true, false, true, false,
+		                        false, false, false, true};
+		std::vector<double> krn {1, 1, 1,
+		                         1, 1, 1,
+		                         1, 1, 1};
+
+		Image src_img(src, 4, 4);
+		Image krn_img(krn, 3, 3);
+		Mask m(mask, 4, 4);
+
+		auto convolver = create_convolver(type, ConvolverCreationPreferences());
+		auto result = convolver->convolve(src_img, krn_img, m);
+
+		// Only the pixels where the mask is true should be set; the rest should
+		// be zero
+		auto res_it = result.getData().begin();
+		auto mask_it = m.getData().begin();
+		size_t i = 0;
+		for(; res_it != result.getData().end(); res_it++, mask_it++, i++) {
+			if (*mask_it) {
+				std::ostringstream msg;
+				msg << "Pixel [" << (i % 4) << "," << (i / 4) << "] is zero, but should not be";
+				TSM_ASSERT_DIFFERS(msg.str(), 0, *res_it);
+			}
+			else {
+				std::ostringstream msg;
+				msg << "Pixel [" << (i % 4) << "," << (i / 4) << "] is not zero, but should";
+				TSM_ASSERT_EQUALS(msg.str(), 0, *res_it);
+			}
+		}
+	}
+
 public:
 
 	void test_new_bruteforce_convolver() {
@@ -123,4 +164,8 @@ public:
 		_test_openmp_convolver(ConvolverType::BRUTE);
 	}
 
+	void test_masked_convolution() {
+		_test_masked_convolution(ConvolverType::BRUTE_OLD);
+		_test_masked_convolution(ConvolverType::BRUTE);
+	}
 };
