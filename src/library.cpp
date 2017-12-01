@@ -184,6 +184,13 @@ void clear_cache()
 		recursive_remove(fftw_cache);
 	}
 #endif
+
+#ifdef PROFIT_OPENCL
+	auto opencl_cache = profit_home + "/opencl_cache";
+	if (dir_exists(opencl_cache)) {
+		recursive_remove(opencl_cache);
+	}
+#endif
 }
 
 }

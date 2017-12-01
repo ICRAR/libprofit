@@ -25,13 +25,17 @@
  */
 
 #include <fstream>
+#include <map>
 #include <streambuf>
 #include <sstream>
 #include <string>
+#include <mutex>
 #include <vector>
 
+#include "profit/crc.h"
 #include "profit/exceptions.h"
 #include "profit/opencl_impl.h"
+#include "profit/utils.h"
 
 namespace profit {
 
@@ -124,12 +128,10 @@ static cl_ver_t get_opencl_version(const std::string &version)
 }
 
 static cl_ver_t get_opencl_version(const cl::Platform &platform) {
-
 	return get_opencl_version(platform.getInfo<CL_PLATFORM_VERSION>());
 }
 
 static cl_ver_t get_opencl_version(const cl::Device &device) {
-
 	return get_opencl_version(device.getInfo<CL_DEVICE_VERSION>());
 }
 
@@ -200,6 +202,240 @@ std::map<int, OpenCL_plat_info> get_opencl_info() {
 	}
 }
 
+class invalid_cache_entry : std::exception {
+};
+
+class KernelCache {
+
+	typedef std::vector<unsigned char> Binary;
+	typedef std::vector<Binary> Binaries;
+	typedef std::pair<std::string, uint32_t> SourceInformation;
+
+public:
+	cl::Program get_program(const cl::Context &context, const cl::Device &device);
+
+private:
+	std::string get_entry_name_for(const cl::Device &device);
+	cl::Program build(const cl::Context &context, const cl::Device &device, const SourceInformation &source_info);
+	cl::Program from_cache(const cl::Context &context, const std::string &cache_entry_name, const SourceInformation &source_info);
+	void to_cache(const std::string &cache_entry_name, const SourceInformation &source_info, const cl::Program &program);
+
+	static void init_sources();
+
+	// Lazy-initialized via std::call_once
+	static void _init_sources();
+	static SourceInformation float_only_sources;
+	static SourceInformation all_sources;
+	static std::once_flag init_sources_flag;
+};
+
+KernelCache::SourceInformation KernelCache::float_only_sources;
+KernelCache::SourceInformation KernelCache::all_sources;
+std::once_flag KernelCache::init_sources_flag;
+void KernelCache::init_sources() {
+	std::call_once(init_sources_flag, _init_sources);
+}
+
+void KernelCache::_init_sources() {
+
+	std::string common_float, common_double, sersic_float, sersic_double,
+	            moffat_float, moffat_double, ferrer_float, ferrer_double,
+	            king_float, king_double, brokenexp_float, brokenexp_double,
+	            coresersic_float, coresersic_double, convolve_float, convolve_double;
+
+	common_float =
+#include "cl/common-float.cl"
+	;
+	common_double =
+#include "cl/common-double.cl"
+	;
+	sersic_float =
+#include "cl/sersic-float.cl"
+	;
+	sersic_double =
+#include "cl/sersic-double.cl"
+	;
+	moffat_float =
+#include "cl/moffat-float.cl"
+	;
+	moffat_double =
+#include "cl/moffat-double.cl"
+	;
+	ferrer_float =
+#include "cl/ferrer-float.cl"
+	;
+	ferrer_double =
+#include "cl/ferrer-double.cl"
+	;
+	king_float =
+#include "cl/king-float.cl"
+	;
+	king_double =
+#include "cl/king-double.cl"
+	;
+	brokenexp_float =
+#include "cl/brokenexponential-float.cl"
+	;
+	brokenexp_double =
+#include "cl/brokenexponential-double.cl"
+	;
+	coresersic_float =
+#include "cl/coresersic-float.cl"
+	;
+	coresersic_double =
+#include "cl/coresersic-double.cl"
+	;
+	convolve_float =
+#include "cl/convolve-float.cl"
+	;
+	convolve_double =
+#include "cl/convolve-double.cl"
+	;
+
+	auto sources = common_float + sersic_float + moffat_float + ferrer_float +
+	               king_float + brokenexp_float + coresersic_float + convolve_float;
+	float_only_sources = std::make_pair(sources, crc32(sources));
+
+	sources += common_double + sersic_double + moffat_double + ferrer_double +
+	           king_double + brokenexp_double + coresersic_double + convolve_double;
+	all_sources = std::make_pair(sources, crc32(sources));
+}
+
+
+std::string KernelCache::get_entry_name_for(const cl::Device &device)
+{
+	cl::Platform plat(device.getInfo<CL_DEVICE_PLATFORM>());
+	auto plat_part = plat.getInfo<CL_PLATFORM_NAME>() + std::to_string(get_opencl_version(plat));
+	auto dev_part = device.getInfo<CL_DEVICE_NAME>() + std::to_string(get_opencl_version(device));
+	auto the_dir = create_dirs(get_profit_home(), {std::string("opencl_cache"), plat_part});
+	return the_dir + "/" + dev_part;
+}
+
+cl::Program KernelCache::build(const cl::Context &context, const cl::Device &device, const SourceInformation &source_info)
+{
+
+	// Create a program with all the relevant kernels
+	// The source of the kernels is kept in a different file,
+	// but gets #included here, and thus gets embedded in the resulting
+	// shared library (instead of, for instance, loading the sources from a
+	// particular location on disk at runtime)
+
+	cl::Program program(context, {std::get<0>(source_info)});
+	try {
+		program.build({device});
+	} catch (const cl::Error &e) {
+		throw opencl_error("Error building program: " + program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device));
+	}
+
+	return program;
+}
+
+cl::Program KernelCache::from_cache(const cl::Context &context, const std::string &cache_entry_name, const SourceInformation &source_info)
+{
+
+	if (not file_exists(cache_entry_name)) {
+		throw invalid_cache_entry();
+	}
+
+	std::ifstream input(cache_entry_name, std::ios::binary);
+
+	// Source length. If different from expected, cache entry is invalid
+	Binary::size_type ssize;
+	input.read(reinterpret_cast<char *>(&ssize), sizeof(ssize));
+	if (ssize != std::get<0>(source_info).size()) {
+		throw invalid_cache_entry();
+	}
+
+	// Source checksum. If different from expected, cache entry is invalid
+	uint32_t bchecksum;
+	input.read(reinterpret_cast<char *>(&bchecksum), sizeof(bchecksum));
+	if (bchecksum != std::get<1>(source_info)) {
+		throw invalid_cache_entry();
+	}
+
+	// Cache entry is valid, return its contents (size + data for each of the binaries)
+	Binaries::size_type nbinaries;
+	input.read(reinterpret_cast<char *>(&nbinaries), sizeof(nbinaries));
+	Binaries binaries;
+	for(unsigned int i = 0; i < nbinaries; i++) {
+		Binary::size_type bsize;
+		input.read(reinterpret_cast<char *>(&bsize), sizeof(bsize));
+		Binary binary(bsize);
+		input.read(reinterpret_cast<char *>(binary.data()), bsize);
+		binaries.push_back(std::move(binary));
+	}
+
+	std::vector<cl_int> binaries_status;
+	auto program = cl::Program(context, context.getInfo<CL_CONTEXT_DEVICES>(), binaries, &binaries_status, nullptr);
+	for(auto binary_status: binaries_status) {
+		if (binary_status != CL_SUCCESS) {
+			std::ostringstream os;
+			os << "Error when loading binary from kernel cache: " << binary_status;
+			throw opencl_error(os.str());
+		}
+	}
+
+	// build it and good-bye
+	program.build();
+	return program;
+}
+
+void KernelCache::to_cache(const std::string &cache_entry_name, const SourceInformation &source_info, const cl::Program &program)
+{
+	std::ofstream output(cache_entry_name, std::ios::binary);
+
+	// Source length
+	auto ssize = std::get<0>(source_info).size();
+	output.write(reinterpret_cast<char *>(&ssize), sizeof(ssize));
+
+	// Source checksum
+	auto bchecksum = std::get<1>(source_info);
+	output.write(reinterpret_cast<char *>(&bchecksum), sizeof(bchecksum));
+
+	// Binaries (#, then size + data for each)
+	auto binaries = program.getInfo<CL_PROGRAM_BINARIES>();
+	auto nbinaries = binaries.size();
+	output.write(reinterpret_cast<char *>(&nbinaries), sizeof(nbinaries));
+	for(auto binary: binaries) {
+		auto bsize = binary.size();
+		output.write(reinterpret_cast<char *>(&bsize), sizeof(bsize));
+		output.write(reinterpret_cast<const char *>(binary.data()), bsize);
+	}
+}
+
+
+cl::Program KernelCache::get_program(const cl::Context &context, const cl::Device &device)
+{
+
+	// Make sure we know all sources and their checksums
+	init_sources();
+
+	bool device_supports_double = device.getInfo<CL_DEVICE_DOUBLE_FP_CONFIG>();
+	SourceInformation sources_for_device = float_only_sources;
+	if (device_supports_double) {
+		sources_for_device = all_sources;
+	}
+
+	// Act as a cache! Load compiled program from file if it exists;
+	// otherwise build it from source
+	auto cache_entry = get_entry_name_for(device);
+	try {
+		return from_cache(context, cache_entry, sources_for_device);
+	} catch (const invalid_cache_entry &e) {
+		auto program = build(context, device, sources_for_device);
+		to_cache(cache_entry, sources_for_device, program);
+		return program;
+	}
+
+}
+
+
+// Lazy initialization of singleton via static local variable
+KernelCache get_cache() {
+	static KernelCache cache;
+	return cache;
+}
+
 static
 OpenCLEnvPtr _get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
 
@@ -236,88 +472,13 @@ OpenCLEnvPtr _get_opencl_environment(unsigned int platform_idx, unsigned int dev
 	if( use_double and not supports_double(device)) {
 		throw opencl_error("Double precision requested but not supported by device");
 	}
-
-	// Create a program with all the relevant kernels
-	// The source of the kernels is kept in a different file,
-	// but gets #included here, and thus gets embedded in the resulting
-	// shared library (instead of, for instance, loading the sources from a
-	// particular location on disk at runtime)
-	const char *common_float =
-#include "cl/common-float.cl"
-	;
-	const char *common_double =
-#include "cl/common-double.cl"
-	;
-	const char *sersic_float =
-#include "cl/sersic-float.cl"
-	;
-	const char *sersic_double =
-#include "cl/sersic-double.cl"
-	;
-	const char *moffat_float =
-#include "cl/moffat-float.cl"
-	;
-	const char *moffat_double =
-#include "cl/moffat-double.cl"
-	;
-	const char *ferrer_float =
-#include "cl/ferrer-float.cl"
-	;
-	const char *ferrer_double =
-#include "cl/ferrer-double.cl"
-	;
-	const char *king_float =
-#include "cl/king-float.cl"
-	;
-	const char *king_double =
-#include "cl/king-double.cl"
-	;
-	const char *brokenexp_float =
-#include "cl/brokenexponential-float.cl"
-	;
-	const char *brokenexp_double =
-#include "cl/brokenexponential-double.cl"
-	;
-	const char *coresersic_float =
-#include "cl/coresersic-float.cl"
-	;
-	const char *coresersic_double =
-#include "cl/coresersic-double.cl"
-	;
-	const char *convolve_float =
-#include "cl/convolve-float.cl"
-	;
-	const char *convolve_double =
-#include "cl/convolve-double.cl"
-	;
-
-	cl::Program::Sources sources;
-	sources.push_back(common_float);
-	sources.push_back(sersic_float);
-	sources.push_back(moffat_float);
-	sources.push_back(ferrer_float);
-	sources.push_back(king_float);
-	sources.push_back(brokenexp_float);
-	sources.push_back(coresersic_float);
-	sources.push_back(convolve_float);
-	if( use_double ) {
-		sources.push_back(common_double);
-		sources.push_back(sersic_double);
-		sources.push_back(moffat_double);
-		sources.push_back(ferrer_double);
-		sources.push_back(king_double);
-		sources.push_back(brokenexp_double);
-		sources.push_back(coresersic_double);
-		sources.push_back(convolve_double);
-	}
-
 	cl::Context context(device);
-	cl::Program program(context, sources);
-	try {
-		program.build({device});
-	} catch (const cl::Error &e) {
-		throw opencl_error("Error building program: " + program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device));
-	}
+
+	// Check if there is an entry in the cache for this platform/device
+	// This considers the version information of each, so if we update the
+	// platform we need to regenerate the cache entry
+	KernelCache cache = get_cache();
+	auto program = cache.get_program(context, device);
 
 	cl::CommandQueue queue(context, device, enable_profiling ? CL_QUEUE_PROFILING_ENABLE : 0);
 
