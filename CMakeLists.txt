@@ -247,6 +247,7 @@ set(PROFIT_SRC
    src/brokenexponential.cpp
    src/convolve.cpp
    src/coresersic.cpp
+   src/crc.cpp
    src/exceptions.cpp
    src/ferrer.cpp
    src/fft.cpp
