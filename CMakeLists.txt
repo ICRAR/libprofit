@@ -103,6 +103,17 @@ macro(find_opencl)
 		set(PROFIT_OPENCL ON)
 		set(PROFIT_OPENCL_MAJOR ${OpenCL_VERSION_MAJOR})
 		set(PROFIT_OPENCL_MINOR ${OpenCL_VERSION_MINOR})
+
+		# We usually set our target version to be OpenCL 1.1,
+		# but in some platforms we know we can aim higher
+		# (and save use lots of warnings)
+		set(PROFIT_OPENCL_TARGET_VERSION 110)
+		if (APPLE)
+			string(REGEX REPLACE "^([0-9]+)\\.([0-9]+).*$" "\\1"  DARWIN_VERSION_MAJOR "${CMAKE_SYSTEM_VERSION}")
+			if ("${DARWIN_VERSION_MAJOR}" GREATER 11)
+				set(PROFIT_OPENCL_TARGET_VERSION 120)
+			endif()
+		endif()
 		set(profit_LIBS ${profit_LIBS} ${OpenCL_LIBRARIES})
 	endif()
 endmacro()
