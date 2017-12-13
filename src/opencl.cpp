@@ -311,7 +311,7 @@ OpenCLEnvPtr _get_opencl_environment(unsigned int platform_idx, unsigned int dev
 
 	cl::CommandQueue queue(context, device, enable_profiling ? CL_QUEUE_PROFILING_ENABLE : 0);
 
-	return std::make_shared<OpenCL_env>(device, get_opencl_version(platform), context, queue, program, use_double, enable_profiling);
+	return std::make_shared<OpenCL_env>(device, get_opencl_version(device), context, queue, program, use_double, enable_profiling);
 }
 
 OpenCLEnvPtr get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
