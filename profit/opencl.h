@@ -241,6 +241,9 @@ typedef struct _OpenCL_dev_info {
 	/** The name of the device */
 	std::string name;
 
+	/** The OpenCL version supported by this device */
+	cl_ver_t cl_version;
+
 	/** Whether or not this device supports double floating-point precision */
 	bool double_support;
 

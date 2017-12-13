@@ -394,8 +394,9 @@ void print_opencl_info() {
 			cout << "  OpenCL version : " << plat_info.supported_opencl_version/100. << endl;
 			for(auto device_info: plat_info.dev_info) {
 				cout << "  Device [" << get<0>(device_info) << "]" << endl;
-				cout << "    Name         : " << get<1>(device_info).name << endl;
-				cout << "    Double       : " << (get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
+				cout << "    Name           : " << get<1>(device_info).name << endl;
+				cout << "    OpenCL version : " << get<1>(device_info).cl_version/100. << endl;
+				cout << "    Double         : " << (get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
 			}
 			cout << endl;
 		}

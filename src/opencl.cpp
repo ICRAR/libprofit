@@ -166,6 +166,7 @@ std::map<int, OpenCL_plat_info> _get_opencl_info() {
 		for(auto device: devices) {
 			dinfo[didx++] = OpenCL_dev_info{
 				device.getInfo<CL_DEVICE_NAME>(),
+				get_opencl_version(device),
 				supports_double(device)
 			};
 		}
