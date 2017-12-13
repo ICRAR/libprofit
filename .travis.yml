@@ -71,7 +71,7 @@ matrix:
     addons:
      apt:
       packages: [libfftw3-dev, libgsl0-dev, opencl-headers]
-    env: COMPILER=clang++ LD_LIBRARY_PATH=/usr/local/clang-3.9.0/lib
+    env: COMPILER=clang++ LD_LIBRARY_PATH=/usr/local/clang-5.0.0/lib
 
 # We use cmake, but in precise we still have 2.8...
 before_install:
