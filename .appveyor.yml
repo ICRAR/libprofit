@@ -1,0 +1,55 @@
+#
+# Appveyor CI configuration file
+#
+# ICRAR - International Centre for Radio Astronomy Research
+# (c) UWA - The University of Western Australia, 2016
+# Copyright by UWA (in the framework of the ICRAR)
+# All rights reserved
+#
+# Contributed by Rodrigo Tobar
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+# MA 02111-1307  USA
+#
+
+version: '1.0.{build}'
+
+image: Visual Studio 2017
+
+platform:
+  - x64
+
+cache: c:\tools\vcpkg\installed\
+
+configuration:
+  - Release
+
+install:
+  - cmd: git clone https://github.com/CxxTest/cxxtest
+  - cmd: cd c:\tools\vcpkg
+  - cmd: vcpkg integrate install
+  - cmd: vcpkg install gsl:x64-windows
+  - cmd: vcpkg install fftw3:x64-windows
+  - cmd: cd "%APPVEYOR_BUILD_FOLDER%"
+
+before_build:
+  - cmd: cmake -G "Visual Studio 15 2017 Win64" . -DLIBPROFIT_TEST=ON -DCMAKE_INCLUDE_PATH='%APPVEYOR_BUILD_FOLDER%\cxxtest' -DCMAKE_PROGRAM_PATH="%APPVEYOR_BUILD_FOLDER%\cxxtest\bin" -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+build:
+  project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
+
+test_script:
+  - cmd: set "PATH=%APPVEYOR_BUILD_FOLDER%\Release;%PATH%"
+  - cmd: ctest --output-on-failure -V
