@@ -252,6 +252,12 @@ configure_file(profit/config.h.in profit/config.h @ONLY)
 #
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
+# Compiler-specific tweaks
+if (MSVC)
+	# Do not warn about unsecure standard library calls
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 #
 # The shared library sources
 #
@@ -278,17 +284,21 @@ set(PROFIT_SRC
 )
 add_library(profit SHARED ${PROFIT_SRC})
 target_link_libraries(profit ${profit_LIBS})
+set(PROFIT_TARGETS profit)
 
 #
 # The executable
 #
-add_executable(profit-cli src/profit-cli.cpp)
-target_link_libraries(profit-cli profit)
+if (NOT MSVC)
+	add_executable(profit-cli src/profit-cli.cpp)
+	target_link_libraries(profit-cli profit)
+	set(PROFIT_TARGETS ${PROFIT_TARGETS} profit-cli)
+endif()
 
 #
 # Installing lib + binary + headers
 #
-install(TARGETS profit profit-cli
+install(TARGETS ${PROFIT_TARGETS}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
 install(FILES
