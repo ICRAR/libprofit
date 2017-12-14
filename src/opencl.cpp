@@ -29,7 +29,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sys/time.h>
 
 #include "profit/exceptions.h"
 #include "profit/opencl.h"
