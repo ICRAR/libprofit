@@ -378,6 +378,20 @@ void print_stats_line(const string &prefix, const string &stat_name, double val)
 }
 
 #ifdef PROFIT_OPENCL
+struct clver {
+	clver(unsigned int ver) : ver(ver) {}
+	unsigned int ver;
+};
+
+template <typename T>
+std::basic_ostream<T> &operator<<(std::basic_ostream<T> &os, const clver &ver)
+{
+	auto major = ver.ver / 100;
+	auto minor = (ver.ver - major * 100) / 10;
+	os << major << "." << minor;
+	return os;
+}
+
 static
 void print_opencl_info() {
 
@@ -391,11 +405,11 @@ void print_opencl_info() {
 			auto plat_info = get<1>(platform_info);
 			cout << "Platform [" << plat_id << "]" << endl;
 			cout << "  Name           : " << plat_info.name << endl;
-			cout << "  OpenCL version : " << plat_info.supported_opencl_version/100. << endl;
+			cout << "  OpenCL version : " << clver(plat_info.supported_opencl_version) << endl;
 			for(auto device_info: plat_info.dev_info) {
 				cout << "  Device [" << get<0>(device_info) << "]" << endl;
 				cout << "    Name           : " << get<1>(device_info).name << endl;
-				cout << "    OpenCL version : " << get<1>(device_info).cl_version/100. << endl;
+				cout << "    OpenCL version : " << clver(get<1>(device_info).cl_version) << endl;
 				cout << "    Double         : " << (get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
 			}
 			cout << endl;
