@@ -258,26 +258,33 @@ class surface : public surface_base {
 
 public:
 
+	typedef typename std::vector<T>::value_type value_type;
+	typedef typename std::vector<T>::reference reference;
+	typedef typename std::vector<T>::const_reference const_reference;
+	typedef typename std::vector<T>::size_type size_type;
+	typedef typename std::vector<T>::iterator iterator;
+	typedef typename std::vector<T>::const_iterator const_iterator;
+
 	surface(Dimensions dimensions = Dimensions()) :
 		surface_base(dimensions),
-		data(dimensions.x * dimensions.y)
+		_data(dimensions.x * dimensions.y)
 	{
 		// no-op
 	}
 
 	surface(const std::vector<T> &data, Dimensions dimensions) :
 		surface_base(dimensions),
-		data(data.begin(), data.end())
+		_data(data.begin(), data.end())
 	{
 		check_size();
 	}
 
 	surface(std::vector<T> &&data, Dimensions dimensions) :
 		surface_base(dimensions),
-		data(std::move(data))
+		_data(std::move(data))
 	{
-		if (dimensions.x * dimensions.y != this->data.size()) {
-			data = std::move(this->data);
+		if (dimensions.x * dimensions.y != this->_data.size()) {
+			data = std::move(this->_data);
 			throw std::invalid_argument("data.size() != weight * height");
 		}
 	}
@@ -288,7 +295,7 @@ public:
 	 */
 	surface(const surface &other) :
 		surface_base(other),
-		data(other.data)
+		_data(other._data)
 	{
 		check_size();
 	}
@@ -299,7 +306,7 @@ public:
 	 */
 	surface(surface &&other) :
 		surface_base(std::move(other)),
-		data(std::move(other.data))
+		_data(std::move(other._data))
 	{
 		// no-op
 	}
@@ -320,7 +327,7 @@ public:
 		D extended(dimensions);
 		for(unsigned int j = 0; j < getHeight(); j++) {
 			for(unsigned int i = 0; i < getWidth(); i++) {
-				extended.data[(i+start.x) + (j+start.y)*dimensions.x] = data[i + j*getWidth()];
+				extended[(i+start.x) + (j+start.y)*dimensions.x] = _data[i + j*getWidth()];
 			}
 		}
 		return extended;
@@ -342,31 +349,31 @@ public:
 		D crop(dimensions);
 		for(unsigned int j = 0; j < dimensions.y; j++) {
 			for(unsigned int i = 0; i < dimensions.x; i++) {
-				crop.data[i + j * dimensions.x] = data[(i + start.x) + (j + start.y) * getWidth()];
+				crop[i + j * dimensions.x] = _data[(i + start.x) + (j + start.y) * getWidth()];
 			}
 		};
 		return crop;
 	}
 
-	const std::vector<T>& getData() const {
-		return data;
+	value_type *data() {
+		return _data.data();
 	}
 
-	std::vector<T>& getData() {
-		return data;
+	const value_type *data() const {
+		return _data.data();
 	}
 
 	/// Comparison operator
 	bool operator==(const surface &other) const {
 		return surface_base::operator==(other) and
-		       data == other.data;
+		       _data == other._data;
 	}
 
 	/// Move assignment
 	surface &operator=(surface &&rhs)
 	{
 		surface_base::operator=(std::move(rhs));
-		data = std::move(rhs.data);
+		_data = std::move(rhs._data);
 		return *this;
 	}
 
@@ -374,20 +381,43 @@ public:
 	surface &operator=(const surface &rhs)
 	{
 		surface_base::operator=(rhs);
-		data = rhs.data;
+		_data = rhs._data;
 		return *this;
 	}
 
+	/// subscript operator
+	reference operator[](const size_type idx)
+	{
+		return _data[idx];
+	}
+
+	/// subscript operator, const
+	const_reference operator[](const size_type idx) const
+	{
+		return _data[idx];
+	}
+
+	/// iterator to beginning of data
+	iterator begin() { return _data.begin(); }
+	const_iterator begin() const { return _data.begin(); }
+	const_iterator cbegin() const { return _data.cbegin(); }
+
+	/// iterator to end of data
+	iterator end() { return _data.end(); }
+	const_iterator end() const { return _data.end(); }
+	const_iterator cend() const { return _data.cend(); }
+
+	/// type casting to std::vector<T>
 	operator std::vector<T>() const {
-		return std::vector<T>(data);
+		return std::vector<T>(_data);
 	}
 
 private:
-	std::vector<T> data;
+	std::vector<T> _data;
 
 	void check_size()
 	{
-		if (getWidth() * getHeight() != data.size()) {
+		if (getWidth() * getHeight() != _data.size()) {
 			throw std::invalid_argument("data.size() != weight * height");
 		}
 	}
@@ -491,6 +521,9 @@ public:
 
 	/// Division assignment against a double denominator
 	Image &operator/=(double denominator);
+
+	/// Multiplication assignment against a double multiplier
+	Image &operator*=(double denominator);
 
 	/// Division against a double denominator
 	Image operator/(double denominator) const;

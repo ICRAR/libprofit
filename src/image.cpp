@@ -181,6 +181,15 @@ Image &Image::operator/=(double denominator)
 	return *this;
 }
 
+Image &Image::operator*=(double multiplier)
+{
+	using std::placeholders::_1;
+	auto &data = getData();
+	std::transform(data.begin(), data.end(), data.begin(),
+	               std::bind(std::multiplies<double>(), _1, multiplier));
+	return *this;
+}
+
 Image Image::operator/(double denominator) const
 {
 	Image sum(*this);
