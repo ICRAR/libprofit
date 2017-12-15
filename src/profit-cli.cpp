@@ -805,8 +805,7 @@ int parse_and_run(int argc, char *argv[]) {
 				else {
 					m.psf = parse_psf(optarg, m.psf_width, m.psf_height, m.psf_scale_x, m.psf_scale_y);
 				}
-				convolver_prefs.krn_width = m.psf_width;
-				convolver_prefs.krn_height = m.psf_height;
+				convolver_prefs.krn_dims = {m.psf_width, m.psf_height};
 				break;
 
 			case 'w':
@@ -865,8 +864,10 @@ int parse_and_run(int argc, char *argv[]) {
 		return 1;
 	}
 
-	m.width   = convolver_prefs.src_width = width;
-	m.height  = convolver_prefs.src_height = height;
+	Dimensions dims {width, height};
+	m.width = width;
+	m.height = height;
+	convolver_prefs.src_dims = dims;
 	m.scale_x = scale_x;
 	m.scale_y = scale_y;
 	m.magzero = magzero;

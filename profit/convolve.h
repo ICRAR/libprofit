@@ -115,10 +115,8 @@ class ConvolverCreationPreferences {
 
 public:
 	ConvolverCreationPreferences() :
-		src_width(0),
-		src_height(0),
-		krn_width(0),
-		krn_height(0),
+		src_dims(),
+		krn_dims(),
 		omp_threads(1)
 #ifdef PROFIT_OPENCL
 		,opencl_env()
@@ -129,17 +127,11 @@ public:
 #endif // PROFIT_FFTW
 	{};
 
-	/// The width of the image being convolved.
-	unsigned int src_width;
+	/// The dimensions of the image being convolved.
+	Dimensions src_dims;
 
-	/// The height of the image being convolved.
-	unsigned int src_height;
-
-	/// The width of the convolution kernel.
-	unsigned int krn_width;
-
-	/// The height of the convolution kernel.
-	unsigned int krn_height;
+	/// The dimensions of the convolution kernel.
+	Dimensions krn_dims;
 
 	/// The amount of OpenMP threads (if OpenMP is available) to use by the
 	/// convolver. Used by the FFT convolver (to create and execute the plan

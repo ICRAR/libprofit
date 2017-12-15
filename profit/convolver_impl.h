@@ -96,8 +96,7 @@ private:
 class FFTConvolver : public Convolver {
 
 public:
-	FFTConvolver(unsigned int src_width, unsigned int src_height,
-	             unsigned int krn_width, unsigned int krn_height,
+	FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dims,
 	             FFTPlan::effort_t effort, unsigned int plan_omp_threads,
 	             bool reuse_krn_fft);
 

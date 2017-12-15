@@ -46,20 +46,15 @@ using namespace profit;
 class FFTFixtures : CxxTest::GlobalFixture {
 
 public:
-	FFTFixtures(unsigned int width, unsigned int height, unsigned int psf_width, unsigned int psf_height, bool reuse_psf_fft) :
+	FFTFixtures(const Dimensions &dims, const Dimensions &psf_dims, bool reuse_psf_fft) :
 		tolerance(0.01),
 		fft_convolver(nullptr),
-		psf(psf_width * psf_height),
-		psf_width(psf_width),
-		psf_height(psf_height),
-		width(width),
-		height(height)
+		psf(psf_dims),
+		dims(dims)
 	{
 		ConvolverCreationPreferences prefs;
-		prefs.src_width = width;
-		prefs.src_height = height;
-		prefs.krn_width = psf_width;
-		prefs.krn_height = psf_height;
+		prefs.src_dims = dims;
+		prefs.krn_dims = psf_dims;
 		prefs.effort = FFTPlan::ESTIMATE;
 		prefs.omp_threads = 1;
 		prefs.reuse_krn_fft = reuse_psf_fft;
@@ -67,7 +62,7 @@ public:
 		// a random psf
 		unsigned int seed = (unsigned int)time(NULL);
 		rand_r(&seed);
-		for (unsigned int i = 0; i < psf_width * psf_height; i++) {
+		for (unsigned int i = 0; i < psf.size(); i++) {
 			psf[i] = (rand() % 10000) / 10000.0;
 		}
 
@@ -79,23 +74,20 @@ public:
 
 	double tolerance;
 	ConvolverPtr fft_convolver;
-	std::vector<double> psf;
-	unsigned int psf_width;
-	unsigned int psf_height;
-	unsigned int width;
-	unsigned int height;
+	Image psf;
+	Dimensions dims;
 };
 
 // all combinations of: even/odd image, even/odd psf, psf fft reuse/no_reuse
 static FFTFixtures fixtures[] = {
-	{100, 100, 25, 25, true},
-	{100, 100, 26, 26, true},
-	{99, 99, 25, 25, true},
-	{99, 99, 26, 26, true},
-	{100, 100, 25, 25, false},
-	{100, 100, 26, 26, false},
-	{99, 99, 25, 25, false},
-	{99, 99, 26, 26, false}
+	{{100, 100}, {25, 25}, true},
+	{{100, 100}, {26, 26}, true},
+	{{99, 99}, {25, 25}, true},
+	{{99, 99}, {26, 26}, true},
+	{{100, 100}, {25, 25}, false},
+	{{100, 100}, {26, 26}, false},
+	{{99, 99}, {25, 25}, false},
+	{{99, 99}, {26, 26}, false}
 };
 
 class TestFFT : public CxxTest::TestSuite {
@@ -115,11 +107,11 @@ public:
 			TS_SKIP("No FFTPlan found to run FFT tests with this fixture");
 		}
 
-		m.width = fftFixtures.width;
-		m.height = fftFixtures.height;
-		m.psf = fftFixtures.psf;
-		m.psf_width = fftFixtures.psf_width;
-		m.psf_height = fftFixtures.psf_height;
+		m.width = fftFixtures.dims.x;
+		m.height = fftFixtures.dims.y;
+		m.psf = std::vector<double>(fftFixtures.psf.begin(), fftFixtures.psf.end());
+		m.psf_width = fftFixtures.psf.getWidth();
+		m.psf_height = fftFixtures.psf.getHeight();
 
 		// evaluate normally first, and then using the FFTPlan
 		m.convolver.reset();
@@ -265,10 +257,8 @@ public:
 		}
 
 		ConvolverCreationPreferences prefs;
-		prefs.src_width = 100;
-		prefs.src_height = 100;
-		prefs.krn_width = 25;
-		prefs.krn_height = 25;
+		prefs.src_dims = {100, 100};
+		prefs.krn_dims = {25, 25};
 		prefs.effort = FFTPlan::ESTIMATE;
 		prefs.reuse_krn_fft = true;
 		auto convolver = create_convolver(ConvolverType::FFT, prefs);

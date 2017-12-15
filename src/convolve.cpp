@@ -294,8 +294,7 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 }
 
 #ifdef PROFIT_FFTW
-FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
-                           unsigned int krn_width, unsigned int krn_height,
+FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dims,
                            FFTPlan::effort_t effort, unsigned int plan_omp_threads,
                            bool reuse_krn_fft) :
 	plan(),
@@ -303,13 +302,13 @@ FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
 	reuse_krn_fft(reuse_krn_fft)
 {
 
-	if (krn_width > src_width) {
+	if (krn_dims.x > src_dims.x) {
 		throw invalid_parameter("krn_width must be <= src_width");
 	}
-	if (krn_height > src_height) {
+	if (krn_dims.y > src_dims.y) {
 		throw invalid_parameter("krn_height must be <= src_height");
 	}
-	auto convolution_size = 4 * src_width * src_height;
+	auto convolution_size = 4 * src_dims.x * src_dims.y;
 	plan = std::unique_ptr<FFTPlan>(new FFTPlan(convolution_size, effort, plan_omp_threads));
 }
 
@@ -572,8 +571,7 @@ ConvolverPtr create_convolver(const ConvolverType type, const ConvolverCreationP
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
 		case FFT:
-			return std::make_shared<FFTConvolver>(prefs.src_width, prefs.src_height,
-			                                      prefs.krn_width, prefs.krn_height,
+			return std::make_shared<FFTConvolver>(prefs.src_dims, prefs.krn_dims,
 			                                      prefs.effort, prefs.omp_threads,
 			                                      prefs.reuse_krn_fft);
 #endif // PROFIT_FFTW
