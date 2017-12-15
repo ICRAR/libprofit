@@ -38,7 +38,7 @@ namespace profit
 
 void PsfProfile::validate()  {
 
-	if( this->model.psf.empty() ) {
+	if( not model.psf ) {
 		throw invalid_parameter("No psf present in the model, cannot produce a psf profile");
 	}
 
@@ -68,14 +68,14 @@ void PsfProfile::evaluate(Image &image, const Mask &mask) {
 	double scale = pow(10, -0.4*(this->mag - this->model.magzero));
 
 	/* Making the code more readable */
-	double scale_x = model.scale_x;
-	double scale_y = model.scale_y;
-	double psf_scale_x = model.psf_scale_x;
-	double psf_scale_y = model.psf_scale_y;
+	double scale_x = model.scale.first;
+	double scale_y = model.scale.second;
+	double psf_scale_x = model.psf_scale.first;
+	double psf_scale_y = model.psf_scale.second;
 	unsigned int width = image.getWidth();
 	unsigned int height = image.getHeight();
-	unsigned int psf_width = model.psf_width;
-	unsigned int psf_height = model.psf_height;
+	unsigned int psf_width = model.psf.getWidth();
+	unsigned int psf_height = model.psf.getHeight();
 
 	/* Where we start/end applying the psf into the target image */
 	double origin_x = this->xcen - psf_width*psf_scale_x/2.;

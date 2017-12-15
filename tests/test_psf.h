@@ -37,20 +37,16 @@ public:
 
 	void test_exact_pixels(void) {
 
-		Model m;
-		m.width = 10;
-		m.height = 10;
-		m.psf_width = 2;
-		m.psf_height = 2;
-		m.magzero = 0;
-		m.psf = {1,1,1,1};
+		Model m {10, 10};
+		m.set_psf({{1,1,1,1}, 2, 2});
+		m.set_magzero(0);
 
 		auto psfprof = m.add_profile("psf");
 		psfprof->parameter("xcen", 2.);
 		psfprof->parameter("ycen", 2.);
 		psfprof->parameter("mag", 0.);
 
-		auto image = m.evaluate().first;
+		auto image = m.evaluate();
 		for(auto &pixel: image) {
 			TS_ASSERT_DELTA(0.25, pixel, 1e9);
 		}

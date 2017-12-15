@@ -191,6 +191,9 @@ private:
 
 };
 
+/// A pointer to a Profile object
+typedef std::shared_ptr<Profile> ProfilePtr;
+
 } /* namespace profit */
 
 #endif /* PROFIT_PROFILE_H */

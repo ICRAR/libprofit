@@ -49,8 +49,7 @@ public:
 		for(auto pname: all_radial) {
 
 			// 100x100 model, with profile centered at (50,50)
-			Model m;
-			m.width = m.height = 100;
+			Model m {100, 100};
 			auto radialp = m.add_profile(pname);
 			radialp->parameter("xcen", 50.);
 			radialp->parameter("ycen", 50.);
@@ -65,8 +64,7 @@ public:
 		for(auto pname: all_radial) {
 
 			// 100x100 model, with profile centered at (50,50), box=0.5
-			Model m;
-			m.width = m.height = 100;
+			Model m {100, 100};
 			auto radialp = m.add_profile(pname);
 			radialp->parameter("xcen", 50.);
 			radialp->parameter("ycen", 50.);
@@ -80,13 +78,9 @@ public:
 
 	void test_calcmask(void) {
 
-		Model m;
-		m.width = 3;
-		m.height = 3;
-		m.psf_width = 2;
-		m.psf_height = 2;
-		m.magzero = 0;
-		m.psf = {1,1,1,1};
+		Model m {3, 3};
+		m.set_psf({{1,1,1,1}, 2, 2});
+		m.set_magzero(0);
 
 		auto sp = m.add_profile("sersic");
 		sp->parameter("xcen", 1.);
@@ -97,34 +91,35 @@ public:
 		sp->parameter("adjust", false);
 
 		/* Some on, some off */
-		m.calcmask = {false, true, true,
-		              false, true, false,
-		              true, true, false};
-		std::vector<double> image = m.evaluate().first;
-		for(auto j=0u; j!=m.width; j++) {
-			for(auto i=0u; i!=m.height; i++) {
-				auto idx = i + j*m.width;
-				if( m.calcmask[idx] ) {
-					TS_ASSERT_DIFFERS(0, image[idx]);
-				}
-				else {
-					TS_ASSERT_EQUALS(0, image[idx]);
-				}
+		Mask mask {{false, true, true,
+		            false, true, false,
+		            true, true, false}, 3, 3};
+		m.set_mask(mask);
+		auto image = m.evaluate();
+		auto image_it = image.begin();
+		auto mask_it = mask.begin();
+		for(; image_it != image.end(); image_it++, mask_it++) {
+			if( *mask_it ) {
+				TS_ASSERT_DIFFERS(0, *image_it);
+			}
+			else {
+				TS_ASSERT_EQUALS(0, *image_it);
 			}
 		}
 
 		/* All on */
-		m.calcmask = {true, true, true,
-		              true, true, true,
-		              true, true, true};
-		image = m.evaluate().first;
+		mask = {{true, true, true,
+		         true, true, true,
+		         true, true, true}, 3, 3};
+		m.set_mask(mask);
+		image = m.evaluate();
 		for(auto pixel: image) {
 			TS_ASSERT_DIFFERS(0, pixel);
 		}
 
 		/* No mask */
-		m.calcmask = {};
-		image = m.evaluate().first;
+		m.set_mask({});
+		image = m.evaluate();
 		for(auto pixel: image) {
 			TS_ASSERT_DIFFERS(0, pixel);
 		}

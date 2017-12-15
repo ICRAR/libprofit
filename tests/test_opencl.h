@@ -151,9 +151,9 @@ private:
 
 		// evaluate normally first, and then using the OpenCL environment,
 		// which they all support
-		std::vector<double> original = m.evaluate().first;
-		m.opencl_env = openCLFixtures.opencl_env;
-		std::vector<double> opencl_produced = m.evaluate().first;
+		auto original = m.evaluate();
+		m.set_opencl_env(openCLFixtures.opencl_env);
+		auto opencl_produced = m.evaluate();
 
 		// Pixel by pixel the images should be fairly similar
 		for(unsigned int i=0; i!=original.size(); i++) {
@@ -188,8 +188,7 @@ private:
 public:
 
 	void test_opencldiff_brokenexp() {
-		Model m;
-		m.width = m.height = 100;
+		Model m {100, 100};
 		auto brokenexp = m.add_profile("brokenexp");
 		brokenexp->parameter("xcen", 40.);
 		brokenexp->parameter("ycen", 60.);
@@ -204,8 +203,7 @@ public:
 	}
 
 	void test_opencldiff_coresersic() {
-		Model m;
-		m.width = m.height = 100;
+		Model m {100, 100};
 		auto coresersic = m.add_profile("coresersic");
 		coresersic->parameter("xcen", 50.);
 		coresersic->parameter("ycen", 50.);
@@ -222,8 +220,7 @@ public:
 	}
 
 	void test_opencldiff_ferrer() {
-		Model m;
-		m.width = m.height = 100;
+		Model m {100, 100};
 		auto ferrer = m.add_profile("ferrer");
 		ferrer->parameter("xcen", 50.);
 		ferrer->parameter("ycen", 50.);
@@ -238,8 +235,7 @@ public:
 	}
 
 	void test_opencldiff_king() {
-		Model m;
-		m.width = m.height = 100;
+		Model m {100, 100};
 		auto king = m.add_profile("king");
 		king->parameter("xcen", 50.);
 		king->parameter("ycen", 50.);
@@ -254,8 +250,7 @@ public:
 	}
 
 	void test_opencldiff_moffat() {
-		Model m;
-		m.width = m.height = 100;
+		Model m {100, 100};
 		auto moffat = m.add_profile("moffat");
 		moffat->parameter("xcen", 34.);
 		moffat->parameter("ycen", 74.);
@@ -269,8 +264,7 @@ public:
 	}
 
 	void test_opencldiff_sersic() {
-		Model m;
-		m.width = m.height = 100;
+		Model m {100, 100};
 		auto sersic = m.add_profile("sersic");
 		sersic->parameter("xcen", 50.0);
 		sersic->parameter("ycen", 50.0);

@@ -39,8 +39,7 @@ private:
 	void _test_different_nser(double box) {
 
 		// 50x50 model, with profile centered at (25,25)
-		Model m;
-		m.width = m.height = 50;
+		Model m {50, 50};
 		auto sersicp = m.add_profile("sersic");
 		sersicp->parameter("xcen", 25.);
 		sersicp->parameter("ycen", 25.);

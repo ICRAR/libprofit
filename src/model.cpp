@@ -43,13 +43,16 @@
 
 namespace profit {
 
+Point Model::NO_OFFSET;
+
 Model::Model(unsigned int width, unsigned int height) :
-	width(width), height(height),
-	scale_x(1), scale_y(1),
+	requested_dimensions(width, height),
+	finesampling(1),
+	scale(1, 1),
 	magzero(0),
-	psf(), psf_width(0), psf_height(0),
-	psf_scale_x(1), psf_scale_y(1),
-	calcmask(),
+	psf(),
+	psf_scale(1, 1),
+	mask(),
 	convolver(),
 	crop(true),
 	dry_run(false),
@@ -107,19 +110,23 @@ std::shared_ptr<Profile> Model::add_profile(const std::string &profile_name) {
 	return profile;
 }
 
-ImageAndOffset Model::evaluate() {
+static
+void inform_offset(const Point &offset, Point &offset_out) {
+	if (&offset_out != &Model::NO_OFFSET) {
+		offset_out = offset;
+	}
+}
+
+Image Model::evaluate(Point &offset_out) {
 
 	/* Check limits */
-	if( !this->width ) {
-		throw invalid_parameter( "Model's width is 0");
+	if( not requested_dimensions ) {
+		throw invalid_parameter( "Model's requested dimensions are 0");
 	}
-	else if( !this->height ) {
-		throw invalid_parameter("Model's height is 0");
-	}
-	else if( this->scale_x <= 0 ) {
+	else if( this->scale.first <= 0 ) {
 		throw invalid_parameter("Model's scale_x cannot be negative or zero");
 	}
-	else if( this->scale_y <= 0 ) {
+	else if( this->scale.second <= 0 ) {
 		throw invalid_parameter("Model's scale_y cannot be negative or zero");
 	}
 
@@ -127,23 +134,11 @@ ImageAndOffset Model::evaluate() {
 	 * If at least one profile is requesting convolving we require
 	 * a valid psf.
 	 */
-	for(auto profile: this->profiles) {
+	for(auto &profile: this->profiles) {
 		if( profile->do_convolve() ) {
-			if( this->psf.empty() ) {
+			if( not this->psf ) {
 				std::ostringstream ss;
-				ss << "Profile " << profile->get_name() << " requires convolution but no psf was provided";
-				throw invalid_parameter(ss.str());
-			}
-			if( !this->psf_width ) {
-				throw invalid_parameter("Model's psf width is 0");
-			}
-			if( !this->psf_height ) {
-				throw invalid_parameter("Model's psf height is 0");
-			}
-			if( this->psf_width * this->psf_height != this->psf.size() ) {
-				std::ostringstream ss;
-				ss << "PSF dimensions (" << psf_width << "x" << psf_height <<
-				      ") don't correspond to PSF length (" << psf.size() << ")";
+				ss << "Profile " << profile->get_name() << " requires convolution but no valid psf was provided";
 				throw invalid_parameter(ss.str());
 			}
 			break;
@@ -159,12 +154,13 @@ ImageAndOffset Model::evaluate() {
 	}
 
 	// The image we'll eventually return
-	Image image(width, height);
+	Image image(requested_dimensions);
 	Point offset(0, 0);
 
 	/* so long folks! */
 	if( dry_run ) {
-		return std::make_pair(image, offset);
+		inform_offset(offset, offset_out);
+		return image;
 	}
 
 	/*
@@ -172,7 +168,7 @@ ImageAndOffset Model::evaluate() {
 	 */
 	std::vector<Image> profile_images;
 	for(auto &profile: this->profiles) {
-		Image profile_image(width, height);
+		Image profile_image(requested_dimensions);
 		profile->evaluate(profile_image, mask);
 		profile_images.push_back(std::move(profile_image));
 	}
@@ -198,22 +194,17 @@ ImageAndOffset Model::evaluate() {
 	// of the original image with respect to the new, larger one
 	Dimensions conv_dims = image.getDimensions();
 	if( do_convolve ) {
-		Image psf_img(psf, psf_width, psf_height);
+		Image psf_img(psf);
 		psf_img.normalize();
 		if (!convolver) {
 			convolver = create_convolver(BRUTE);
 		}
-		Mask mask_img;
-		if (!calcmask.empty()) {
-			mask_img = Mask(calcmask, width, height);
-		}
-
-		image = convolver->convolve(image, psf_img, mask_img, crop, offset);
+		image = convolver->convolve(image, psf_img, mask, crop, offset);
 		conv_dims = image.getDimensions();
 	}
 
 	// Sum images of profiles that do not require convolution
-	Image no_convolved_images(width, height);
+	Image no_convolved_images(requested_dimensions);
 	it = profile_images.begin();
 	for(auto &profile: this->profiles) {
 		if( !profile->do_convolve() ) {
@@ -224,7 +215,7 @@ ImageAndOffset Model::evaluate() {
 
 	// Add non-convolved images on top of the convolved ones
 	// taking into account the convolution extension/offset, if any
-	if (conv_dims != Dimensions(width, height)) {
+	if (conv_dims != requested_dimensions) {
 		image += no_convolved_images.extend(conv_dims, offset);
 	}
 	else {
@@ -232,7 +223,8 @@ ImageAndOffset Model::evaluate() {
 	}
 
 	/* Done! Good job :-) */
-	return std::make_pair(image, offset);
+	inform_offset(offset, offset_out);
+	return image;
 }
 
 std::map<std::string, std::shared_ptr<ProfileStats>> Model::get_stats() const {

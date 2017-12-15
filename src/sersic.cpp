@@ -335,9 +335,10 @@ void SersicProfile::subsampling_params(double x, double y,
 
 	RadialProfile::subsampling_params(x, y, resolution, max_recursions);
 
-	/* Higher subsampling params for central pixel if nser > 1 */
-	bool center_pixel = abs(x - this->xcen) < this->model.scale_x && abs(y - this->ycen) < this->model.scale_y;
-	if( adjust and center_pixel && this->nser > 1 ) {
+	/* Higher subsampling params for central pixel if nser > 1 (only when auto-adjusting) */
+	bool center_pixel = abs(x - xcen) < model.get_image_pixel_scale().first &&
+	                    abs(y - ycen) < model.get_image_pixel_scale().second;
+	if( adjust and center_pixel and nser > 1 ) {
 		resolution = 8;
 		max_recursions = 10;
 	}

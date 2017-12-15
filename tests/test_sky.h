@@ -36,31 +36,27 @@ public:
 
 	void test_bg(void) {
 
-		Model m;
-		m.width = 2;
-		m.height = 2;
+		Model m {2, 2};
 
 		auto skyprof = m.add_profile("sky");
 		skyprof->parameter("bg", 1.);
 
-		std::vector<double> image = m.evaluate().first;
+		std::vector<double> image = m.evaluate();
 		for(auto pixel: image) {
 			TS_ASSERT_EQUALS(1, pixel);
 		}
 
 	}
 
-	void test_with_calcmask(void) {
+	void test_with_mask(void) {
 
-		Model m;
-		m.width = 2;
-		m.height = 2;
-		m.calcmask = {true, true, true, false};
+		Model m {2, 2};
+		m.set_mask({{true, true, true, false}, 2, 2});
 
 		auto skyprof = m.add_profile("sky");
 		skyprof->parameter("bg", 5.);
 
-		auto image = m.evaluate().first;
+		auto image = m.evaluate();
 		for(int idx: {0,1,2}) {
 			TS_ASSERT_EQUALS(5, image[idx]);
 		}

@@ -80,10 +80,8 @@ private:
 	                       const std::vector<double> &invalid_values,
 	                       const std::vector<std::pair<std::string, double>> &fixed_vals = std::vector<std::pair<std::string, double>>()) {
 
-		Model m;
-		m.dry_run = true;
-		m.width = 10;
-		m.height = 10;
+		Model m {10, 10};
+		m.set_dry_run(true);
 		auto p = m.add_profile(profile_name);
 
 		// check that by default all profiles generate valid images

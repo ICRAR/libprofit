@@ -107,17 +107,15 @@ public:
 			TS_SKIP("No FFTPlan found to run FFT tests with this fixture");
 		}
 
-		m.width = fftFixtures.dims.x;
-		m.height = fftFixtures.dims.y;
-		m.psf = std::vector<double>(fftFixtures.psf.begin(), fftFixtures.psf.end());
-		m.psf_width = fftFixtures.psf.getWidth();
-		m.psf_height = fftFixtures.psf.getHeight();
+		auto width = fftFixtures.dims.x;
+		m.set_dimensions(fftFixtures.dims);
+		m.set_psf(fftFixtures.psf);
 
 		// evaluate normally first, and then using the FFTPlan
-		m.convolver.reset();
-		std::vector<double> original = m.evaluate().first;
-		m.convolver = fftFixtures.fft_convolver;
-		std::vector<double> fft_produced = m.evaluate().first;
+		m.set_convolver(nullptr);
+		std::vector<double> original = m.evaluate();
+		m.set_convolver(fftFixtures.fft_convolver);
+		std::vector<double> fft_produced = m.evaluate();
 
 		// Pixel by pixel the images should be fairly similar
 		for(unsigned int i=0; i!=original.size(); i++) {
@@ -143,7 +141,7 @@ public:
 
 			std::ostringstream msg;
 			auto relative_diff = diff / denomin;
-			msg << "Pixel [" << i%m.width << "," << i/m.width << "] has values that are too different: ";
+			msg << "Pixel [" << i % width << "," << i / width << "] has values that are too different: ";
 			msg << original_pixel << " v/s " << fft_pixel;
 			TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), relative_diff, fftFixtures.tolerance);
 		}

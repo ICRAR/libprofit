@@ -260,10 +260,8 @@ void parse_profile(Model &model, const string &description) {
 	desc_to_profile(model, name, subdesc);
 }
 
-vector<double> parse_psf(string optarg,
-                         unsigned int &psf_width, unsigned int &psf_height,
-                         double &psf_scale_x, double &psf_scale_y) {
-
+Image parse_psf(string optarg, Model &m)
+{
 	unsigned int size, i = 0;
 	bool read_scales = false;
 
@@ -285,11 +283,12 @@ vector<double> parse_psf(string optarg,
 	}
 
 	vector<string>::iterator it = tokens.begin();
-	psf_width = stoul(*it++);
-	psf_height = stoul(*it++);
+	unsigned int psf_width = stoul(*it++);
+	unsigned int psf_height = stoul(*it++);
 	if( read_scales ) {
-		psf_scale_x = stod(*it++);
-		psf_scale_y = stod(*it++);
+		double psf_scale_x = stod(*it++);
+		double psf_scale_y = stod(*it++);
+		m.set_psf_pixel_scale({psf_scale_x, psf_scale_y});
 	}
 
 	size = psf_width * psf_height;
@@ -308,7 +307,7 @@ vector<double> parse_psf(string optarg,
 		throw invalid_cmdline(os.str());
 	}
 
-	return psf;
+	return Image(psf, psf_width, psf_height);
 }
 
 void show_version() {
@@ -497,8 +496,9 @@ void print_stats(const Model &m) {
 #ifdef PROFIT_OPENCL
 		auto prefix1 = "  ";
 		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
-		if( rprofile_stats && m.opencl_env ) {
-			bool opencl_120 = m.opencl_env->get_version() >= 120;
+		auto opencl_env = m.get_opencl_env();
+		if( rprofile_stats && opencl_env ) {
+			bool opencl_120 = opencl_env->get_version() >= 120;
 			print_cl_stats(prefix0, opencl_120, rprofile_stats->cl_times);
 			print_stats_line(prefix0, "Pre-loop", rprofile_stats->subsampling.pre_subsampling / 1e6 );
 			print_stats_line(prefix0, "Subsampling loop", rprofile_stats->subsampling.total / 1e6 );
@@ -538,14 +538,16 @@ double swap_bytes(const double v) {
 
 #define FITS_BLOCK_SIZE (36*80)
 
-vector<double> read_image_from_fits_file(const string &filename, unsigned int &width, unsigned int &height, double &scale_x, double &scale_y) {
+Image read_image_from_fits_file(const string &filename, Model &m) {
 
 	FILE *f;
 	unsigned int pos, padding;
 	char hdr[80];
 
-	width = height = 0;
-	scale_x = scale_y = 1;
+	unsigned int width = 0;
+	unsigned int height = 0;
+	double scale_x = 1;
+	double scale_y = 1;
 
 	f = fopen(filename.c_str(), "rb");
 	if( !f ) {
@@ -577,6 +579,8 @@ vector<double> read_image_from_fits_file(const string &filename, unsigned int &w
 		}
 	}
 
+	m.set_psf_pixel_scale({scale_x, scale_y});
+
 	pos = (unsigned int)ftell(f);
 	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
 	fseek(f, padding, SEEK_CUR);
@@ -594,7 +598,7 @@ vector<double> read_image_from_fits_file(const string &filename, unsigned int &w
 		transform(psf.begin(), psf.end(), psf.begin(), swap_bytes);
 	}
 
-	return psf;
+	return Image(psf, width, height);
 }
 
 int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
@@ -620,6 +624,8 @@ int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
 	 * The first five headers are required, and must be in "fixed format",
 	 * meaning that their values must be right-indented on column 30, sigh...
 	 */
+	auto scale_x = m.get_image_pixel_scale().first;
+	auto scale_y = m.get_image_pixel_scale().second;
 	fprintf(f, "%-80s", "SIMPLE  =                    T / File conforms to FITS standard");
 	fprintf(f, "%-80s", "BITPIX  =                  -64 / Bits per pixel");
 	fprintf(f, "%-80s", "NAXIS   =                    2 / Number of axes");
@@ -628,16 +634,16 @@ int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
 	sprintf(hdr, "NAXIS2  =           %10.0u / Height", image.getHeight());
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CRPIX1  = 1");
-	sprintf(hdr, "CRVAL1  = %f", (0.5 - offset.x) * m.scale_x);
+	sprintf(hdr, "CRVAL1  = %f", (0.5 - offset.x) * scale_x);
 	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "CDELT1  = %f", m.scale_x);
+	sprintf(hdr, "CDELT1  = %f", scale_x);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE1  = ' '");
 	fprintf(f, "%-80s", "CUNIT1  = ' '");
 	fprintf(f, "%-80s", "CRPIX2  = 1");
-	sprintf(hdr, "CRVAL2  = %f", (0.5 - offset.y) * m.scale_y);
+	sprintf(hdr, "CRVAL2  = %f", (0.5 - offset.y) * scale_y);
 	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "CDELT2  = %f", m.scale_y);
+	sprintf(hdr, "CDELT2  = %f", scale_y);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE2  = ' '");
 	fprintf(f, "%-80s", "CUNIT2  = ' '");
@@ -669,15 +675,15 @@ int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
 	return 0;
 }
 
-ImageAndOffset run(unsigned int iterations, Model &m) {
+Image run(unsigned int iterations, Model &m, Point &offset) {
 
 	using chrono::system_clock;
 
 	/* This means that we evaluated the model once, but who cares */
-	ImageAndOffset result;
+	Image result;
 	auto start = system_clock::now();
 	for(unsigned i=0; i!=iterations; i++) {
-		result = m.evaluate();
+		result = m.evaluate(offset);
 	}
 	auto end = system_clock::now();
 	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
@@ -707,12 +713,13 @@ int parse_and_run(int argc, char *argv[]) {
 
 	int opt;
 	unsigned int width = 100, height = 100, iterations = 1;
-	double magzero = 0, scale_x = 1, scale_y = 1;
+	double scale_x = 1, scale_y = 1;
 	unsigned int i, j;
 	char *endptr = NULL;
 	string fits_output;
 	output_t output = none;
 	Model m;
+	Image psf;
 	string convolver_type = "brute";
 	ConvolverCreationPreferences convolver_prefs;
 	struct stat stat_buf;
@@ -757,7 +764,7 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'u':
-				m.crop = false;
+				m.set_crop(false);
 				break;
 
 #ifdef PROFIT_FFTW
@@ -793,19 +800,20 @@ int parse_and_run(int argc, char *argv[]) {
 
 #ifdef PROFIT_OPENMP
 			case 'n':
-				m.omp_threads = (unsigned int)atoi(optarg);
-				convolver_prefs.omp_threads = m.omp_threads;
+				m.set_omp_threads((unsigned int)atoi(optarg));
+				convolver_prefs.omp_threads = m.get_omp_threads();
 				break;
 #endif
 
 			case 'P':
 				if( !stat(optarg, &stat_buf) ) {
-					m.psf = read_image_from_fits_file(optarg, m.psf_width, m.psf_height, m.psf_scale_x, m.psf_scale_y);
+					psf = read_image_from_fits_file(optarg, m);
 				}
 				else {
-					m.psf = parse_psf(optarg, m.psf_width, m.psf_height, m.psf_scale_x, m.psf_scale_y);
+					psf = parse_psf(optarg, m);
 				}
-				convolver_prefs.krn_dims = {m.psf_width, m.psf_height};
+				convolver_prefs.krn_dims = psf.getDimensions();
+				m.set_psf(std::move(psf));
 				break;
 
 			case 'w':
@@ -825,7 +833,7 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'm':
-				magzero = strtod(optarg, &endptr);
+				m.set_magzero(strtod(optarg, &endptr));
 				break;
 
 			case 't':
@@ -865,12 +873,9 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 
 	Dimensions dims {width, height};
-	m.width = width;
-	m.height = height;
 	convolver_prefs.src_dims = dims;
-	m.scale_x = scale_x;
-	m.scale_y = scale_y;
-	m.magzero = magzero;
+	m.set_dimensions(dims);
+	m.set_image_pixel_scale({scale_x, scale_y});
 
 #ifdef PROFIT_OPENCL
 	/* Get an OpenCL environment */
@@ -878,7 +883,7 @@ int parse_and_run(int argc, char *argv[]) {
 		auto start = system_clock::now();
 		auto opencl_env = get_opencl_environment(clplat_idx, cldev_idx, use_double, show_stats);
 		auto end = system_clock::now();
-		m.opencl_env = opencl_env;
+		m.set_opencl_env(opencl_env);
 		convolver_prefs.opencl_env = opencl_env;
 		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 		cout << "OpenCL environment (platform=" <<
@@ -891,7 +896,7 @@ int parse_and_run(int argc, char *argv[]) {
 
 	// Create the convolver
 	auto start = system_clock::now();
-	m.convolver = create_convolver(convolver_type, convolver_prefs);
+	m.set_convolver(create_convolver(convolver_type, convolver_prefs));
 	auto end = system_clock::now();
 
 	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
@@ -899,9 +904,8 @@ int parse_and_run(int argc, char *argv[]) {
 	cout << "Created convolver in " << duration << " [ms]" << endl;
 
 	// Now run the model as many times as requested
-	auto result = run(iterations, m);
-	auto &image = result.first;
-	auto &offset = result.second;
+	Point offset;
+	auto image = run(iterations, m, offset);
 
 	switch(output) {
 
