@@ -881,7 +881,11 @@ int parse_and_run(int argc, char *argv[]) {
 		m.opencl_env = opencl_env;
 		convolver_prefs.opencl_env = opencl_env;
 		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
-		cout << "OpenCL environment created in " << opencl_duration << " [ms]" << endl;
+		cout << "OpenCL environment (platform=" <<
+		        opencl_env->get_platform_name() << ", device=" <<
+		        opencl_env->get_device_name() << ", version=" <<
+		        clver(opencl_env->get_version()) <<
+		        ") created in " << opencl_duration << " [ms]" << endl;
 	}
 #endif /* PROFIT_OPENCL */
 
