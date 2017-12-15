@@ -32,10 +32,10 @@ class TestConvolver : public CxxTest::TestSuite {
 
 private:
 
-	void _pixels_within_tolerance(std::vector<double> original_im, std::vector<double> new_im,
-	                              unsigned int i, unsigned int width,
-	                              double tolerance) {
+	void _pixels_within_tolerance(const Image &original_im, const Image &new_im,
+	                              unsigned int i, double tolerance) {
 
+		unsigned int width = original_im.getWidth();
 		double original = original_im[i];
 		double new_pixel = new_im[i];
 		auto diff = std::abs(original - new_pixel);
@@ -63,10 +63,10 @@ private:
 				Mask mask;
 				Image src(im_dim, im_dim);
 				Image krn(krn_dim, krn_dim);
-				for(auto &d: src.getData()) {
+				for(auto &d: src) {
 					d = (rand() % 10000) / 10000.0;
 				}
-				for(auto &d: krn.getData()) {
+				for(auto &d: krn) {
 					d = (rand() % 10000) / 10000.0;
 				}
 
@@ -75,7 +75,7 @@ private:
 				Image result2 = otherConvolver->convolve(src, krn, mask);
 				for(unsigned int i = 0; i < src.size(); i++) {
 					// Hopefully within 0.1% of error?
-					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
+					_pixels_within_tolerance(result1, result2, i, 1e-3);
 				}
 			}
 		}
@@ -89,10 +89,10 @@ private:
 		Image src(im_dim, im_dim);
 		Image krn(krn_dim, krn_dim);
 		Mask mask;
-		for(auto &d: src.getData()) {
+		for(auto &d: src) {
 			d = (rand() % 10000) / 10000.0;
 		}
-		for(auto &d: krn.getData()) {
+		for(auto &d: krn) {
 			d = (rand() % 10000) / 10000.0;
 		}
 
@@ -133,10 +133,10 @@ private:
 
 		// Only the pixels where the mask is true should be set; the rest should
 		// be zero
-		auto res_it = result.getData().begin();
-		auto mask_it = m.getData().begin();
+		auto res_it = result.begin();
+		auto mask_it = m.begin();
 		size_t i = 0;
-		for(; res_it != result.getData().end(); res_it++, mask_it++, i++) {
+		for(; res_it != result.end(); res_it++, mask_it++, i++) {
 			if (*mask_it) {
 				std::ostringstream msg;
 				msg << "Pixel [" << (i % 4) << "," << (i / 4) << "] is zero, but should not be";

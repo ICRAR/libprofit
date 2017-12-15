@@ -81,10 +81,7 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 
 	Image convolution(src_dims);
 
-	auto krn_end = krn.getData().cend();
-	const auto &src_data = src.getData();
-	auto &out = convolution.getData();
-	const auto &mask_data = mask.getData();
+	auto krn_end = krn.cend();
 
 	/* Convolve! */
 	/* Loop around the output image first... */
@@ -98,14 +95,14 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 			auto im_idx = i + j * src_width;
 
 			/* Don't convolve this pixel */
-			if( !mask.empty() and !mask_data[im_idx]) {
-				out[im_idx] = 0;
+			if( mask and !mask[im_idx]) {
+				convolution[im_idx] = 0;
 				continue;
 			}
 
 			double pixel = 0;
 			auto krnPtr = krn_end - 1;
-			auto srcPtr2 = src_data.begin() + im_idx - krn_half_width - krn_half_height*src_width;
+			auto srcPtr2 = src.begin() + im_idx - krn_half_width - krn_half_height*src_width;
 
 			/* ... now loop around the kernel */
 			for (unsigned int l = 0; l < krn_height; l++) {
@@ -126,7 +123,7 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 				srcPtr2 += src_width - krn_width;
 			}
 
-			out[im_idx] = pixel;
+			convolution[im_idx] = pixel;
 		}
 	}
 
@@ -149,10 +146,6 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 
 	Image convolution(src_dims);
 
-	const auto &src_data = src.getData();
-	auto &out = convolution.getData();
-	const auto &mask_data = mask.getData();
-	const auto &krn_data = krn.getData();
 	const size_t src_krn_offset = krn_half_width + krn_half_height*src_width;
 	const auto src_skip = src_width - krn_width;
 
@@ -168,14 +161,14 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 			auto im_idx = i + j * src_width;
 
 			/* Don't convolve this pixel */
-			if (!mask.empty() and !mask_data[im_idx]) {
-				out[im_idx] = 0;
+			if (mask and !mask[im_idx]) {
+				convolution[im_idx] = 0;
 				continue;
 			}
 
 			double pixel = 0;
 
-			size_t krnPtr = krn_data.size() - 1;
+			size_t krnPtr = krn.size() - 1;
 			size_t srcPtr2 = im_idx;
 			bool suboffset = false;
 
@@ -254,26 +247,26 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 				//       YMM registers (and not only half of the XMM registers,
 				//       as it is doing now) leading to yet better performance.
 				for (size_t k = 0; k < k_n / 4; k++) {
-					double tmp1 = src_data[srcPtr2 + k * 4]     * krn_data[krnPtr - k * 4];
-					double tmp2 = src_data[srcPtr2 + k * 4 + 1] * krn_data[krnPtr - k * 4 - 1];
-					double tmp3 = src_data[srcPtr2 + k * 4 + 2] * krn_data[krnPtr - k * 4 - 2];
-					double tmp4 = src_data[srcPtr2 + k * 4 + 3] * krn_data[krnPtr - k * 4 - 3];
+					double tmp1 = src[srcPtr2 + k * 4]     * krn[krnPtr - k * 4];
+					double tmp2 = src[srcPtr2 + k * 4 + 1] * krn[krnPtr - k * 4 - 1];
+					double tmp3 = src[srcPtr2 + k * 4 + 2] * krn[krnPtr - k * 4 - 2];
+					double tmp4 = src[srcPtr2 + k * 4 + 3] * krn[krnPtr - k * 4 - 3];
 					buf += (tmp1 + tmp3) + (tmp2 + tmp4);
 				}
 				switch (k_n % 4) {
 					case 3:
-						buf += src_data[srcPtr2 + k_n - 3] * krn_data[krnPtr - k_n + 3] + \
-						       src_data[srcPtr2 + k_n - 2] * krn_data[krnPtr - k_n + 2] + \
-						       src_data[srcPtr2 + k_n - 1] * krn_data[krnPtr - k_n + 1];
+						buf += src[srcPtr2 + k_n - 3] * krn[krnPtr - k_n + 3] + \
+						       src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
+						       src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
 						break;
 
 					case 2:
-						buf += src_data[srcPtr2 + k_n - 2] * krn_data[krnPtr - k_n + 2] + \
-						       src_data[srcPtr2 + k_n - 1] * krn_data[krnPtr - k_n + 1];
+						buf += src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
+						       src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
 						break;
 
 					case 1:
-						buf += src_data[srcPtr2 + k_n - 1] * krn_data[krnPtr - k_n + 1];
+						buf += src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
 						break;
 
 					case 0:
@@ -292,7 +285,7 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 			srcPtr2 += l_incr * krn_width;
 			krnPtr -= l_incr * krn_width;
 
-			out[im_idx] = pixel;
+			convolution[im_idx] = pixel;
 		}
 	}
 
@@ -421,9 +414,9 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.size());
 
 	std::vector<T> src_data(src.size());
-	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());
+	std::copy(src.begin(), src.end(), src_data.begin());
 	std::vector<T> krn_data(krn.size());
-	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
+	std::copy(krn.begin(), krn.end(), krn_data.begin());
 
 	// Write both images' data to the device
 	Event src_wevt = env->queue_write(src_buf, src_data.data());
@@ -456,7 +449,7 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	read_evt.wait();
 
 	Image conv(src.getDimensions());
-	std::copy(conv_data.begin(), conv_data.end(), conv.getData().begin());
+	std::copy(conv_data.begin(), conv_data.end(), conv.begin());
 	return conv;
 }
 
@@ -516,9 +509,9 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.size());
 
 	std::vector<T> src_data(src.size());
-	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());
+	std::copy(src.begin(), src.end(), src_data.begin());
 	std::vector<T> krn_data(krn.size());
-	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
+	std::copy(krn.begin(), krn.end(), krn_data.begin());
 
 	// Write both images' data to the device
 	Event src_wevt = env->queue_write(src_buf, src_data.data());
@@ -559,7 +552,7 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	read_evt.wait();
 
 	Image conv(src.getDimensions());
-	std::copy(conv_data.begin(), conv_data.end(), conv.getData().begin());
+	std::copy(conv_data.begin(), conv_data.end(), conv.begin());
 	return conv;
 }
 

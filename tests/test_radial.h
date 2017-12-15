@@ -118,21 +118,15 @@ public:
 		              true, true, true,
 		              true, true, true};
 		image = m.evaluate().first;
-		for(auto j=0u; j!=m.width; j++) {
-			for(auto i=0u; i!=m.height; i++) {
-				auto idx = i + j*m.width;
-				TS_ASSERT_DIFFERS(0, image[idx]);
-			}
+		for(auto pixel: image) {
+			TS_ASSERT_DIFFERS(0, pixel);
 		}
 
 		/* No mask */
 		m.calcmask = {};
 		image = m.evaluate().first;
-		for(auto j=0u; j!=m.width; j++) {
-			for(auto i=0u; i!=m.height; i++) {
-				auto idx = i + j*m.width;
-				TS_ASSERT_DIFFERS(0, image[idx]);
-			}
+		for(auto pixel: image) {
+			TS_ASSERT_DIFFERS(0, pixel);
 		}
 	}
 

@@ -651,14 +651,13 @@ int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
 
 	/* data has to be big-endian */
 	size_t image_size = image.size();
-	auto &imdata = image.getData();
 	if( is_little_endian() ) {
 		vector<double> big_endian_image(image_size);
-		transform(imdata.begin(), imdata.end(), big_endian_image.begin(), swap_bytes);
+		transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
 		fwrite(big_endian_image.data(), sizeof(double), image_size, f);
 	}
 	else {
-		fwrite(imdata.data(), sizeof(double), image_size, f);
+		fwrite(image.data(), sizeof(double), image_size, f);
 	}
 
 	/* Pad with zeroes until we complete the current 36*80 block */
@@ -902,7 +901,6 @@ int parse_and_run(int argc, char *argv[]) {
 	auto result = run(iterations, m);
 	auto &image = result.first;
 	auto &offset = result.second;
-	auto &imdata = image.getData();
 
 	switch(output) {
 
@@ -910,13 +908,13 @@ int parse_and_run(int argc, char *argv[]) {
 			break;
 
 		case binary:
-			fwrite(imdata.data(), sizeof(double), image.size(), stdout);
+			fwrite(image.data(), sizeof(double), image.size(), stdout);
 			break;
 
 		case text:
 			for(j=0; j!=image.getHeight(); j++) {
 				for(i=0; i!=image.getWidth(); i++) {
-					cout << imdata[j*image.getWidth() + i] << " ";
+					cout << image[j*image.getWidth() + i] << " ";
 				}
 				cout << endl;
 			}

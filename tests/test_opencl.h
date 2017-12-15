@@ -118,10 +118,10 @@ class TestOpenCL : public CxxTest::TestSuite {
 
 private:
 
-	void _pixels_within_tolerance(std::vector<double> original_im, std::vector<double> opencl_im,
-	                              unsigned int i, unsigned int width,
-	                              double tolerance) {
+	void _pixels_within_tolerance(const Image &original_im, const Image &opencl_im,
+	                              unsigned int i, double tolerance) {
 
+		unsigned int width = original_im.getWidth();
 		double original = original_im[i];
 		double opencl = opencl_im[i];
 		auto diff = std::abs(original - opencl);
@@ -157,7 +157,7 @@ private:
 
 		// Pixel by pixel the images should be fairly similar
 		for(unsigned int i=0; i!=original.size(); i++) {
-			_pixels_within_tolerance(original, opencl_produced, i, m.width, openCLFixtures.tolerance);
+			_pixels_within_tolerance(original, opencl_produced, i, openCLFixtures.tolerance);
 		}
 	}
 
@@ -167,10 +167,10 @@ private:
 				Mask mask;
 				Image src(im_dim, im_dim);
 				Image krn(krn_dim, krn_dim);
-				for(auto &d: src.getData()) {
+				for(auto &d: src) {
 					d = (rand() % 10000) / 10000.0;
 				}
-				for(auto &d: krn.getData()) {
+				for(auto &d: krn) {
 					d = (rand() % 10000) / 10000.0;
 				}
 
@@ -179,7 +179,7 @@ private:
 				Image result2 = clConvolver->convolve(src, krn, mask);
 				for(unsigned int i = 0; i < src.size(); i++) {
 					// Hopefully within 0.1% of error?
-					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
+					_pixels_within_tolerance(result1, result2, i, 1e-3);
 				}
 			}
 		}

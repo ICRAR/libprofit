@@ -188,9 +188,8 @@ std::vector<double> FFTPlan::backward_real(const std::vector<std::complex<double
 
 std::vector<std::complex<double>> FFTPlan::to_complex(const Image &image) const
 {
-	const auto &data = image.getData();
-	std::vector<std::complex<double>> c_data(data.size());
-	std::transform(data.begin(), data.end(), c_data.begin(), [](const double d) {
+	std::vector<std::complex<double>> c_data(image.size());
+	std::transform(image.begin(), image.end(), c_data.begin(), [](const double d) {
 		return std::complex<double>(d, 0);
 	});
 	return c_data;

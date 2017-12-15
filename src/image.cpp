@@ -114,8 +114,7 @@ Image::Image(Image&& other) :
 }
 
 double Image::getTotal() const {
-	const auto &data = getData();
-	return std::accumulate(data.begin(), data.end(), 0.);
+	return std::accumulate(begin(), end(), 0.);
 }
 
 void Image::normalize()
@@ -140,9 +139,7 @@ Image &Image::operator&=(const Mask &mask)
 		return *this;
 	}
 
-	auto &data = getData();
-	const auto &mask_data = mask.getData();
-	std::transform(data.begin(), data.end(), mask_data.begin(), data.begin(),
+	std::transform(begin(), end(), mask.begin(), begin(),
 		[](const double i, const bool m) {
 			return m ? i : 0.;
 	});
@@ -158,9 +155,7 @@ const Image Image::operator&(const Mask &mask) const
 
 Image &Image::operator+=(const Image& rhs)
 {
-	auto &data = getData();
-	const auto &other_data = rhs.getData();
-	std::transform(data.begin(), data.end(), other_data.begin(), data.begin(), std::plus<double>());
+	std::transform(begin(), end(), rhs.begin(), begin(), std::plus<double>());
 	return *this;
 }
 
@@ -175,8 +170,7 @@ Image Image::operator+(const Image& rhs) const
 Image &Image::operator/=(double denominator)
 {
 	using std::placeholders::_1;
-	auto &data = getData();
-	std::transform(data.begin(), data.end(), data.begin(),
+	std::transform(begin(), end(), begin(),
 	               std::bind(std::divides<double>(), _1, denominator));
 	return *this;
 }
@@ -184,8 +178,7 @@ Image &Image::operator/=(double denominator)
 Image &Image::operator*=(double multiplier)
 {
 	using std::placeholders::_1;
-	auto &data = getData();
-	std::transform(data.begin(), data.end(), data.begin(),
+	std::transform(begin(), end(), begin(),
 	               std::bind(std::multiplies<double>(), _1, multiplier));
 	return *this;
 }

@@ -257,10 +257,10 @@ public:
 		Mask mask;
 		Image src(100, 100);
 		Image krn(25, 25);
-		for(auto &d: src.getData()) {
+		for(auto &d: src) {
 			d = (rand() % 10000) / 10000.0;
 		}
-		for(auto &d: krn.getData()) {
+		for(auto &d: krn) {
 			d = (rand() % 10000) / 10000.0;
 		}
 

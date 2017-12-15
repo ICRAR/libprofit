@@ -112,7 +112,7 @@ class TestImage : public CxxTest::TestSuite {
 private:
 	void assert_empty(const Image &im) {
 		TS_ASSERT_EQUALS(true, im.empty());
-		TS_ASSERT_EQUALS(0, im.getData().size());
+		TS_ASSERT_EQUALS(0, im.size());
 		TS_ASSERT_EQUALS(0, im.getWidth());
 		TS_ASSERT_EQUALS(0, im.getHeight());
 		TS_ASSERT_EQUALS(0, im.size());
@@ -120,7 +120,7 @@ private:
 
 	void assert_not_empty(const Image &im) {
 		TS_ASSERT_DIFFERS(true, im.empty());
-		TS_ASSERT_DIFFERS(0, im.getData().size());
+		TS_ASSERT_DIFFERS(0, im.size());
 		TS_ASSERT_DIFFERS(0, im.getWidth());
 		TS_ASSERT_DIFFERS(0, im.getHeight());
 		TS_ASSERT_DIFFERS(0, im.size());
@@ -170,7 +170,7 @@ public:
 		Image im5(data, 2, 2);
 		assert_not_empty(im5);
 		TS_ASSERT_EQUALS(false, data.empty());
-		TS_ASSERT_EQUALS(data, im5.getData());
+		TS_ASSERT_EQUALS(data, std::vector<double>(im5.begin(), im5.end()));
 	}
 
 	void test_move() {
@@ -196,6 +196,27 @@ public:
 		TS_ASSERT_EQUALS(true, data.empty());
 	}
 
+	void test_subscript() {
+
+		auto x = double(rand());
+		Image im({x}, 1, 1);
+		TS_ASSERT_EQUALS(x, im[0]);
+
+		auto x2 = rand();
+		im[0] = x2;
+		TS_ASSERT_EQUALS(x2, im[0]);
+	}
+
+	void test_iterators() {
+		auto x = double(rand());
+		Image im({x}, 1, 1);
+
+		auto it = im.begin();
+		TS_ASSERT_EQUALS(x, *it);
+		it++;
+		TS_ASSERT_EQUALS(im.end(), it);
+	}
+
 	void test_add() {
 
 		std::vector<double> data {1, 2, 3, 4};
@@ -210,7 +231,7 @@ public:
 		// Both sums should have worked
 		for(auto im: {&im3, &im2}) {
 			for(unsigned int i = 0; i < 4; i++) {
-				TS_ASSERT_DELTA(im->getData()[i], data[i] * 2, 1e-6);
+				TS_ASSERT_DELTA((*im)[i], data[i] * 2, 1e-6);
 			}
 		}
 	}
@@ -226,7 +247,7 @@ public:
 		// Both divisions should have worked
 		for(auto im: {&im1, &im2}) {
 			for(unsigned int i = 0; i < 4; i++) {
-				TS_ASSERT_DELTA(im->getData()[i], data[i] / 2, 1e-6);
+				TS_ASSERT_DELTA((*im)[i], data[i] / 2, 1e-6);
 			}
 		}
 	}
@@ -272,29 +293,29 @@ public:
 
 		// Should get one pixel at a time
 		im2 = im1.crop({1, 1}, {0, 0});
-		TS_ASSERT_DELTA(1, im2.getData()[0], 1e-6);
+		TS_ASSERT_DELTA(1, im2[0], 1e-6);
 		im2 = im1.crop({1, 1}, {1, 0});
-		TS_ASSERT_DELTA(2, im2.getData()[0], 1e-6);
+		TS_ASSERT_DELTA(2, im2[0], 1e-6);
 		im2 = im1.crop({1, 1}, {0, 1});
-		TS_ASSERT_DELTA(3, im2.getData()[0], 1e-6);
+		TS_ASSERT_DELTA(3, im2[0], 1e-6);
 		im2 = im1.crop({1, 1}, {1, 1});
-		TS_ASSERT_DELTA(4, im2.getData()[0], 1e-6);
+		TS_ASSERT_DELTA(4, im2[0], 1e-6);
 
 		// should get the one row at a time
 		im2 = im1.crop({2, 1}, {0, 0});
-		TS_ASSERT_DELTA(1, im2.getData()[0], 1e-6);
-		TS_ASSERT_DELTA(2, im2.getData()[1], 1e-6);
+		TS_ASSERT_DELTA(1, im2[0], 1e-6);
+		TS_ASSERT_DELTA(2, im2[1], 1e-6);
 		im2 = im1.crop({2, 1}, {0, 1});
-		TS_ASSERT_DELTA(3, im2.getData()[0], 1e-6);
-		TS_ASSERT_DELTA(4, im2.getData()[1], 1e-6);
+		TS_ASSERT_DELTA(3, im2[0], 1e-6);
+		TS_ASSERT_DELTA(4, im2[1], 1e-6);
 
 		// should get one column at a time
 		im2 = im1.crop({1, 2}, {0, 0});
-		TS_ASSERT_DELTA(1, im2.getData()[0], 1e-6);
-		TS_ASSERT_DELTA(3, im2.getData()[1], 1e-6);
+		TS_ASSERT_DELTA(1, im2[0], 1e-6);
+		TS_ASSERT_DELTA(3, im2[1], 1e-6);
 		im2 = im1.crop({1, 2}, {1, 0});
-		TS_ASSERT_DELTA(2, im2.getData()[0], 1e-6);
-		TS_ASSERT_DELTA(4, im2.getData()[1], 1e-6);
+		TS_ASSERT_DELTA(2, im2[0], 1e-6);
+		TS_ASSERT_DELTA(4, im2[1], 1e-6);
 
 		// gotta get them all!
 		im2 = im1.crop({2, 2}, {0, 0});
@@ -333,17 +354,17 @@ public:
 
 		// leave at 0, 0
 		auto im2 = im.extend({3, 3}, {0, 0});
-		TS_ASSERT_EQUALS(im.getData()[0], im2.getData()[0]);
-		TS_ASSERT_EQUALS(im.getData()[1], im2.getData()[1]);
-		TS_ASSERT_EQUALS(im.getData()[2], im2.getData()[3]);
-		TS_ASSERT_EQUALS(im.getData()[3], im2.getData()[4]);
+		TS_ASSERT_EQUALS(im[0], im2[0]);
+		TS_ASSERT_EQUALS(im[1], im2[1]);
+		TS_ASSERT_EQUALS(im[2], im2[3]);
+		TS_ASSERT_EQUALS(im[3], im2[4]);
 
 		// leave at 1, 1
 		im2 = im.extend({3, 3}, {1, 1});
-		TS_ASSERT_EQUALS(im.getData()[0], im2.getData()[4]);
-		TS_ASSERT_EQUALS(im.getData()[1], im2.getData()[5]);
-		TS_ASSERT_EQUALS(im.getData()[2], im2.getData()[7]);
-		TS_ASSERT_EQUALS(im.getData()[3], im2.getData()[8]);
+		TS_ASSERT_EQUALS(im[0], im2[4]);
+		TS_ASSERT_EQUALS(im[1], im2[5]);
+		TS_ASSERT_EQUALS(im[2], im2[7]);
+		TS_ASSERT_EQUALS(im[3], im2[8]);
 
 		// extend to the same dimensions, should be equals
 		im2 = im.extend({2, 2}, {0, 0});
