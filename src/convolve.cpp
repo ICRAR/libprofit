@@ -367,7 +367,7 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 #endif /* PROFIT_FFTW */
 
 #ifdef PROFIT_OPENCL
-OpenCLConvolver::OpenCLConvolver(OpenCLEnvPtr opencl_env) :
+OpenCLConvolver::OpenCLConvolver(OpenCLEnvImplPtr opencl_env) :
 	env(opencl_env)
 {
 	if (!env) {
@@ -461,7 +461,7 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 }
 
 
-OpenCLLocalConvolver::OpenCLLocalConvolver(OpenCLEnvPtr opencl_env) :
+OpenCLLocalConvolver::OpenCLLocalConvolver(OpenCLEnvImplPtr opencl_env) :
 	env(opencl_env)
 {
 	if (!env) {
@@ -575,9 +575,9 @@ ConvolverPtr create_convolver(const ConvolverType type, const ConvolverCreationP
 			return std::make_shared<AssociativeBruteForceConvolver>(prefs.omp_threads);
 #ifdef PROFIT_OPENCL
 		case OPENCL:
-			return std::make_shared<OpenCLConvolver>(prefs.opencl_env);
+			return std::make_shared<OpenCLConvolver>(OpenCLEnvImpl::fromOpenCLEnvPtr(prefs.opencl_env));
 		case OPENCL_LOCAL:
-			return std::make_shared<OpenCLLocalConvolver>(prefs.opencl_env);
+			return std::make_shared<OpenCLLocalConvolver>(OpenCLEnvImpl::fromOpenCLEnvPtr(prefs.opencl_env));
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
 		case FFT:

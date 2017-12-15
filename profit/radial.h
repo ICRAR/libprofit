@@ -31,7 +31,7 @@
 #endif
 
 #include "profit/config.h"
-#include "profit/opencl.h"
+#include "profit/opencl_impl.h"
 #include "profit/profile.h"
 
 namespace profit
@@ -288,7 +288,7 @@ private:
 
 	/* Evaluates this radial profile using an OpenCL kernel and floating type FT */
 	template <typename FT>
-	void evaluate_opencl(std::vector<double> &image);
+	void evaluate_opencl(std::vector<double> &image, OpenCLEnvImplPtr &env);
 
 	template <typename FT>
 	void add_common_kernel_parameters(unsigned int argIdx, cl::Kernel &kernel) const;

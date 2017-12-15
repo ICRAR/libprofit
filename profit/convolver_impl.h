@@ -25,6 +25,7 @@
  */
 
 #include "profit/convolve.h"
+#include "profit/opencl_impl.h"
 
 namespace profit {
 
@@ -123,12 +124,12 @@ private:
 class OpenCLConvolver : public Convolver {
 
 public:
-	OpenCLConvolver(OpenCLEnvPtr opencl_env);
+	OpenCLConvolver(OpenCLEnvImplPtr opencl_env);
 
 	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
-	OpenCLEnvPtr env;
+	OpenCLEnvImplPtr env;
 
 	Image _convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out);
 
@@ -142,12 +143,12 @@ private:
 class OpenCLLocalConvolver : public Convolver {
 
 public:
-	OpenCLLocalConvolver(OpenCLEnvPtr opencl_env);
+	OpenCLLocalConvolver(OpenCLEnvImplPtr opencl_env);
 
 	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
-	OpenCLEnvPtr env;
+	OpenCLEnvImplPtr env;
 
 	Image _convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out);
 

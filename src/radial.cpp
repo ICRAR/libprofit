@@ -254,7 +254,7 @@ void RadialProfile::evaluate(std::vector<double> &image) {
 	 * We fallback to the CPU implementation if no OpenCL context has been
 	 * given, or if there is no OpenCL kernel implementing the profile
 	 */
-	auto env = model.opencl_env;
+	auto env = OpenCLEnvImpl::fromOpenCLEnvPtr(model.opencl_env);
 	if( force_cpu or !env or !supports_opencl() ) {
 		evaluate_cpu(image);
 		return;
@@ -262,10 +262,10 @@ void RadialProfile::evaluate(std::vector<double> &image) {
 
 	try {
 		if( env->use_double ) {
-			evaluate_opencl<double>(image);
+			evaluate_opencl<double>(image, env);
 		}
 		else {
-			evaluate_opencl<float>(image);
+			evaluate_opencl<float>(image, env);
 		}
 	} catch (const cl::Error &e) {
 		std::ostringstream os;
@@ -427,7 +427,7 @@ std::chrono::nanoseconds::rep to_nsecs(const std::chrono::system_clock::duration
 }
 
 template <typename FT>
-void RadialProfile::evaluate_opencl(std::vector<double> &image) {
+void RadialProfile::evaluate_opencl(std::vector<double> &image, OpenCLEnvImplPtr &env) {
 
 #define AS_FT(x) static_cast<FT>(x)
 
@@ -438,7 +438,6 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image) {
 
 	unsigned int imsize = model.width * model.height;
 
-	auto env = model.opencl_env;
 	OpenCL_times cl_times0, ss_cl_times;
 	RadialProfileStats* stats = static_cast<RadialProfileStats *>(this->stats.get());
 
