@@ -1,5 +1,5 @@
 /**
- * Header file for the image convolution implementation
+ * Public header file for the image convolution classes and methods
  *
  * ICRAR - International Centre for Radio Astronomy Research
  * (c) UWA - The University of Western Australia, 2016
@@ -42,17 +42,23 @@ namespace profit
  * The types of convolvers supported by libprofit
  */
 enum ConvolverType {
+
+	/// @copydoc BruteForceConvolver
 	BRUTE_OLD = 0,
+
+	/// @copydoc AssociativeBruteForceConvolver
 	BRUTE,
 #ifdef PROFIT_OPENCL
+	/// @copydoc OpenCLConvolver
 	OPENCL,
+	/// Ignore
 	OPENCL_LOCAL,
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
+	/// @copydoc FFTConvolver
 	FFT,
 #endif // PROFIT_FFTW
 };
-
 
 /**
  * A convolver object convolves two images.
@@ -69,148 +75,40 @@ public:
 	 * Convolves image `src` with the kernel `krn`.
 	 * A mask parameter also controls which pixels from the original image
 	 * should be convolved. If empty, all pixels are convolved.
-
+	 *
+	 * If the convolver extends the original image to perform the convolution,
+	 * users might want to have the extended image returned, instead of getting
+	 * a cropped image (that will be the same size as `src`). This behaviour is
+	 * controlled with the `crop` parameter. If the image is not cropped, the
+	 * offset of the otherwise cropped result with respect to the uncropped one
+	 * is optionally stored in offset_out.
+	 *
 	 * @param src The source image
 	 * @param krn The convolution kernel
 	 * @param mask An mask indicating which pixels of the resulting image should
 	 *             be convolved
-	 * @return The convolved image
+	 * @param crop If ``true`` return an image with the same dimensions of ``src``.
+	 *             If ``false`` the image returned might be potentially bigger,
+	 *             depending on the internal workings of the convolver.
+	 * @param offset_out If `crop` is ``false`` and ``offset`` is different from
+	 *             NO_OFFSET, stores the potential offset of the original image
+	 *             with respect to the uncropped image returned by this method.
+	 * @return The convolved image, optionally without the cropping caused due
+	 *         to internal implementation details of the convolver. The potential
+	 *         offset is written into offset_out.
 	 */
 	virtual
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) = 0;
+	Image convolve(const Image &src, const Image &krn, const Mask &mask,
+	               bool crop = true, Point &offset_out = NO_OFFSET) = 0;
 
+protected:
+
+	Image mask_and_crop(Image &img, const Mask &mask, bool crop,
+	                    const Dimensions orig_dims, const Dimensions &ext_dims,
+	                    const Point &ext_offset, Point &offset_out);
+
+	static Point NO_OFFSET;
 };
-
-/**
- * A brute-force convolver. It optionally uses OpenMP to accelerate the
- * convolution.
- */
-class BruteForceConvolver : public Convolver {
-
-public:
-	BruteForceConvolver(unsigned int omp_threads) :
-		omp_threads(omp_threads) {}
-
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
-
-private:
-	unsigned int omp_threads;
-};
-
-/**
- * A faster brute-force convolver. It optionally uses OpenMP to accelerate the
- * convolution.
- *
- * The difference between this and the BruteForceConvolver is that this
- * convolver explicitly states that the sums of the dot products that
- * make up the result of a single pixel are associative, and can be computed
- * separately, which enables better pipelining in most CPUs and thus faster
- * compute times (we have seen up to ~3x speedups). The result is not guaranteed
- * to be the exact same as the one coming from BruteForceConvolver. This is not
- * because one of them is mathematically incorrect (neither is actually), but
- * because IEEE floating-point math is not associative, and therefore different
- * operation sequences *might* yield different results.
- *
- * The internal loop structure of this class is also slightly different from
- * BruteForceConvolver, but is still pure CPU-based code.
- */
-class AssociativeBruteForceConvolver : public Convolver {
-
-public:
-	AssociativeBruteForceConvolver(unsigned int omp_threads) :
-		omp_threads(omp_threads) {}
-
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
-
-private:
-	unsigned int omp_threads;
-};
-
-#ifdef PROFIT_FFTW
-/**
- * A convolver that uses an FFTPlan to carry out FFT-based convolution.
- *
- * The result of the convolution of images im1 and im2 is::
- *
- *  res = iFFT(FFT(im1) * FFT(im2))
- *
- * To do this, this convolver creates extended versions of the input images.
- * The size of the new images is 4 times that of the source image, which is
- * assumed to be larger than the kernel. The extended version of the source
- * image contains the original image at (0,0), while the extended version of the
- * kernel image contains the original kernel centered at the original image's
- * new mapping (i.e., ``((src_width-krn_width)/2, (src_height-krn_height)/2)``).
- * After convolution the result is cropped back to the original image's
- * dimensions starting at the center of the original image's mapping on the
- * extended image (i.e., ``(src_width/2, src_height/2)`` minus one if the
- * original dimensions are odd).
- */
-class FFTConvolver : public Convolver {
-
-public:
-	FFTConvolver(unsigned int src_width, unsigned int src_height,
-	             unsigned int krn_width, unsigned int krn_height,
-	             FFTPlan::effort_t effort, unsigned int plan_omp_threads,
-	             bool reuse_krn_fft);
-
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
-
-private:
-	std::unique_ptr<FFTPlan> plan;
-
-	std::vector<std::complex<double>> krn_fft;
-
-	bool reuse_krn_fft;
-};
-
-#endif /* PROFIT_FFTW */
-
-#ifdef PROFIT_OPENCL
-
-/**
- * A brute-force convolver that is implemented using OpenCL
- *
- * Depending on the floating-point support found at runtime in the given OpenCL
- * environment this convolver will use a float-based or a double-based kernel.
- */
-class OpenCLConvolver : public Convolver {
-
-public:
-	OpenCLConvolver(OpenCLEnvPtr opencl_env);
-
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
-
-private:
-	OpenCLEnvPtr env;
-
-	Image _convolve(const Image &src, const Image &krn, const Mask &mask);
-
-	template<typename T>
-	Image _clpadded_convolve(const Image &src, const Image &krn, const Image &orig_src);
-};
-
-/**
- * Like OpenCLConvolver, but uses a local memory cache
- */
-class OpenCLLocalConvolver : public Convolver {
-
-public:
-	OpenCLLocalConvolver(OpenCLEnvPtr opencl_env);
-
-	Image convolve(const Image &src, const Image &krn, const Mask &mask) override;
-
-private:
-	OpenCLEnvPtr env;
-
-	Image _convolve(const Image &src, const Image &krn, const Mask &mask);
-
-	template<typename T>
-	Image _clpadded_convolve(const Image &src, const Image &krn, const Image &orig_src);
-};
-
-
-#endif // PROFIT_OPENCL
-
 
 ///
 /// A set of preferences used to create convolvers.
@@ -247,7 +145,7 @@ public:
 
 	/// The amount of OpenMP threads (if OpenMP is available) to use by the
 	/// convolver. Used by the FFT convolver (to create and execute the plan
-	/// using OpenMP, when available) and the brute-force convolver.
+	/// using OpenMP, when available) and the brute-force convolvers.
 	unsigned int omp_threads;
 
 #ifdef PROFIT_OPENCL

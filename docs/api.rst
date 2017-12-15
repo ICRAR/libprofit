@@ -22,14 +22,10 @@ Exceptions
 Convolvers
 ----------
 
+.. doxygenenum:: profit::ConvolverType
+
 .. doxygenclass:: profit::Convolver
    :members: convolve
-
-.. doxygenclass:: profit::BruteForceConvolver
-
-.. doxygenclass:: profit::OpenCLConvolver
-
-.. doxygenclass:: profit::FFTConvolver
 
 .. doxygenfunction:: profit::create_convolver(const ConvolverType, const ConvolverCreationPreferences&)
 

@@ -30,6 +30,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "profit/config.h"
@@ -43,6 +44,12 @@ namespace profit
 /* Forward declaration */
 struct ProfileStats;
 class Profile;
+
+/**
+ * A pair with an Image in the first element, and a Point representing an
+ * offset in the Image in the second element.
+ */
+typedef std::pair<Image, Point> ImageAndOffset;
 
 /**
  * The overall model to be created
@@ -86,13 +93,22 @@ public:
 
 	/**
 	 * Calculates an image using the information contained in the model.
-	 * The result of the computation is stored in the image field.
+	 * The result of the computation is returned as an Image (the first element
+	 * of the pair returned by this function), which may be of a different size
+	 * from the one originally requested if the user set this model's @ref crop
+	 * property to ``false``. The second element corresponds to the offset
+	 * at which the image resulting of evaluating this Model with its configured
+	 * parameters is with respect to the Image value returned in the first
+	 * element.
 	 *
-	 * @returns The image created by libprofit. The data is organized by rows
-	 *          first, columns later; i.e pixel ``(x,y)`` is accessed by
-	 *          ``image[y*width + x]``
+	 * In other words, the Image in the first element can be bigger than the
+	 * Model's @ref width and @ref height if the user requested this Model to
+	 * return a non-cropped image.
+	 *
+	 * @returns A pair with the image created by libprofit in as first element
+	 *          and an offset in the second.
 	 */
-	std::vector<double> evaluate();
+	ImageAndOffset evaluate();
 
 #ifdef PROFIT_DEBUG
 	std::map<std::string, std::map<int, int>> get_profile_integrations() const;
@@ -170,6 +186,15 @@ public:
 	 * If missing, then a new one is created internally.
 	 */
 	ConvolverPtr convolver;
+
+	/**
+	 * Due to their internal workings, some convolvers produce actually bigger
+	 * which are (by default) cropped to the size of the original images created
+	 * by the profiles. If this option is set to true, then the result of the
+	 * convolution will *not* be cropped, meaning that the result of the model
+	 * evaluation will be bigger than what was originally requested.
+	 */
+	bool crop;
 
 	/**
 	 * Whether the actual evaluation of profiles should be skipped or not.

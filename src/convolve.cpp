@@ -30,7 +30,7 @@
 #include <sstream>
 #include <vector>
 
-#include "profit/convolve.h"
+#include "profit/convolver_impl.h"
 #include "profit/exceptions.h"
 #include "profit/utils.h"
 
@@ -38,24 +38,48 @@
 namespace profit
 {
 
+Point Convolver::NO_OFFSET;
+
 Convolver::~Convolver()
 {
 	// no-op
 }
 
+Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Dimensions orig_dims, const Dimensions &ext_dims, const Point &ext_offset, Point &offset_out) {
 
-Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+	// No cropping requested
+	// Extend the mask to the size of the image, apply it,
+	// and save the offset of the original image with respect to the extension
+	// into offset_out
+	if (not crop) {
+		if (&offset_out != &NO_OFFSET) {
+			offset_out = ext_offset;
+		}
+		if (mask) {
+			img &= mask.extend(ext_dims, ext_offset);
+		}
+		return img;
+	}
+
+	// Return cropped, after applying the mask
+	return img.crop(orig_dims, ext_offset) & mask;
+}
+
+
+Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
-	const auto src_width = src.getWidth();
-	const auto src_height = src.getHeight();
-	const auto krn_width = krn.getWidth();
-	const auto krn_height = krn.getHeight();
+	const auto src_dims = src.getDimensions();
+	const auto krn_dims = krn.getDimensions();
+	const auto src_width = src_dims.x;
+	const auto src_height = src_dims.y;
+	const auto krn_width = krn_dims.x;
+	const auto krn_height = krn_dims.y;
 
 	const unsigned int krn_half_width = krn_width / 2;
 	const unsigned int krn_half_height = krn_height / 2;
 
-	Image convolution(src_width, src_height);
+	Image convolution(src_dims);
 
 	auto krn_end = krn.getData().cend();
 	const auto &src_data = src.getData();
@@ -110,18 +134,20 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 }
 
 
-Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
-	const auto src_width = src.getWidth();
-	const auto src_height = src.getHeight();
-	const auto krn_width = krn.getWidth();
-	const auto krn_height = krn.getHeight();
+	const auto src_dims = src.getDimensions();
+	const auto krn_dims = krn.getDimensions();
+	const auto src_width = src_dims.x;
+	const auto src_height = src_dims.y;
+	const auto krn_width = krn_dims.x;
+	const auto krn_height = krn_dims.y;
 
 	const unsigned int krn_half_width = krn_width / 2;
 	const unsigned int krn_half_height = krn_height / 2;
 
-	Image convolution(src_width, src_height);
+	Image convolution(src_dims);
 
 	const auto &src_data = src.getData();
 	auto &out = convolution.getData();
@@ -294,27 +320,23 @@ FFTConvolver::FFTConvolver(unsigned int src_width, unsigned int src_height,
 	plan = std::unique_ptr<FFTPlan>(new FFTPlan(convolution_size, effort, plan_omp_threads));
 }
 
-Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
 	typedef std::complex<double> complex;
 
-	auto src_width = src.getWidth();
-	auto src_height = src.getHeight();
-	auto krn_width = krn.getWidth();
-	auto krn_height = krn.getHeight();
+	auto src_dims = src.getDimensions();
+	auto krn_dims = krn.getDimensions();
 
 	// Create extended images first
-	auto ext_width = 2 * src_width;
-	auto ext_height = 2 * src_height;
-	Image ext_img = src.extend(ext_width, ext_height, 0, 0);
+	auto ext_dims = src_dims * 2;
+	Image ext_img = src.extend(src_dims * 2);
 
 	// Forward FFTs
 	std::vector<complex> src_fft = plan->forward(ext_img);
 	if (krn_fft.empty()) {
-		auto krn_start_x = (src_width - krn_width) / 2;
-		auto krn_start_y = (src_height - krn_height) / 2;
-		Image ext_krn = krn.extend(ext_width, ext_height, krn_start_x, krn_start_y);
+		auto krn_start = (src_dims - krn_dims) / 2;
+		Image ext_krn = krn.extend(ext_dims, krn_start);
 		krn_fft = plan->forward(ext_krn);
 	}
 
@@ -326,24 +348,20 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 	}
 
 	// inverse FFT and scale down
-	Image res(plan->backward_real(src_fft), ext_width, ext_height);
-	res /= res.getSize();
+	Image res(plan->backward_real(src_fft), ext_dims);
+	res /= res.size();
 
-	// crop the image to original size, apply the mask, and good bye
-	auto x_offset = src_width / 2;
-	auto y_offset = src_height / 2;
-
+	// The resulting image now starts at x_offset/y_offset
 	// even image and odd kernel requires slight adjustment
-	if (src_width % 2 == 0 or krn_width % 2 == 0) {
-		x_offset -= 1;
+	auto ext_offset = src_dims / 2;
+	if (src_dims.x % 2 == 0 or krn_dims.x % 2 == 0) {
+		ext_offset.x -= 1;
 	}
-	if (src_height % 2 == 0 or krn_height % 2 == 0) {
-		y_offset -= 1;
+	if (src_dims.y % 2 == 0 or krn_dims.y % 2 == 0) {
+		ext_offset.y -= 1;
 	}
 
-	auto cropped = res.crop(src_width, src_height, x_offset, y_offset);
-	cropped &= mask;
-	return cropped;
+	return mask_and_crop(res, mask, crop, src_dims, ext_dims, ext_offset, offset_out);
 }
 
 #endif /* PROFIT_FFTW */
@@ -357,10 +375,10 @@ OpenCLConvolver::OpenCLConvolver(OpenCLEnvPtr opencl_env) :
 	}
 }
 
-Image OpenCLConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+Image OpenCLConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 	try {
-		return _convolve(src, krn, mask);
+		return _convolve(src, krn, mask, crop, offset_out);
 	} catch (const cl::Error &e) {
 		std::ostringstream os;
 		os << "OpenCL error while convolving: " << e.what() << ". OpenCL error code: " << e.err();
@@ -368,14 +386,14 @@ Image OpenCLConvolver::convolve(const Image &src, const Image &krn, const Mask &
 	}
 }
 
-Image OpenCLConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask) {
+Image OpenCLConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out) {
 
 	// We use a group size of 16x16, so let's extend the src image
 	// to the next multiple of 16
-	auto clpad_x = (16 - (src.getWidth() % 16)) % 16;
-	auto clpad_y = (16 - (src.getHeight() % 16)) % 16;
-	const Image clpad_src = src.extend(src.getWidth() + clpad_x,
-	                                   src.getHeight() + clpad_y, 0, 0);
+	auto src_dims = src.getDimensions();
+	auto clpad_dims = (16 - (src_dims % 16)) % 16;
+	auto ext_dims = src.getDimensions() + clpad_dims;
+	const Image clpad_src = src.extend(ext_dims);
 
 	// Convolve using the appropriate data type
 	Image result;
@@ -386,8 +404,7 @@ Image OpenCLConvolver::_convolve(const Image &src, const Image &krn, const Mask 
 		result = _clpadded_convolve<float>(clpad_src, krn, src);
 	}
 
-	// Crop the resulting image, mask
-	return result.crop(src.getWidth(), src.getHeight(), 0, 0) & mask;
+	return mask_and_crop(result, mask, crop, src_dims, ext_dims, {0, 0}, offset_out);
 }
 
 template<typename T>
@@ -399,13 +416,13 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	using cl::NDRange;
 	using cl::NullRange;
 
-	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.getSize());
-	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.getSize());
-	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.getSize());
+	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.size());
+	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.size());
+	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.size());
 
-	std::vector<T> src_data(src.getSize());
+	std::vector<T> src_data(src.size());
 	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());
-	std::vector<T> krn_data(krn.getSize());
+	std::vector<T> krn_data(krn.size());
 	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
 
 	// Write both images' data to the device
@@ -434,11 +451,11 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 
 	// Read and good bye
 	std::vector<Event> read_wait_evts {exec_evt};
-	std::vector<T> conv_data(src.getSize());
+	std::vector<T> conv_data(src.size());
 	Event read_evt = env->queue_read(conv_buf, conv_data.data(), &read_wait_evts);
 	read_evt.wait();
 
-	Image conv(src.getWidth(), src.getHeight());
+	Image conv(src.getDimensions());
 	std::copy(conv_data.begin(), conv_data.end(), conv.getData().begin());
 	return conv;
 }
@@ -452,10 +469,10 @@ OpenCLLocalConvolver::OpenCLLocalConvolver(OpenCLEnvPtr opencl_env) :
 	}
 }
 
-Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const Mask &mask)
+Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 	try {
-		return _convolve(src, krn, mask);
+		return _convolve(src, krn, mask, crop, offset_out);
 	} catch (const cl::Error &e) {
 		std::ostringstream os;
 		os << "OpenCL error while convolving: " << e.what() << ". OpenCL error code: " << e.err();
@@ -463,14 +480,14 @@ Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const M
 	}
 }
 
-Image OpenCLLocalConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask) {
+Image OpenCLLocalConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out) {
 
 	// We use a group size of 16x16, so let's extend the src image
 	// to the next multiple of 16
-	auto clpad_x = (16 - (src.getWidth() % 16)) % 16;
-	auto clpad_y = (16 - (src.getHeight() % 16)) % 16;
-	const Image clpad_src = src.extend(src.getWidth() + clpad_x,
-	                                   src.getHeight() + clpad_y, 0, 0);
+	auto src_dims = src.getDimensions();
+	auto clpad_dims = (16 - src_dims % 16) % 16;
+	auto ext_dims = src_dims + clpad_dims;
+	const Image clpad_src = src.extend(ext_dims);
 
 	// Convolve using the appropriate data type
 	Image result;
@@ -481,8 +498,7 @@ Image OpenCLLocalConvolver::_convolve(const Image &src, const Image &krn, const 
 		result = _clpadded_convolve<float>(clpad_src, krn, src);
 	}
 
-	// Crop the resulting image, mask
-	return result.crop(src.getWidth(), src.getHeight(), 0, 0) & mask;
+	return mask_and_crop(result, mask, crop, src_dims, ext_dims, {0, 0}, offset_out);
 }
 
 template<typename T>
@@ -495,13 +511,13 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	using cl::NDRange;
 	using cl::NullRange;
 
-	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.getSize());
-	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.getSize());
-	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.getSize());
+	Buffer src_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, src.size());
+	Buffer krn_buf = env->get_buffer<T>(CL_MEM_READ_ONLY, krn.size());
+	Buffer conv_buf = env->get_buffer<T>(CL_MEM_WRITE_ONLY, src.size());
 
-	std::vector<T> src_data(src.getSize());
+	std::vector<T> src_data(src.size());
 	std::copy(src.getData().begin(), src.getData().end(), src_data.begin());
-	std::vector<T> krn_data(krn.getSize());
+	std::vector<T> krn_data(krn.size());
 	std::copy(krn.getData().begin(), krn.getData().end(), krn_data.begin());
 
 	// Write both images' data to the device
@@ -537,12 +553,12 @@ Image OpenCLLocalConvolver::_clpadded_convolve(const Image &src, const Image &kr
 	auto exec_evt = env->queue_kernel(clKernel, NDRange(src.getWidth(), src.getHeight()), &exec_wait_evts, NDRange(16, 16));
 
 	// Read and good bye
-	std::vector<T> conv_data(src.getSize());
+	std::vector<T> conv_data(src.size());
 	std::vector<Event> read_wait_evts {exec_evt};
 	Event read_evt = env->queue_read(conv_buf, conv_data.data(), &read_wait_evts);
 	read_evt.wait();
 
-	Image conv(src.getWidth(), src.getHeight());
+	Image conv(src.getDimensions());
 	std::copy(conv_data.begin(), conv_data.end(), conv.getData().begin());
 	return conv;
 }

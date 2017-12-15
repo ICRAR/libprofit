@@ -57,7 +57,7 @@ private:
 		TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), relative_diff, tolerance);
 	}
 
-	void _check_convolver(Convolver &&otherConvolver) {
+	void _check_convolver(ConvolverPtr &&otherConvolver) {
 		for(auto im_dim: {100, 101}) {
 			for(auto krn_dim: {24, 25}) {
 				Mask mask;
@@ -72,8 +72,8 @@ private:
 
 				auto bConvolver = create_convolver(ConvolverType::BRUTE_OLD);
 				Image result1 = bConvolver->convolve(src, krn, mask);
-				Image result2 = otherConvolver.convolve(src, krn, mask);
-				for(unsigned int i = 0; i < src.getSize(); i++) {
+				Image result2 = otherConvolver->convolve(src, krn, mask);
+				for(unsigned int i = 0; i < src.size(); i++) {
 					// Hopefully within 0.1% of error?
 					_pixels_within_tolerance(result1.getData(), result2.getData(), i, src.getWidth(), 1e-3);
 				}
@@ -153,7 +153,7 @@ private:
 public:
 
 	void test_new_bruteforce_convolver() {
-		_check_convolver(AssociativeBruteForceConvolver(1));
+		_check_convolver(create_convolver(ConvolverType::BRUTE, ConvolverCreationPreferences()));
 	}
 
 	void test_old_bruteforce_openmp() {

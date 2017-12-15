@@ -335,6 +335,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -i <n>    Output performance information after evaluating the model n times\n");
 	fprintf(file,"  -s        Show runtime stats\n");
 	fprintf(file,"  -T <conv> Use this type of convolver (see below)\n");
+	fprintf(file,"  -u        Return an un-cropped image from the convolver\n");
 #ifdef PROFIT_OPENCL
 	fprintf(file,"  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)\n");
 	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
@@ -596,7 +597,7 @@ vector<double> read_image_from_fits_file(const string &filename, unsigned int &w
 	return psf;
 }
 
-int to_fits(Model &m, vector<double> image, string fname) {
+int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
 
 	FILE *f;
 	unsigned int i, pos, padding;
@@ -622,19 +623,19 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	fprintf(f, "%-80s", "SIMPLE  =                    T / File conforms to FITS standard");
 	fprintf(f, "%-80s", "BITPIX  =                  -64 / Bits per pixel");
 	fprintf(f, "%-80s", "NAXIS   =                    2 / Number of axes");
-	sprintf(hdr, "NAXIS1  =           %10.0u / Width", m.width);
+	sprintf(hdr, "NAXIS1  =           %10.0u / Width", image.getWidth());
 	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "NAXIS2  =           %10.0u / Height", m.height);
+	sprintf(hdr, "NAXIS2  =           %10.0u / Height", image.getHeight());
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CRPIX1  = 1");
-	sprintf(hdr, "CRVAL1  = %f", 0.5*m.scale_x);
+	sprintf(hdr, "CRVAL1  = %f", (0.5 - offset.x) * m.scale_x);
 	fprintf(f, "%-80s", hdr);
 	sprintf(hdr, "CDELT1  = %f", m.scale_x);
 	fprintf(f, "%-80s", hdr);
 	fprintf(f, "%-80s", "CTYPE1  = ' '");
 	fprintf(f, "%-80s", "CUNIT1  = ' '");
 	fprintf(f, "%-80s", "CRPIX2  = 1");
-	sprintf(hdr, "CRVAL2  = %f", 0.5*m.scale_y);
+	sprintf(hdr, "CRVAL2  = %f", (0.5 - offset.y) * m.scale_y);
 	fprintf(f, "%-80s", hdr);
 	sprintf(hdr, "CDELT2  = %f", m.scale_y);
 	fprintf(f, "%-80s", hdr);
@@ -649,14 +650,15 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	}
 
 	/* data has to be big-endian */
-	size_t image_size = m.width * m.height;
+	size_t image_size = image.size();
+	auto &imdata = image.getData();
 	if( is_little_endian() ) {
 		vector<double> big_endian_image(image_size);
-		transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
+		transform(imdata.begin(), imdata.end(), big_endian_image.begin(), swap_bytes);
 		fwrite(big_endian_image.data(), sizeof(double), image_size, f);
 	}
 	else {
-		fwrite(image.data(), sizeof(double), image_size, f);
+		fwrite(imdata.data(), sizeof(double), image_size, f);
 	}
 
 	/* Pad with zeroes until we complete the current 36*80 block */
@@ -668,15 +670,15 @@ int to_fits(Model &m, vector<double> image, string fname) {
 	return 0;
 }
 
-vector<double> run(unsigned int iterations, Model &m) {
+ImageAndOffset run(unsigned int iterations, Model &m) {
 
 	using chrono::system_clock;
 
 	/* This means that we evaluated the model once, but who cares */
-	vector<double> image;
+	ImageAndOffset result;
 	auto start = system_clock::now();
 	for(unsigned i=0; i!=iterations; i++) {
-		image = m.evaluate();
+		result = m.evaluate();
 	}
 	auto end = system_clock::now();
 	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
@@ -689,7 +691,7 @@ vector<double> run(unsigned int iterations, Model &m) {
 	cout << "(" << setprecision(3) << fixed << dur_per_iter << " [ms] per iteration)";
 	cout << endl;
 
-	return image;
+	return result;
 }
 
 typedef enum _output_type {
@@ -723,7 +725,7 @@ int parse_and_run(int argc, char *argv[]) {
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
 
-	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:T:"
+	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:T:u"
 #ifdef PROFIT_OPENCL
 	                      "C:c"
 #endif /* PROFIT_OPENCL */
@@ -753,6 +755,10 @@ int parse_and_run(int argc, char *argv[]) {
 
 			case 'T':
 				convolver_type = optarg;
+				break;
+
+			case 'u':
+				m.crop = false;
 				break;
 
 #ifdef PROFIT_FFTW
@@ -889,7 +895,10 @@ int parse_and_run(int argc, char *argv[]) {
 	cout << "Created convolver in " << duration << " [ms]" << endl;
 
 	// Now run the model as many times as requested
-	vector<double> image = run(iterations, m);
+	auto result = run(iterations, m);
+	auto &image = result.first;
+	auto &offset = result.second;
+	auto &imdata = image.getData();
 
 	switch(output) {
 
@@ -897,20 +906,20 @@ int parse_and_run(int argc, char *argv[]) {
 			break;
 
 		case binary:
-			fwrite(image.data(), sizeof(double), m.width * m.height, stdout);
+			fwrite(imdata.data(), sizeof(double), image.size(), stdout);
 			break;
 
 		case text:
-			for(j=0; j!=m.height; j++) {
-				for(i=0; i!=m.width; i++) {
-					cout << image[j*m.width + i] << " ";
+			for(j=0; j!=image.getHeight(); j++) {
+				for(i=0; i!=image.getWidth(); i++) {
+					cout << imdata[j*image.getWidth() + i] << " ";
 				}
 				cout << endl;
 			}
 			break;
 
 		case fits:
-			if( to_fits(m, image, fits_output) ) {
+			if( to_fits(m, image, offset, fits_output) ) {
 				perror("Error while saving image to FITS file");
 				return 1;
 			}
