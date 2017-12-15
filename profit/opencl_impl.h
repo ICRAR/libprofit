@@ -24,6 +24,8 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef PROFIT_OPENCL
+
 #ifndef PROFIT_OPENCL_IMPL_H
 #define PROFIT_OPENCL_IMPL_H
 
@@ -203,3 +205,5 @@ private:
 } /* namespace profit */
 
 #endif /* PROFIT_OPENCL_IMPL_H */
+
+#endif /* PROFIT_OPENCL */
