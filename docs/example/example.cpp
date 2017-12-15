@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include "example.h"
+
+#include "profit/exceptions.h"
 #include "profit/model.h"
 
 namespace profit {
@@ -62,25 +64,25 @@ void ExampleProfile::validate() {
 	*/
 }
 
-void ExampleProfile::evaluate(std::vector<double> &image) {
+void ExampleProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) {
 
-	Model *model = this->model;
 	double x, y;
 	unsigned int i, j;
-	double half_xbin = model->scale_x/2.;
-	double half_ybin = model->scale_y/2.;
+	auto width = image.getWidth();
+	double half_xbin = scale.first/2.;
+	double half_ybin = scale.second/2.;
 
 	x = 0;
-	for (i=0; i < model->width; i++) {
+	for (i=0; i < width; i++) {
 		x += half_xbin;
 
 		y = 0;
-		for (j=0; j < model->height; j++) {
+		for (j=0; j < image.getHeight(); j++) {
 			y += half_ybin;
 
-			if ( !model->calcmask || model->calcmask[i + j*model->width] ) {
+			if ( not mask or mask[i + j * width] ) {
 				double val = std::abs( (this->param1 - this->param2) * this->param3 * (x - y) );
-				image[i + j*model->width] = val;
+				image[i + j * width] = val;
 			}
 
 			y += half_ybin;
