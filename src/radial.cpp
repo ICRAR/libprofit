@@ -231,7 +231,7 @@ void RadialProfile::subsampling_params(double x, double y,
 /**
  * The main profile evaluation function
  */
-void RadialProfile::evaluate(std::vector<double> &image) {
+void RadialProfile::evaluate(Image &image, const Mask &mask) {
 
 	/*
 	 * Perform all the pre-calculations needed by the radial profiles
@@ -248,7 +248,7 @@ void RadialProfile::evaluate(std::vector<double> &image) {
 #endif /* PROFIT_DEBUG */
 
 #ifndef PROFIT_OPENCL
-	evaluate_cpu(image);
+	evaluate_cpu(image, mask);
 #else
 	/*
 	 * We fallback to the CPU implementation if no OpenCL context has been
@@ -256,16 +256,16 @@ void RadialProfile::evaluate(std::vector<double> &image) {
 	 */
 	auto env = OpenCLEnvImpl::fromOpenCLEnvPtr(model.opencl_env);
 	if( force_cpu or !env or !supports_opencl() ) {
-		evaluate_cpu(image);
+		evaluate_cpu(image, mask);
 		return;
 	}
 
 	try {
 		if( env->use_double ) {
-			evaluate_opencl<double>(image, env);
+			evaluate_opencl<double>(image, mask, env);
 		}
 		else {
-			evaluate_opencl<float>(image, env);
+			evaluate_opencl<float>(image, mask, env);
 		}
 	} catch (const cl::Error &e) {
 		std::ostringstream os;
@@ -276,11 +276,13 @@ void RadialProfile::evaluate(std::vector<double> &image) {
 
 }
 
-void RadialProfile::evaluate_cpu(std::vector<double> &image) {
+void RadialProfile::evaluate_cpu(Image &image, const Mask &mask) {
 
 	double half_xbin = model.scale_x/2.;
 	double half_ybin = model.scale_y/2.;
 
+	auto width = image.getWidth();
+	auto height = image.getHeight();
 	double scale = this->get_pixel_scale();
 
 	/*
@@ -291,11 +293,11 @@ void RadialProfile::evaluate_cpu(std::vector<double> &image) {
 	bool use_omp = model.omp_threads > 1;
 	#pragma omp parallel for collapse(2) schedule(dynamic, 10) if(use_omp) num_threads(model.omp_threads)
 #endif /* PROFIT_OPENMP */
-	for(unsigned int j=0; j < model.height; j++) {
-		for(unsigned int i=0; i < model.width; i++) {
+	for(unsigned int j=0; j < height; j++) {
+		for(unsigned int i=0; i < width; i++) {
 
 			/* We were instructed to ignore this pixel */
-			if( !model.calcmask.empty() && !model.calcmask[i + j*model.width] ) {
+			if( mask && !mask[i + j * width] ) {
 				continue;
 			}
 
@@ -328,7 +330,7 @@ void RadialProfile::evaluate_cpu(std::vector<double> &image) {
 				                                   0, max_recursions, resolution);
 			}
 
-			image[i + j*model.width] = scale * pixel_val;
+			image[i + j * width] = scale * pixel_val;
 		}
 	}
 
@@ -427,7 +429,7 @@ std::chrono::nanoseconds::rep to_nsecs(const std::chrono::system_clock::duration
 }
 
 template <typename FT>
-void RadialProfile::evaluate_opencl(std::vector<double> &image, OpenCLEnvImplPtr &env) {
+void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, OpenCLEnvImplPtr &env) {
 
 #define AS_FT(x) static_cast<FT>(x)
 
@@ -436,7 +438,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image, OpenCLEnvImplPtr
 	typedef ss_info_t<FT> ss_info_t;
 	typedef ss_kinfo_t<FT> ss_kinfo_t;
 
-	unsigned int imsize = model.width * model.height;
+	unsigned int imsize = image.size();
 
 	OpenCL_times cl_times0, ss_cl_times;
 	RadialProfileStats* stats = static_cast<RadialProfileStats *>(this->stats.get());
@@ -453,8 +455,8 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image, OpenCLEnvImplPtr
 	cl::Kernel kernel = env->get_kernel(kname);
 	kernel.setArg(arg++, image_buffer);
 	kernel.setArg(arg++, subsampling_points_buffer);
-	kernel.setArg(arg++, model.width);
-	kernel.setArg(arg++, model.height);
+	kernel.setArg(arg++, image.getWidth());
+	kernel.setArg(arg++, image.getHeight());
 	kernel.setArg(arg++, (int)rough);
 	kernel.setArg(arg++, AS_FT(model.scale_x));
 	kernel.setArg(arg++, AS_FT(model.scale_y));
@@ -667,7 +669,7 @@ void RadialProfile::evaluate_opencl(std::vector<double> &image, OpenCLEnvImplPtr
 	std::for_each(subimages_results.begin(), subimages_results.end(), [&image, this](const im_result_t &res) {
 		FT x = res.point.x / model.scale_x;
 		FT y = res.point.y / model.scale_y;
-		unsigned int idx = static_cast<unsigned int>(floor(x)) + static_cast<unsigned int>(floor(y)) * model.width;
+		unsigned int idx = static_cast<unsigned int>(floor(x)) + static_cast<unsigned int>(floor(y)) * image.getWidth();
 		image[idx] += res.value;
 	});
 

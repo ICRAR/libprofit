@@ -33,6 +33,7 @@
 
 #include "profit/config.h"
 #include "profit/common.h"
+#include "profit/image.h"
 #include "profit/opencl.h"
 
 namespace profit
@@ -92,14 +93,16 @@ public:
 
 	/**
 	 * Performs the profile evaluation and saves the resulting image into
-	 * the given `image` array. This is the main function of the profile.
+	 * the given @par image. If @par mask is not empty it has the same
+	 * dimensions than the image, and only the pixels where the mask is set
+	 * need to be calculated.
 	 *
-	 * @param image The vector where image values need to be stored.
-	 *              Its size is `model.width` * `model.height`.
-	 *              The data is organized by rows first, columns later;
-	 *               i.e pixel (x,y) is accessed by `image[y*width + x]`
+	 * This is the main function of the profile.
+	 *
+	 * @param image The Image object where values need to be stored.
+	 * @param mask The mask to apply during profile calculation.
 	 */
-	virtual void evaluate(std::vector<double> &image) = 0;
+	virtual void evaluate(Image &image, const Mask &mask) = 0;
 
 	/**
 	 * Sets the parameter `name` to `value`.

@@ -222,7 +222,7 @@ void SersicProfile::init_eval_function() {
 	m_eval_function = eval_function<boxy, t>;
 }
 
-void SersicProfile::evaluate(std::vector<double> &image) {
+void SersicProfile::evaluate(Image &image, const Mask &mask) {
 
 	// inv_exponent is exactly what is yield by the templated _invexp function
 	// later on during each individual evaluation
@@ -250,7 +250,7 @@ void SersicProfile::evaluate(std::vector<double> &image) {
 		else                                       init_eval_function<false, general>();
 	}
 
-	return RadialProfile::evaluate(image);
+	return RadialProfile::evaluate(image, mask);
 }
 
 double SersicProfile::fluxfrac(double fraction) const {

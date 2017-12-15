@@ -38,19 +38,17 @@ void SkyProfile::validate() {
 	return;
 }
 
-void SkyProfile::evaluate(std::vector<double> &image) {
+void SkyProfile::evaluate(Image &image, const Mask &mask) {
 
 	/* In case we need to mask some pixels out */
-	auto mask_it = model.calcmask.begin();
+	auto mask_it = mask.begin();
 
 	/* Fill the image with the background value */
 	for(auto &pixel: image) {
 
 		/* Check the calculation mask and avoid pixel if necessary  */
-		if( !model.calcmask.empty() ) {
-			if( !*mask_it++ ) {
-				continue;
-			}
+		if( mask and !*mask_it++ ) {
+			continue;
 		}
 
 		pixel = this->bg;

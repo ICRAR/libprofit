@@ -24,7 +24,6 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <algorithm>
 #include <cmath>
 
 #include "profit/common.h"
@@ -55,7 +54,7 @@ unsigned int bind(double value, unsigned int max) {
 	return std::min(uintval, max);
 }
 
-void PsfProfile::evaluate(std::vector<double> &image) {
+void PsfProfile::evaluate(Image &image, const Mask &mask) {
 
 	using std::floor;
 	using std::min;
@@ -73,8 +72,8 @@ void PsfProfile::evaluate(std::vector<double> &image) {
 	double scale_y = model.scale_y;
 	double psf_scale_x = model.psf_scale_x;
 	double psf_scale_y = model.psf_scale_y;
-	unsigned int width = model.width;
-	unsigned int height = model.height;
+	unsigned int width = image.getWidth();
+	unsigned int height = image.getHeight();
 	unsigned int psf_width = model.psf_width;
 	unsigned int psf_height = model.psf_height;
 
@@ -151,7 +150,7 @@ void PsfProfile::evaluate(std::vector<double> &image) {
 	if( total != 0 ) {
 		multiplier = scale / total;
 	}
-	std::transform(image.begin(), image.end(), image.begin(), [=](double v) {return v*multiplier;});
+	image *= multiplier;
 
 }
 

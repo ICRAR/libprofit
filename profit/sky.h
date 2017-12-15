@@ -56,7 +56,7 @@ public:
 	 * ---------------------------------------------
 	 */
 	void validate() override;
-	void evaluate(std::vector<double> &image) override;
+	void evaluate(Image &image, const Mask &mask) override;
 
 protected:
 

@@ -15,7 +15,7 @@ class ExampleProfile : public Profile {
 public:
 	ExampleProfile(const Model &model, const std::string &name);
 	void validate();
-	void evaluate(std::vector<double> &image);
+	void evaluate(Image &image, const Mask &mask);
 
 protected:
 	bool parameter(const std::string &name, double value);

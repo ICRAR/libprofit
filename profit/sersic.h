@@ -90,7 +90,7 @@ protected:
 	 * Inherited from RadialProfile
 	 * ----------------------------
 	 */
-	void evaluate(std::vector<double> &image) override;
+	void evaluate(Image &image, const Mask &mask) override;
 	void initial_calculations() override;
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec) override;
 	double get_pixel_scale() override;

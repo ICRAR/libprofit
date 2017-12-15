@@ -69,7 +69,7 @@ public:
 	 * ---------------------------------------------
 	 */
 	void validate() override;
-	void evaluate(std::vector<double> &image) override;
+	void evaluate(Image &image, const Mask &mask) override;
 
 #ifdef PROFIT_DEBUG
 	std::map<int,int> get_integrations();
@@ -258,7 +258,7 @@ protected:
 
 private:
 
-	void evaluate_cpu(std::vector<double> &image);
+	void evaluate_cpu(Image &image, const Mask &mask);
 
 	void _image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof);
 
@@ -288,7 +288,7 @@ private:
 
 	/* Evaluates this radial profile using an OpenCL kernel and floating type FT */
 	template <typename FT>
-	void evaluate_opencl(std::vector<double> &image, OpenCLEnvImplPtr &env);
+	void evaluate_opencl(Image &image, const Mask &mask, OpenCLEnvImplPtr &env);
 
 	template <typename FT>
 	void add_common_kernel_parameters(unsigned int argIdx, cl::Kernel &kernel) const;

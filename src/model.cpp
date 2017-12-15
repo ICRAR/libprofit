@@ -173,7 +173,7 @@ ImageAndOffset Model::evaluate() {
 	std::vector<Image> profile_images;
 	for(auto &profile: this->profiles) {
 		Image profile_image(width, height);
-		profile->evaluate(profile_image.getData());
+		profile->evaluate(profile_image, mask);
 		profile_images.push_back(std::move(profile_image));
 	}
 
