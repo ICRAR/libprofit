@@ -38,6 +38,12 @@ void SkyProfile::validate() {
 	return;
 }
 
+
+void SkyProfile::adjust_for_finesampling(unsigned int finesampling)
+{
+	bg = requested_bg / (finesampling * finesampling);
+}
+
 void SkyProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) {
 
 	/* In case we need to mask some pixels out */
@@ -57,7 +63,8 @@ void SkyProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scal
 
 SkyProfile::SkyProfile(const Model &model, const std::string &name) :
 	Profile(model, name),
-	bg(0.)
+	bg(0.),
+	requested_bg(0.)
 {
 	// no-op
 }
@@ -69,7 +76,7 @@ bool SkyProfile::parameter_impl(const std::string &name, double val) {
 	}
 
 	if( name == "bg" ) {
-		this->bg = val;
+		this->requested_bg = val;
 		return true;
 	}
 

@@ -92,6 +92,16 @@ public:
 	virtual void validate() = 0;
 
 	/**
+	 * Adjusts the internal parameters of this profile to the given finesampling parameter.
+	 * Finesampling produces bigger images, and therefore any parameters that indicate a position
+	 * in the image coordinate space needs to be adjusted (by multiplying it by the finesampling
+	 * factor).
+	 *
+	 * @param finesampling The finesampling factor.
+	 */
+	virtual void adjust_for_finesampling(unsigned int finesampling) {};
+
+	/**
 	 * Performs the profile evaluation and saves the resulting image into
 	 * the given @p image. If @p mask is not empty it has the same
 	 * dimensions than the image, and only the pixels where the mask is set

@@ -158,7 +158,8 @@ Image Model::evaluate(Point &offset_out) {
 	}
 
 	// The image we'll eventually return
-	Image image(requested_dimensions);
+	auto image_dims = requested_dimensions * finesampling;
+	Image image(image_dims);
 	Point offset(0, 0);
 
 	/* so long folks! */
@@ -172,8 +173,9 @@ Image Model::evaluate(Point &offset_out) {
 	 */
 	std::vector<Image> profile_images;
 	for(auto &profile: this->profiles) {
-		Image profile_image(requested_dimensions);
-		profile->evaluate(profile_image, mask, scale, magzero);
+		Image profile_image(image_dims);
+		profile->adjust_for_finesampling(finesampling);
+		profile->evaluate(profile_image, mask, {scale.first / finesampling, scale.second / finesampling}, magzero);
 		profile_images.push_back(std::move(profile_image));
 	}
 
@@ -208,7 +210,7 @@ Image Model::evaluate(Point &offset_out) {
 	}
 
 	// Sum images of profiles that do not require convolution
-	Image no_convolved_images(requested_dimensions);
+	Image no_convolved_images(image_dims);
 	it = profile_images.begin();
 	for(auto &profile: this->profiles) {
 		if( !profile->do_convolve() ) {
@@ -219,7 +221,7 @@ Image Model::evaluate(Point &offset_out) {
 
 	// Add non-convolved images on top of the convolved ones
 	// taking into account the convolution extension/offset, if any
-	if (conv_dims != requested_dimensions) {
+	if (conv_dims != image_dims) {
 		image += no_convolved_images.extend(conv_dims, offset);
 	}
 	else {

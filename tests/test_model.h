@@ -179,4 +179,23 @@ public:
 		TS_ASSERT(image1 == image3);
 
 	}
+
+	void test_finesampling()
+	{
+		Model m {100, 200};
+		m.set_finesampling(2);
+		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(200, 400));
+		m.set_finesampling(1);
+		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(100, 200));
+
+		auto p = m.add_profile("sersic");
+		p->parameter("xcen", 50.);
+		p->parameter("ycen", 100.);
+		p->parameter("re", 30.);
+		auto flux = m.evaluate().getTotal();
+		m.set_finesampling(2);
+		auto finesampled_flux = m.evaluate().getTotal();
+		TS_ASSERT_DELTA(flux, finesampled_flux, flux * 0.001);
+	}
+
 };

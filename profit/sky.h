@@ -56,6 +56,7 @@ public:
 	 * ---------------------------------------------
 	 */
 	void validate() override;
+	void adjust_for_finesampling(unsigned int finesampling) override;
 	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) override;
 
 protected:
@@ -80,6 +81,8 @@ protected:
 	 */
 	double bg;
 	// @}
+
+	double requested_bg;
 };
 
 } /* namespace profit */

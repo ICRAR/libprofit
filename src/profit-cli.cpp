@@ -358,6 +358,7 @@ void usage(FILE *file, char *argv[]) {
 #endif /* PROFIT_FFTW */
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
 	fprintf(file,"  -y        Image height. Defaults to 100\n");
+	fprintf(file,"  -S <n>    Finesampling factor. Defaults to 1\n");
 	fprintf(file,"  -w        Width in pixels. Defaults to 100\n");
 	fprintf(file,"  -H        Height in pixels. Defaults to 100\n");
 	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
@@ -741,7 +742,7 @@ int parse_and_run(int argc, char *argv[]) {
 	vector<string> tokens;
 #endif /* PROFIT_OPENCL */
 
-	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:T:u"
+	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:"
 #ifdef PROFIT_OPENCL
 	                      "C:c"
 #endif /* PROFIT_OPENCL */
@@ -832,6 +833,10 @@ int parse_and_run(int argc, char *argv[]) {
 
 			case 'H':
 				height = (unsigned int)atoi(optarg);
+				break;
+
+			case 'S':
+				m.set_finesampling((unsigned int)atoi(optarg));
 				break;
 
 			case 'x':
