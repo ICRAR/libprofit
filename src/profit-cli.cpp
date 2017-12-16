@@ -972,7 +972,10 @@ int main(int argc, char *argv[]) {
 		ret = 1;
 	}
 #endif /* PROFIT_FFT */
-
+	catch (const std::exception &e) {
+		cerr << "Unexpected error: " << e.what() << endl;
+		ret = 1;
+	}
 	profit::finish();
 
 	return ret;
