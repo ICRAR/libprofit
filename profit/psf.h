@@ -55,7 +55,7 @@ public:
 	 * ---------------------------------------------
 	 */
 	void validate() override;
-	void evaluate(Image &image, const Mask &mask) override;
+	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) override;
 
 protected:
 

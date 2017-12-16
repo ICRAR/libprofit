@@ -222,7 +222,7 @@ void SersicProfile::init_eval_function() {
 	m_eval_function = eval_function<boxy, t>;
 }
 
-void SersicProfile::evaluate(Image &image, const Mask &mask) {
+void SersicProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) {
 
 	// inv_exponent is exactly what is yield by the templated _invexp function
 	// later on during each individual evaluation
@@ -250,7 +250,7 @@ void SersicProfile::evaluate(Image &image, const Mask &mask) {
 		else                                       init_eval_function<false, general>();
 	}
 
-	return RadialProfile::evaluate(image, mask);
+	return RadialProfile::evaluate(image, mask, scale, magzero);
 }
 
 double SersicProfile::fluxfrac(double fraction) const {
@@ -315,12 +315,12 @@ void SersicProfile::initial_calculations() {
  * The scale by which each image pixel value is multiplied.
  * The sersic profile supports a rescale factor that is applied here.
  */
-double SersicProfile::get_pixel_scale() {
-	double scale = RadialProfile::get_pixel_scale();
+double SersicProfile::get_pixel_scale(const PixelScale &scale) {
+	double flux_scale = RadialProfile::get_pixel_scale(scale);
 	if( this->rescale_flux ) {
-		scale *= this->_rescale_factor;
+		flux_scale *= this->_rescale_factor;
 	}
-	return scale;
+	return flux_scale;
 }
 
 double SersicProfile::get_rscale() {

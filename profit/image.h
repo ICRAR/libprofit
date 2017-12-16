@@ -540,6 +540,11 @@ public:
 
 };
 
+/// A two-element (horizontal and vertical) pixel scale.
+/// It indicates how much a pixel corresponds to in image coordinates.
+typedef std::pair<double, double> PixelScale;
+
+
 }  // namespace profit
 
 #endif // PROFIT_IMAGE_H

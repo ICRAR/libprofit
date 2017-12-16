@@ -54,7 +54,7 @@ unsigned int bind(double value, unsigned int max) {
 	return std::min(uintval, max);
 }
 
-void PsfProfile::evaluate(Image &image, const Mask &mask) {
+void PsfProfile::evaluate(Image &image, const Mask &mask, const PixelScale &pixel_scale, double magzero) {
 
 	using std::floor;
 	using std::min;
@@ -65,11 +65,11 @@ void PsfProfile::evaluate(Image &image, const Mask &mask) {
 	unsigned int pix_x, pix_y;
 	double x, y, psf_x, psf_y;
 	double total = 0;
-	double scale = pow(10, -0.4*(this->mag - this->model.magzero));
+	double scale = pow(10, -0.4*(this->mag - magzero));
 
 	/* Making the code more readable */
-	double scale_x = model.scale.first;
-	double scale_y = model.scale.second;
+	double scale_x = pixel_scale.first;
+	double scale_y = pixel_scale.second;
 	double psf_scale_x = model.psf_scale.first;
 	double psf_scale_y = model.psf_scale.second;
 	unsigned int width = image.getWidth();

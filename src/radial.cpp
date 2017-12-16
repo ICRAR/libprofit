@@ -149,7 +149,7 @@ void RadialProfile::initial_calculations() {
 	double box = this->box + 2;
 	double r_box = M_PI * box / (2*beta(1/box, 1/box));
 	double lumtot = this->get_lumtot(r_box);
-	this->_ie = std::pow(10, -0.4*(this->mag - this->model.magzero))/lumtot;
+	this->_ie = std::pow(10, -0.4*(this->mag - magzero))/lumtot;
 
 	/*
 	 * Optionally adjust the user-given rscale_switch and resolution parameters
@@ -216,8 +216,8 @@ void RadialProfile::validate() {
 /**
  * The scale by which each image pixel value is multiplied
  */
-double RadialProfile::get_pixel_scale() {
-	double pixel_area = this->model.scale.first * this->model.scale.second;
+double RadialProfile::get_pixel_scale(const PixelScale &scale) {
+	double pixel_area = scale.first * scale.second;
 	return pixel_area * this->_ie;
 }
 
@@ -231,7 +231,9 @@ void RadialProfile::subsampling_params(double x, double y,
 /**
  * The main profile evaluation function
  */
-void RadialProfile::evaluate(Image &image, const Mask &mask) {
+void RadialProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) {
+
+	this->magzero = magzero;
 
 	/*
 	 * Perform all the pre-calculations needed by the radial profiles
@@ -248,7 +250,7 @@ void RadialProfile::evaluate(Image &image, const Mask &mask) {
 #endif /* PROFIT_DEBUG */
 
 #ifndef PROFIT_OPENCL
-	evaluate_cpu(image, mask);
+	evaluate_cpu(image, mask, scale);
 #else
 	/*
 	 * We fallback to the CPU implementation if no OpenCL context has been
@@ -256,16 +258,16 @@ void RadialProfile::evaluate(Image &image, const Mask &mask) {
 	 */
 	auto env = OpenCLEnvImpl::fromOpenCLEnvPtr(model.get_opencl_env());
 	if( force_cpu or !env or !supports_opencl() ) {
-		evaluate_cpu(image, mask);
+		evaluate_cpu(image, mask, scale);
 		return;
 	}
 
 	try {
 		if( env->use_double ) {
-			evaluate_opencl<double>(image, mask, env);
+			evaluate_opencl<double>(image, mask, scale, env);
 		}
 		else {
-			evaluate_opencl<float>(image, mask, env);
+			evaluate_opencl<float>(image, mask, scale, env);
 		}
 	} catch (const cl::Error &e) {
 		std::ostringstream os;
@@ -276,14 +278,14 @@ void RadialProfile::evaluate(Image &image, const Mask &mask) {
 
 }
 
-void RadialProfile::evaluate_cpu(Image &image, const Mask &mask) {
+void RadialProfile::evaluate_cpu(Image &image, const Mask &mask, const PixelScale &scale) {
 
-	double half_xbin = model.scale.first/2.;
-	double half_ybin = model.scale.second/2.;
+	double half_xbin = scale.first/2.;
+	double half_ybin = scale.second/2.;
 
 	auto width = image.getWidth();
 	auto height = image.getHeight();
-	double scale = this->get_pixel_scale();
+	double flux_scale = this->get_pixel_scale(scale);
 
 	/*
 	 * If compiled with OpenMP support, and if the user requests so,
@@ -302,8 +304,8 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask) {
 			}
 
 			double x_prof, y_prof, r_prof;
-			double y = half_ybin + j*model.scale.second;
-			double x = half_xbin + i*model.scale.first;
+			double y = half_ybin + j * scale.second;
+			double x = half_xbin + i * scale.first;
 			this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
 
 			/*
@@ -330,7 +332,7 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask) {
 				                                   0, max_recursions, resolution);
 			}
 
-			image[i + j * width] = scale * pixel_val;
+			image[i + j * width] = flux_scale * pixel_val;
 		}
 	}
 
@@ -429,7 +431,7 @@ std::chrono::nanoseconds::rep to_nsecs(const std::chrono::system_clock::duration
 }
 
 template <typename FT>
-void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, OpenCLEnvImplPtr &env) {
+void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelScale &scale, OpenCLEnvImplPtr &env) {
 
 #define AS_FT(x) static_cast<FT>(x)
 
@@ -458,8 +460,8 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, OpenCLEnvImp
 	kernel.setArg(arg++, image.getWidth());
 	kernel.setArg(arg++, image.getHeight());
 	kernel.setArg(arg++, (int)rough);
-	kernel.setArg(arg++, AS_FT(model.scale.first));
-	kernel.setArg(arg++, AS_FT(model.scale.second));
+	kernel.setArg(arg++, AS_FT(scale.first));
+	kernel.setArg(arg++, AS_FT(scale.second));
 	add_common_kernel_parameters<FT>(arg, kernel);
 	t_kprep = system_clock::now();
 
@@ -536,7 +538,7 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, OpenCLEnvImp
 		unsigned int resolution, max_recursions;
 		subsampling_params(point.x, point.y, resolution, max_recursions);
 		top_recursions = std::max(top_recursions, max_recursions);
-		last_ss_info.push_back({point, AS_FT(model.scale.first), AS_FT(model.scale.second), resolution, max_recursions});
+		last_ss_info.push_back({point, AS_FT(scale.first), AS_FT(scale.second), resolution, max_recursions});
 	}
 
 	auto ss_kname = name + "_subsample_" + float_traits<FT>::name;
@@ -666,17 +668,17 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, OpenCLEnvImp
 
 	t_loopend = system_clock::now();
 
-	std::for_each(subimages_results.begin(), subimages_results.end(), [&image, this](const im_result_t &res) {
-		FT x = res.point.x / model.scale.first;
-		FT y = res.point.y / model.scale.second;
+	std::for_each(subimages_results.begin(), subimages_results.end(), [&image, &scale](const im_result_t &res) {
+		FT x = res.point.x / scale.first;
+		FT y = res.point.y / scale.second;
 		unsigned int idx = static_cast<unsigned int>(floor(x)) + static_cast<unsigned int>(floor(y)) * image.getWidth();
 		image[idx] += res.value;
 	});
 
 	// the image needs to be multiplied by the pixel scale
-	double scale = this->get_pixel_scale();
-	std::transform(image.begin(), image.end(), image.begin(), [scale](double pixel) {
-		return pixel * scale;
+	double flux_scale = this->get_pixel_scale(scale);
+	std::transform(image.begin(), image.end(), image.begin(), [flux_scale](double pixel) {
+		return pixel * flux_scale;
 	});
 	t_imgtrans = system_clock::now();
 

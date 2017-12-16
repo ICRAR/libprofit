@@ -38,7 +38,7 @@ void SkyProfile::validate() {
 	return;
 }
 
-void SkyProfile::evaluate(Image &image, const Mask &mask) {
+void SkyProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) {
 
 	/* In case we need to mask some pixels out */
 	auto mask_it = mask.begin();

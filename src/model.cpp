@@ -169,7 +169,7 @@ Image Model::evaluate(Point &offset_out) {
 	std::vector<Image> profile_images;
 	for(auto &profile: this->profiles) {
 		Image profile_image(requested_dimensions);
-		profile->evaluate(profile_image, mask);
+		profile->evaluate(profile_image, mask, scale, magzero);
 		profile_images.push_back(std::move(profile_image));
 	}
 
