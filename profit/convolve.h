@@ -31,8 +31,8 @@
 #include <vector>
 
 #include "profit/common.h"
-#include "profit/image.h"
 #include "profit/fft.h"
+#include "profit/image.h"
 #include "profit/opencl.h"
 
 namespace profit
