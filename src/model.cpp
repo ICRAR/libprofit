@@ -57,12 +57,8 @@ Model::Model(unsigned int width, unsigned int height) :
 	convolver(),
 	crop(true),
 	dry_run(false),
-#ifdef PROFIT_OPENCL
 	opencl_env(),
-#endif /* PROFIT_OPENCL */
-#ifdef PROFIT_OPENMP
 	omp_threads(0),
-#endif /* PROFIT_OPENMP */
 	profiles()
 {
 	// no-op

@@ -259,7 +259,6 @@ public:
 		this->dry_run = dry_run;
 	}
 
-#ifdef PROFIT_OPENCL
 	void set_opencl_env(const OpenCLEnvPtr &opencl_env) {
 		this->opencl_env = opencl_env;
 	}
@@ -267,9 +266,7 @@ public:
 	OpenCLEnvPtr get_opencl_env() const {
 		return opencl_env;
 	}
-#endif /* PROFIT_OPENCL */
 
-#ifdef PROFIT_OPENMP
 	/**
 	 * Sets the maximum number of OpenMP threads to use to evaluate the profiles
 	 * contained in this model. 0 threads means that no OpenMP support
@@ -288,7 +285,6 @@ public:
 	unsigned int get_omp_threads() {
 		return this->omp_threads;
 	}
-#endif /* PROFIT_OPENMP */
 
 	/**
 	 * The Point object that indicates that users don't want to retrieve back
@@ -308,14 +304,8 @@ private:
 	ConvolverPtr convolver;
 	bool crop;
 	bool dry_run;
-
-#ifdef PROFIT_OPENCL
 	OpenCLEnvPtr opencl_env;
-#endif /* PROFIT_OPENCL */
-#ifdef PROFIT_OPENMP
 	unsigned int omp_threads;
-#endif // PROFIT_OPENMP
-
 	std::vector<ProfilePtr> profiles;
 
 	friend class PsfProfile;
