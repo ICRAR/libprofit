@@ -728,9 +728,9 @@ RadialProfile::RadialProfile(const Model &model, const std::string &name) :
 	rscale_switch(1), resolution(9),
 	max_recursions(2), adjust(true),
 	rscale_max(0),
+	force_cpu(false),
 	rscale(0), _ie(0),
 	_cos_ang(0), _sin_ang(0),
-	force_cpu(false),
 	magzero(0)
 {
 	// no-op
