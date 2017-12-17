@@ -192,6 +192,10 @@ void keyval_to_psf(Profile &p, const string &key, string &val) {
 	read_dble(p, key, val, "mag");
 }
 
+static
+void keyval_to_null(Profile &p, const string &key, string &val) {
+}
+
 typedef void (*keyval_to_param_t)(Profile &, const string& name, string &value);
 static map<string, keyval_to_param_t> reader_functions = {
 	{"sersic",     &keyval_to_sersic},
@@ -202,7 +206,8 @@ static map<string, keyval_to_param_t> reader_functions = {
 	{"coresersic", &keyval_to_coresersic},
 	{"brokenexp",  &keyval_to_brokenexp},
 	{"sky",        &keyval_to_sky},
-	{"psf",        &keyval_to_psf}
+	{"psf",        &keyval_to_psf},
+	{"null",       &keyval_to_null}
 };
 
 void desc_to_profile(
@@ -214,6 +219,11 @@ void desc_to_profile(
 	string tok;
 
 	shared_ptr<Profile> p = model.add_profile(name);
+	if (reader_functions.find(name) == reader_functions.end()) {
+		ostringstream os;
+		os << "Profile " << name << " is not supported by this tool";
+		throw invalid_cmdline(os.str());
+	}
 	keyval_to_param_t keyval_to_param = reader_functions[name];
 
 	if( description.size() == 0 ) {

@@ -35,6 +35,7 @@
 #include "profit/king.h"
 #include "profit/model.h"
 #include "profit/moffat.h"
+#include "profit/null.h"
 #include "profit/psf.h"
 #include "profit/sersic.h"
 #include "profit/sky.h"
@@ -76,7 +77,10 @@ std::shared_ptr<Profile> Model::add_profile(const std::string &profile_name) {
 	using std::make_shared;
 
 	std::shared_ptr<Profile> profile;
-	if( profile_name == "sky" ) {
+	if (profile_name == "null") {
+		profile = make_shared<NullProfile>(*this, profile_name);
+	}
+	else if( profile_name == "sky" ) {
 		profile = make_shared<SkyProfile>(*this, profile_name);
 	}
 	else if ( profile_name == "sersic" ) {
