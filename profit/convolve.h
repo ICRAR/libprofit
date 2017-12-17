@@ -51,8 +51,6 @@ enum ConvolverType {
 #ifdef PROFIT_OPENCL
 	/// @copydoc OpenCLConvolver
 	OPENCL,
-	/// Ignore
-	OPENCL_LOCAL,
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
 	/// @copydoc FFTConvolver

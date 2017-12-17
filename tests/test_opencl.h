@@ -292,15 +292,6 @@ public:
 		_check_convolver(create_convolver(ConvolverType::OPENCL, prefs));
 	}
 
-	void test_local_convolver() {
-		if( !openCLFixtures.opencl_env ) {
-			TS_SKIP("No OpenCL environment found to run OpenCL tests");
-		}
-		ConvolverCreationPreferences prefs;
-		prefs.opencl_env = openCLFixtures.opencl_env;
-		_check_convolver(create_convolver(ConvolverType::OPENCL_LOCAL, prefs));
-	}
-
 };
 
 #endif // PROFIT_OPENCL

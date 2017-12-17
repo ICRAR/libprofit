@@ -576,8 +576,6 @@ ConvolverPtr create_convolver(const ConvolverType type, const ConvolverCreationP
 #ifdef PROFIT_OPENCL
 		case OPENCL:
 			return std::make_shared<OpenCLConvolver>(OpenCLEnvImpl::fromOpenCLEnvPtr(prefs.opencl_env));
-		case OPENCL_LOCAL:
-			return std::make_shared<OpenCLLocalConvolver>(OpenCLEnvImpl::fromOpenCLEnvPtr(prefs.opencl_env));
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
 		case FFT:
@@ -603,9 +601,6 @@ ConvolverPtr create_convolver(const std::string &type, const ConvolverCreationPr
 #ifdef PROFIT_OPENCL
 	else if (type == "opencl") {
 		return create_convolver(OPENCL, prefs);
-	}
-	else if (type == "opencl-local") {
-		return create_convolver(OPENCL_LOCAL, prefs);
 	}
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
