@@ -27,11 +27,6 @@
 language: cpp
 sudo: false
 
-# safelist
-branches:
- only:
-  - master
-
 # We try with both GNU and LLVM
 # When running with gcc-6 we also collect coverage information
 # and upload it to coveralls
@@ -40,59 +35,63 @@ matrix:
   - compiler: gcc
     addons:
      apt:
+      packages: [libgsl0-dev, cxxtest]
+    env: COMPILER=g++ POOR_BUILD=yes
+  - compiler: gcc
+    addons:
+     apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-4.6, libfftw3-dev, libgsl0-dev, opencl-headers]
+      packages: [g++-4.6, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
     env: COMPILER=g++-4.6 CXXFLAGS="-std=c++0x"
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-4.7, libfftw3-dev, libgsl0-dev, opencl-headers]
+      packages: [g++-4.7, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
     env: COMPILER=g++-4.7
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-4.9, libfftw3-dev, libgsl0-dev, opencl-headers]
+      packages: [g++-4.9, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
     env: COMPILER=g++-4.9
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-5, libfftw3-dev, libgsl0-dev, opencl-headers]
+      packages: [g++-5, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
     env: COMPILER=g++-5
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-6, libfftw3-dev, libgsl0-dev, opencl-headers]
+      packages: [g++-6, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
     env: COMPILER=g++-6 CXXFLAGS="-coverage" LDFLAGS="-coverage"
   - compiler: clang
     addons:
      apt:
-      packages: [libfftw3-dev, libgsl0-dev, opencl-headers]
+      packages: [libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
     env: COMPILER=clang++ LD_LIBRARY_PATH=/usr/local/clang-5.0.0/lib
+  - os: osx
+    osx_image: xcode7.3 # OSX 10.11
+    env: XCODE=7.3
+  - os: osx
+    osx_image: xcode8.1 # OSX 10.12
+    env: XCODE=8.1
+  - os: osx
+    osx_image: xcode9.1 # OSX 10.12
+    env: XCODE=9.1
 
-# We use cmake, but in precise we still have 2.8...
+# We "source" it because it exports variables
 before_install:
- - cd ${TRAVIS_BUILD_DIR}
- - curl -O https://cmake.org/files/v3.1/cmake-3.1.3-Linux-x86_64.tar.gz
- - tar -xf cmake-3.1.3-Linux-x86_64.tar.gz
- - export PATH=${TRAVIS_BUILD_DIR}/cmake-3.1.3-Linux-x86_64/bin:$PATH
- - export CMAKE_MODULE_PATH=${TRAVIS_BUILD_DIR}/cmake-3.1.3-Linux-x86_64/share/cmake-3.1/Modules:${CMAKE_MODULE_PATH}
- - git clone https://github.com/CxxTest/cxxtest
- - pip install --user cpp-coveralls
+ - source .travis/before_install.sh
 
 install:
- - cd ${TRAVIS_BUILD_DIR}
- - mkdir build
- - cd build
- - cmake .. -DCMAKE_CXX_COMPILER=$COMPILER -DLIBPROFIT_TEST=ON -DCMAKE_INCLUDE_PATH=${TRAVIS_BUILD_DIR}/cxxtest -DCMAKE_PROGRAM_PATH=${TRAVIS_BUILD_DIR}/cxxtest/bin
- - make all
+ - source .travis/install.sh
 
 script:
  - cd ${TRAVIS_BUILD_DIR}/build
  - make CTEST_OUTPUT_ON_FAILURE=1 test
 
 after_success:
- - if [ "$COMPILER" == "g++-6" ]; then cd ${TRAVIS_BUILD_DIR}; cpp-coveralls --gcov `which gcov-6` -r . -i build/CMakeFiles/profit.dir/src/ -i src/ -i profit/ -e src/profit-cli.cpp; fi
+ - if [ "$COMPILER" = "g++-6" ]; then cd ${TRAVIS_BUILD_DIR}; cpp-coveralls --gcov `which gcov-6` -r . -i build/CMakeFiles/profit.dir/src/ -i src/ -i profit/ -e src/profit-cli.cpp; fi
