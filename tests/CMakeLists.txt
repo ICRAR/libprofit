@@ -31,10 +31,10 @@ include_directories(${CXXTEST_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 set(CXXTEST_TESTGEN_ARGS --error-printer --have-eh)
 
 set(LIBPROFIT_TEST_NAMES convolver image model profile psf radial sersic sky utils)
-if( OpenCL_FOUND )
+if (PROFIT_OPENCL)
 	set(LIBPROFIT_TEST_NAMES ${LIBPROFIT_TEST_NAMES} opencl)
 endif()
-if( FFTW_FOUND )
+if (PROFIT_FFTW)
 	set(LIBPROFIT_TEST_NAMES ${LIBPROFIT_TEST_NAMES} fft)
 endif()
 
