@@ -25,6 +25,7 @@
  */
 
 #include "profit/convolve.h"
+#include "profit/fft_impl.h"
 #include "profit/opencl_impl.h"
 
 namespace profit {
@@ -97,7 +98,7 @@ class FFTConvolver : public Convolver {
 
 public:
 	FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dims,
-	             FFTPlan::effort_t effort, unsigned int plan_omp_threads,
+	             effort_t effort, unsigned int plan_omp_threads,
 	             bool reuse_krn_fft);
 
 	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;

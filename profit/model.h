@@ -35,7 +35,6 @@
 
 #include "profit/config.h"
 #include "profit/convolve.h"
-#include "profit/fft.h"
 #include "profit/opencl.h"
 #include "profit/profile.h"
 

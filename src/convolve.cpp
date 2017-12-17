@@ -295,7 +295,7 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 
 #ifdef PROFIT_FFTW
 FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dims,
-                           FFTPlan::effort_t effort, unsigned int plan_omp_threads,
+                           effort_t effort, unsigned int plan_omp_threads,
                            bool reuse_krn_fft) :
 	plan(),
 	krn_fft(),

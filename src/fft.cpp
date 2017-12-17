@@ -27,7 +27,7 @@
 #include <stdexcept>
 
 #include "profit/exceptions.h"
-#include "profit/fft.h"
+#include "profit/fft_impl.h"
 
 #ifdef PROFIT_FFTW
 

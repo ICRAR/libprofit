@@ -780,7 +780,7 @@ int parse_and_run(int argc, char *argv[]) {
 
 #ifdef PROFIT_FFTW
 			case 'F':
-				convolver_prefs.effort = FFTPlan::effort_t(std::atoi(optarg));
+				convolver_prefs.effort = effort_t(std::atoi(optarg));
 				break;
 
 			case 'r':

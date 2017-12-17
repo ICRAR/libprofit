@@ -122,7 +122,7 @@ public:
 		,opencl_env()
 #endif // PROFIT_OPENCL
 #ifdef PROFIT_FFTW
-		,effort(FFTPlan::ESTIMATE)
+		,effort(effort_t::ESTIMATE)
 		,reuse_krn_fft(false)
 #endif // PROFIT_FFTW
 	{};
@@ -141,12 +141,9 @@ public:
 #ifdef PROFIT_OPENCL
 	/// A pointer to an OpenCL environment. Used by the OpenCL convolvers.
 	OpenCLEnvPtr opencl_env;
-#endif // PROFIT_OPENCL
-
-#ifdef PROFIT_FFTW
 
 	/// The amount of effort to put into the plan creation. Used by the FFT convolver.
-	FFTPlan::effort_t effort;
+	effort_t effort;
 
 	/// Whether to reuse or not the FFT'd kernel or not. Used by the FFT convolver.
 	bool reuse_krn_fft;

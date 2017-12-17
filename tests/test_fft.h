@@ -55,7 +55,7 @@ public:
 		ConvolverCreationPreferences prefs;
 		prefs.src_dims = dims;
 		prefs.krn_dims = psf_dims;
-		prefs.effort = FFTPlan::ESTIMATE;
+		prefs.effort = effort_t::ESTIMATE;
 		prefs.omp_threads = 1;
 		prefs.reuse_krn_fft = reuse_psf_fft;
 		fft_convolver = create_convolver(ConvolverType::FFT, prefs);
@@ -257,7 +257,7 @@ public:
 		ConvolverCreationPreferences prefs;
 		prefs.src_dims = {100, 100};
 		prefs.krn_dims = {25, 25};
-		prefs.effort = FFTPlan::ESTIMATE;
+		prefs.effort = effort_t::ESTIMATE;
 		prefs.reuse_krn_fft = true;
 		auto convolver = create_convolver(ConvolverType::FFT, prefs);
 		Image result1 = convolver->convolve(src, krn, mask, false);
