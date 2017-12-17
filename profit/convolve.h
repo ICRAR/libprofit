@@ -48,14 +48,12 @@ enum ConvolverType {
 
 	/// @copydoc AssociativeBruteForceConvolver
 	BRUTE,
-#ifdef PROFIT_OPENCL
+
 	/// @copydoc OpenCLConvolver
 	OPENCL,
-#endif // PROFIT_OPENCL
-#ifdef PROFIT_FFTW
+
 	/// @copydoc FFTConvolver
 	FFT,
-#endif // PROFIT_FFTW
 };
 
 /**
@@ -117,15 +115,23 @@ public:
 	ConvolverCreationPreferences() :
 		src_dims(),
 		krn_dims(),
-		omp_threads(1)
-#ifdef PROFIT_OPENCL
-		,opencl_env()
-#endif // PROFIT_OPENCL
-#ifdef PROFIT_FFTW
-		,effort(effort_t::ESTIMATE)
-		,reuse_krn_fft(false)
-#endif // PROFIT_FFTW
+		omp_threads(1),
+		opencl_env(),
+		effort(effort_t::ESTIMATE),
+		reuse_krn_fft(false)
 	{};
+
+	ConvolverCreationPreferences(
+	    Dimensions src_dims, Dimensions krn_dims, unsigned int omp_threads,
+	    OpenCLEnvPtr opencl_env, effort_t effort, bool reuse_krn_fft) :
+		src_dims(src_dims),
+		krn_dims(krn_dims),
+		omp_threads(omp_threads),
+		opencl_env(opencl_env),
+		effort(effort),
+		reuse_krn_fft(reuse_krn_fft)
+	{};
+
 
 	/// The dimensions of the image being convolved.
 	Dimensions src_dims;
@@ -138,16 +144,14 @@ public:
 	/// using OpenMP, when available) and the brute-force convolvers.
 	unsigned int omp_threads;
 
-#ifdef PROFIT_OPENCL
-	/// A pointer to an OpenCL environment. Used by the OpenCL convolvers.
+	/// A pointer to an OpenCL environment. Used by the ConvolverType::OPENCL convolvers.
 	OpenCLEnvPtr opencl_env;
 
-	/// The amount of effort to put into the plan creation. Used by the FFT convolver.
+	/// The amount of effort to put into the plan creation. Used by the @ref ConvolverType::FFT convolver.
 	effort_t effort;
 
-	/// Whether to reuse or not the FFT'd kernel or not. Used by the FFT convolver.
+	/// Whether to reuse or not the FFT'd kernel or not. Used by the @ref ConvolverType::FFT convolver.
 	bool reuse_krn_fft;
-#endif // PROFIT_FFTW
 
 };
 
