@@ -50,7 +50,6 @@ struct ProfileStats {
 
 struct RadialProfileStats : ProfileStats {
 	RadialProfileStats();
-#ifdef PROFIT_OPENCL
 	OpenCL_times cl_times;
 	struct radial_subsampling_stats {
 		nsecs_t pre_subsampling;
@@ -61,7 +60,6 @@ struct RadialProfileStats : ProfileStats {
 		nsecs_t total;
 	} subsampling;
 	nsecs_t final_image;
-#endif /* PROFIT_OPENCL */
 };
 
 /**

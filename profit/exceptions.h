@@ -30,8 +30,6 @@
 #include <exception>
 #include <string>
 
-#include "profit/config.h"
-
 namespace profit
 {
 
@@ -52,7 +50,6 @@ private:
 
 };
 
-#ifdef PROFIT_OPENCL
 /**
  * Exception class thrown when an error occurs while dealing with OpenCL.
  */
@@ -68,10 +65,8 @@ private:
 	std::string m_what;
 
 };
-#endif /* PROFIT_OPENCL */
 
 
-#ifdef PROFIT_FFTW
 /**
  * Exception class thrown when an error occurs while dealing with FFT.
  */
@@ -87,7 +82,6 @@ private:
 	std::string m_what;
 
 };
-#endif /* PROFIT_FFTW */
 
 } /* namespace profit */
 

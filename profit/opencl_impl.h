@@ -24,13 +24,12 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef PROFIT_OPENCL
-
 #ifndef PROFIT_OPENCL_IMPL_H
 #define PROFIT_OPENCL_IMPL_H
 
 #include "profit/opencl.h"
 
+#ifdef PROFIT_OPENCL
 /* Quickly fail for OpenCL < 1.1 */
 # if !defined(PROFIT_OPENCL_MAJOR) || !defined(PROFIT_OPENCL_MINOR)
 #  error "No OpenCL version specified"
@@ -204,6 +203,6 @@ private:
 
 } /* namespace profit */
 
-#endif /* PROFIT_OPENCL_IMPL_H */
-
 #endif /* PROFIT_OPENCL */
+
+#endif /* PROFIT_OPENCL_IMPL_H */

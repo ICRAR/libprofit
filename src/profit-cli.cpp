@@ -345,17 +345,11 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -s        Show runtime stats\n");
 	fprintf(file,"  -T <conv> Use this type of convolver (see below)\n");
 	fprintf(file,"  -u        Return an un-cropped image from the convolver\n");
-#ifdef PROFIT_OPENCL
 	fprintf(file,"  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)\n");
 	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
-#endif /* PROFIT_OPENCL */
-#ifdef PROFIT_OPENMP
 	fprintf(file,"  -n <n>    Use n OpenMP threads to calculate profiles\n");
-#endif /* PROFIT_OPENMP */
-#ifdef PROFIT_FFTW
 	fprintf(file,"  -F <n>    FFTW plans created with n effort (more takes longer)\n");
 	fprintf(file,"  -r        Reuse FFT-transformed PSF across evaluations (if -T fft)\n");
-#endif /* PROFIT_FFTW */
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
 	fprintf(file,"  -y        Image height. Defaults to 100\n");
 	fprintf(file,"  -S <n>    Finesampling factor. Defaults to 1\n");
@@ -368,13 +362,8 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"The following convolver types are supported:\n\n");
 	fprintf(file," * brute: A brute-force convolver\n");
 	fprintf(file," * brute-old: An older, slower brute-force convolver (used only for comparisons)\n");
-#ifdef PROFIT_OPENCL
 	fprintf(file," * opencl: An OpenCL-based brute-force convolver\n");
-	fprintf(file," * opencl-local: An OpenCL-based local-memory caching brute-force convolver\n");
-#endif // PROFIT_OPENCL
-#ifdef PROFIT_FFTW
 	fprintf(file," * fft: An FFT-based convolver\n");
-#endif // PROFIT_FFTW
 	fprintf(file,"\nProfiles should be specified as follows:\n\n");
 	fprintf(file,"-p name:param1=val1:param2=val2:...\n\n");
 	fprintf(file,"The following profiles (and parameters) are currently accepted:\n\n");
@@ -402,7 +391,6 @@ void print_stats_line(const string &prefix, const string &stat_name, double val)
 	cout << prefix << stat_name << spaces << " : " << setw(10) << setprecision(3) << setiosflags(ios::fixed) << val << " [ms]" << endl;
 }
 
-#ifdef PROFIT_OPENCL
 struct clver {
 	clver(unsigned int ver) : ver(ver) {}
 	unsigned int ver;
@@ -465,7 +453,6 @@ void print_cl_stats(const string &prefix0, bool opencl_120, const OpenCL_times &
 	print_stats_line(prefix1, "Read submission", stats.reading_times.submit / 1e6 );
 	print_stats_line(prefix1, "Read execution", stats.reading_times.exec / 1e6 );
 }
-#endif /* PROFIT_OPENCL */
 
 static
 void print_stats(const Model &m) {
@@ -504,7 +491,6 @@ void print_stats(const Model &m) {
 
 		cout << "Stats for profile " << profile_name << endl;
 
-#ifdef PROFIT_OPENCL
 		auto prefix1 = "  ";
 		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
 		auto opencl_env = m.get_opencl_env();
@@ -519,7 +505,6 @@ void print_stats(const Model &m) {
 			print_stats_line(prefix1, "Final transform", rprofile_stats->subsampling.final_transform / 1e6 );
 			print_stats_line(prefix0, "Final image", rprofile_stats->final_image / 1e6 );
 		}
-#endif /* PROFIT_OPENCL */
 
 		print_stats_line(prefix0, "Total", profile_stats->total / 1e6 );
 	}
@@ -736,22 +721,11 @@ int parse_and_run(int argc, char *argv[]) {
 	struct stat stat_buf;
 	bool show_stats = false;
 
-#ifdef PROFIT_OPENCL
 	bool use_opencl = false, use_double = false;
 	unsigned int clplat_idx = 0, cldev_idx = 0;
 	vector<string> tokens;
-#endif /* PROFIT_OPENCL */
 
-	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:"
-#ifdef PROFIT_OPENCL
-	                      "C:c"
-#endif /* PROFIT_OPENCL */
-#ifdef PROFIT_OPENMP
-	                      "n:"
-#endif /* PROFIT_OPENMP */
-#ifdef PROFIT_FFTW
-	                      "F:r"
-#endif /* PROFIT_FFTW */
+	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:C:cF:rn:"
 	;
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
@@ -778,7 +752,6 @@ int parse_and_run(int argc, char *argv[]) {
 				m.set_crop(false);
 				break;
 
-#ifdef PROFIT_FFTW
 			case 'F':
 				convolver_prefs.effort = effort_t(std::atoi(optarg));
 				break;
@@ -786,18 +759,19 @@ int parse_and_run(int argc, char *argv[]) {
 			case 'r':
 				convolver_prefs.reuse_krn_fft = true;
 				break;
-#endif /* PROFIT_FFTW */
 
 			case 'p':
 				parse_profile(m, optarg);
 				break;
 
-#ifdef PROFIT_OPENCL
 			case 'c':
 				print_opencl_info();
 				return 0;
 
 			case 'C':
+				if (not has_opencl()) {
+					throw invalid_cmdline("libprofit was compiled without OpenCL support, but support was requested. See -V for details");
+				}
 				use_opencl = true;
 				tokenize(optarg, tokens, ",");
 				if( tokens.size() != 3 ) {
@@ -807,14 +781,11 @@ int parse_and_run(int argc, char *argv[]) {
 				cldev_idx = (unsigned int)atoi(tokens[1].c_str());
 				use_double = (bool)atoi(tokens[2].c_str());
 				break;
-#endif /* PROFIT_OPENCL */
 
-#ifdef PROFIT_OPENMP
 			case 'n':
 				m.set_omp_threads((unsigned int)atoi(optarg));
 				convolver_prefs.omp_threads = m.get_omp_threads();
 				break;
-#endif
 
 			case 'P':
 				if( !stat(optarg, &stat_buf) ) {
@@ -892,7 +863,6 @@ int parse_and_run(int argc, char *argv[]) {
 	m.set_dimensions(dims);
 	m.set_image_pixel_scale({scale_x, scale_y});
 
-#ifdef PROFIT_OPENCL
 	/* Get an OpenCL environment */
 	if( use_opencl ) {
 		auto start = system_clock::now();
@@ -907,7 +877,6 @@ int parse_and_run(int argc, char *argv[]) {
 		        clver(opencl_env->get_version()) <<
 		        ") created in " << opencl_duration << " [ms]" << endl;
 	}
-#endif /* PROFIT_OPENCL */
 
 	// Create the convolver
 	auto start = system_clock::now();
@@ -978,18 +947,14 @@ int main(int argc, char *argv[]) {
 		cerr << "Error while calculating model: " << e.what() << endl;
 		ret = 1;
 	}
-#ifdef PROFIT_OPENCL
 	catch (opencl_error &e) {
 		cerr << "Error in OpenCL operation: " << e.what() << endl;
 		ret = 1;
 	}
-#endif /* PROFIT_OPENCL */
-#ifdef PROFIT_FFTW
 	catch (fft_error &e) {
 		cerr << "Error in FFT operation: " << e.what() << endl;
 		ret = 1;
 	}
-#endif /* PROFIT_FFT */
 	catch (const std::exception &e) {
 		cerr << "Unexpected error: " << e.what() << endl;
 		ret = 1;

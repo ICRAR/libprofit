@@ -30,13 +30,7 @@
 include_directories(${CXXTEST_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 set(CXXTEST_TESTGEN_ARGS --error-printer --have-eh)
 
-set(LIBPROFIT_TEST_NAMES convolver image model profile psf radial sersic sky utils)
-if (PROFIT_OPENCL)
-	set(LIBPROFIT_TEST_NAMES ${LIBPROFIT_TEST_NAMES} opencl)
-endif()
-if (PROFIT_FFTW)
-	set(LIBPROFIT_TEST_NAMES ${LIBPROFIT_TEST_NAMES} fft)
-endif()
+set(LIBPROFIT_TEST_NAMES convolver fft image model opencl profile psf radial sersic sky utils)
 
 foreach(test_name ${LIBPROFIT_TEST_NAMES})
 	CXXTEST_ADD_TEST(test_${test_name} test_${test_name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/test_${test_name}.h)

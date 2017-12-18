@@ -33,8 +33,6 @@
 #include "profit/exceptions.h"
 #include "profit/opencl_impl.h"
 
-#ifdef PROFIT_OPENCL
-
 namespace profit {
 
 OpenCL_command_times::OpenCL_command_times() :
@@ -62,6 +60,19 @@ OpenCL_times::OpenCL_times() :
 {
 	// no-op
 }
+
+// Simple implementation of public methods for non-OpenCL builds
+#ifndef PROFIT_OPENCL
+std::map<int, OpenCL_plat_info> get_opencl_info() {
+	return std::map<int, OpenCL_plat_info>();
+}
+
+OpenCLEnvPtr get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling)
+{
+	return nullptr;
+}
+
+#else
 
 // Functions to read the duration of OpenCL events (queue->submit and start->end)
 template <cl_int S, cl_int E>
@@ -355,6 +366,6 @@ cl::Kernel OpenCLEnvImpl::get_kernel(const std::string &name) {
 	return cl::Kernel(program, name.c_str());
 }
 
-}
-
 #endif /* PROFIT_OPENCL */
+
+} // namespace profit

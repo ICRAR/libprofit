@@ -34,8 +34,6 @@
 
 #include "profit/profit.h"
 
-#ifdef PROFIT_OPENCL
-
 using namespace profit;
 
 void tokenize(const std::string &s, std::vector<std::string> &tokens, const std::string &delims) {
@@ -55,6 +53,10 @@ class OpenCLFixtures : CxxTest::GlobalFixture {
 
 public:
 	OpenCLFixtures() {
+
+		if (not has_opencl()) {
+			return;
+		}
 
 		int plat_idx = -1, dev_idx = -1;
 		bool use_double = true;
@@ -117,6 +119,12 @@ static OpenCLFixtures openCLFixtures;
 class TestOpenCL : public CxxTest::TestSuite {
 
 private:
+
+	void _check_opencl_support() {
+		if( not has_opencl() ) {
+			TS_SKIP("No OpenCL support found, cannot run this test");
+		}
+	}
 
 	void _pixels_within_tolerance(const Image &original_im, const Image &opencl_im,
 	                              unsigned int i, double tolerance) {
@@ -188,6 +196,7 @@ private:
 public:
 
 	void test_opencldiff_brokenexp() {
+		_check_opencl_support();
 		Model m {100, 100};
 		auto brokenexp = m.add_profile("brokenexp");
 		brokenexp->parameter("xcen", 40.);
@@ -203,6 +212,7 @@ public:
 	}
 
 	void test_opencldiff_coresersic() {
+		_check_opencl_support();
 		Model m {100, 100};
 		auto coresersic = m.add_profile("coresersic");
 		coresersic->parameter("xcen", 50.);
@@ -220,6 +230,7 @@ public:
 	}
 
 	void test_opencldiff_ferrer() {
+		_check_opencl_support();
 		Model m {100, 100};
 		auto ferrer = m.add_profile("ferrer");
 		ferrer->parameter("xcen", 50.);
@@ -235,6 +246,7 @@ public:
 	}
 
 	void test_opencldiff_king() {
+		_check_opencl_support();
 		Model m {100, 100};
 		auto king = m.add_profile("king");
 		king->parameter("xcen", 50.);
@@ -250,6 +262,7 @@ public:
 	}
 
 	void test_opencldiff_moffat() {
+		_check_opencl_support();
 		Model m {100, 100};
 		auto moffat = m.add_profile("moffat");
 		moffat->parameter("xcen", 34.);
@@ -264,6 +277,7 @@ public:
 	}
 
 	void test_opencldiff_sersic() {
+		_check_opencl_support();
 		Model m {100, 100};
 		auto sersic = m.add_profile("sersic");
 		sersic->parameter("xcen", 50.0);
@@ -278,6 +292,7 @@ public:
 	}
 
 	void test_convolver() {
+		_check_opencl_support();
 		if( !openCLFixtures.opencl_env ) {
 			TS_SKIP("No OpenCL environment found to run OpenCL tests");
 		}
@@ -287,5 +302,3 @@ public:
 	}
 
 };
-
-#endif // PROFIT_OPENCL

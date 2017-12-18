@@ -36,8 +36,6 @@
 
 #include "profit/profit.h"
 
-#ifdef PROFIT_FFTW
-
 using namespace profit;
 
 /**
@@ -52,6 +50,11 @@ public:
 		psf(psf_dims),
 		dims(dims)
 	{
+
+		if (not has_fftw()) {
+			return;
+		}
+
 		ConvolverCreationPreferences prefs;
 		prefs.src_dims = dims;
 		prefs.krn_dims = psf_dims;
@@ -93,6 +96,12 @@ static FFTFixtures fixtures[] = {
 class TestFFT : public CxxTest::TestSuite {
 
 public:
+
+	void _check_fftw_support() {
+		if (not has_fftw()) {
+			TS_SKIP("No FFTW support found, cannot run this test");
+		}
+	}
 
 	void _check_images_within_tolerance(Model &m) {
 		for(auto &fixture: fixtures) {
@@ -148,6 +157,7 @@ public:
 	}
 
 	void test_fft_brokenexp() {
+		_check_fftw_support();
 		Model m;
 		auto brokenexp = m.add_profile("brokenexp");
 		brokenexp->parameter("convolve", true);
@@ -164,6 +174,7 @@ public:
 	}
 
 	void test_fft_coresersic() {
+		_check_fftw_support();
 		Model m;
 		auto coresersic = m.add_profile("coresersic");
 		coresersic->parameter("convolve", true);
@@ -182,6 +193,7 @@ public:
 	}
 
 	void test_fft_ferrer() {
+		_check_fftw_support();
 		Model m;
 		auto ferrer = m.add_profile("ferrer");
 		ferrer->parameter("convolve", true);
@@ -198,6 +210,7 @@ public:
 	}
 
 	void test_fft_king() {
+		_check_fftw_support();
 		Model m;
 		auto king = m.add_profile("king");
 		king->parameter("convolve", true);
@@ -214,6 +227,7 @@ public:
 	}
 
 	void test_fft_moffat() {
+		_check_fftw_support();
 		Model m;
 		auto moffat = m.add_profile("moffat");
 		moffat->parameter("convolve", true);
@@ -229,6 +243,7 @@ public:
 	}
 
 	void test_fft_sersic() {
+		_check_fftw_support();
 		Model m;
 		auto sersic = m.add_profile("sersic");
 		sersic->parameter("convolve", true);
@@ -244,6 +259,7 @@ public:
 	}
 
 	void test_fftconvolver_reusage() {
+		_check_fftw_support();
 		Mask mask;
 		Image src(100, 100);
 		Image krn(25, 25);
@@ -268,5 +284,3 @@ public:
 	}
 
 };
-
-#endif // PROFIT_FFTW
