@@ -182,6 +182,45 @@ public:
 
 	void test_finesampling()
 	{
+
+		// Finesampling produces bigger images
+		Model m {100, 200};
+		m.set_finesampling(2);
+		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(200, 400));
+		m.set_finesampling(1);
+		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(100, 200));
+
+		auto prepare_model = [](Model &m) {
+			auto sersic = m.add_profile("sersic");
+			sersic->parameter("xcen", 50.);
+			sersic->parameter("ycen", 50.);
+			sersic->parameter("re", 10.);
+		};
+
+		// Finesampling produces the same effect than generating a bigger model
+		// image with smaller pixel scale
+		Model m_orig {200, 200};
+		m_orig.set_image_pixel_scale({0.5, 0.5});
+		prepare_model(m_orig);
+		auto im_orig = m_orig.evaluate();
+
+		Model m_finesampled {100, 100};
+		m_finesampled.set_finesampling(2);
+		prepare_model(m_finesampled);
+		auto im_finesampled = m_finesampled.evaluate();
+
+		// Pixels should be equal
+		auto orig_it = im_orig.begin();
+		auto fine_it = im_finesampled.begin();
+		for(; orig_it != im_orig.end(); orig_it++, fine_it++) {
+			TS_ASSERT_EQUALS(*orig_it, *fine_it);
+		}
+	}
+
+	void test_finesampling_flux()
+	{
+
+		// Total flux should be more or less maintained when finesampling
 		Model m {100, 200};
 		m.set_finesampling(2);
 		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(200, 400));
