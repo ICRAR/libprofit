@@ -325,11 +325,11 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 	Image ext_img = src.extend(src_dims * 2);
 
 	// Forward FFTs
-	std::vector<complex> src_fft = plan->forward(ext_img);
+	std::vector<complex> src_fft = plan->forward_real(ext_img);
 	if (krn_fft.empty()) {
 		auto krn_start = (src_dims - krn_dims) / 2;
 		Image ext_krn = krn.extend(ext_dims, krn_start);
-		krn_fft = plan->forward(ext_krn);
+		krn_fft = plan->forward_real(ext_krn);
 	}
 
 	// element-wise multiplication
