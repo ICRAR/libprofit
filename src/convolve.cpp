@@ -297,7 +297,7 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dims,
                            effort_t effort, unsigned int plan_omp_threads,
                            bool reuse_krn_fft) :
-	plan(),
+	fft_transformer(),
 	krn_fft(),
 	reuse_krn_fft(reuse_krn_fft)
 {
@@ -309,7 +309,7 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
 		throw invalid_parameter("krn_height must be <= src_height");
 	}
 	auto convolution_size = 4 * src_dims.x * src_dims.y;
-	plan = std::unique_ptr<FFTPlan>(new FFTPlan(convolution_size, effort, plan_omp_threads));
+	fft_transformer = std::unique_ptr<FFTTransformer>(new FFTRealTransformer(convolution_size, effort, plan_omp_threads));
 }
 
 Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
@@ -322,14 +322,14 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 
 	// Create extended images first
 	auto ext_dims = src_dims * 2;
-	Image ext_img = src.extend(src_dims * 2);
+	Image ext_img = src.extend(ext_dims);
 
 	// Forward FFTs
-	std::vector<complex> src_fft = plan->forward_real(ext_img);
+	std::vector<complex> src_fft = fft_transformer->forward(ext_img);
 	if (krn_fft.empty()) {
 		auto krn_start = (src_dims - krn_dims) / 2;
 		Image ext_krn = krn.extend(ext_dims, krn_start);
-		krn_fft = plan->forward_real(ext_krn);
+		krn_fft = fft_transformer->forward(ext_krn);
 	}
 
 	// element-wise multiplication
@@ -340,7 +340,7 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 	}
 
 	// inverse FFT and scale down
-	Image res(plan->backward_real(src_fft), ext_dims);
+	Image res(fft_transformer->backward(src_fft), ext_dims);
 	res /= res.size();
 
 	// The resulting image now starts at x_offset/y_offset

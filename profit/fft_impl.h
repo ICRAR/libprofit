@@ -41,9 +41,128 @@
 namespace profit {
 
 /**
- * A plan to be used for future FFT executions, both forward and backwards.
+ * An FFT transformer.
+ *
+ * Instances of this class are able to perform forward FFT transformation
+ * from a vector of double values into its corresponding complex series, and back.
+ * The forward transformation yields a vector of complex values, but the
+ * backward transformation yields a vector of double (i.e., only the real
+ * part of the backward transformation).
  */
-class FFTPlan {
+class FFTTransformer {
+
+public:
+
+	/*** A complex value with double elements */
+	typedef std::complex<double> dcomplex;
+
+	/*** A vector of complex, double values */
+	typedef std::vector<dcomplex> dcomplex_vec;
+
+	/**
+	 * Creates a new plan of size @ size, using effort @p effort and @p omp_threads threads to
+	 * create it.
+	 *
+	 * @param size The size of the data to be transformed
+	 * @param effort The kind of effort that should be put into creating this plan
+	 * @param omp_threads The number of threads to use to execute the plan
+	 */
+	FFTTransformer(unsigned int size, effort_t effort, unsigned int omp_threads) :
+		size(size), effort(effort), omp_threads(omp_threads) {}
+
+	virtual ~FFTTransformer() {}
+
+	/**
+	 * Transforms the given vector of doubles into its Fourier Transform. The
+	 * resulting vector is a vector of complex values.
+	 *
+	 * @param data The vector of doubles to transform
+	 * @return The transformed image as a vector of complex numbers
+	 */
+	virtual dcomplex_vec forward(const std::vector<double> &data) const = 0;
+
+	/**
+	 * Transforms the given vector of complex values into their inverse Fourier
+	 * Transform. The resulting vector is a vector of doubles only (the real
+	 * part of the inverse transformation).
+	 *
+	 * @param data A vector of complex numbers.
+	 * @return A vector with the real part of the corresponding inverse
+	 * transformation.
+	 */
+	virtual std::vector<double> backward(const dcomplex_vec &data) const = 0;
+
+protected:
+	int get_fftw_effort() const;
+	unsigned int get_size() const {
+		return size;
+	}
+
+	template <typename T>
+	void check_size(const std::vector<T> &data) const
+	{
+		if (data.size() != size) {
+			std::ostringstream os;
+			os << "data size != plan size: " << data.size() << " != " << size;
+			throw std::invalid_argument(os.str());
+		}
+	}
+
+	dcomplex_vec as_dcomplex_vec(const fftw_complex *cdata) const
+	{
+		dcomplex_vec ret;
+		ret.reserve(size);
+		std::transform(cdata, cdata + size, std::inserter(ret, ret.begin()), [](const fftw_complex &c) {
+			return dcomplex {c[0], c[1]};
+		});
+		return ret;
+	}
+
+private:
+	unsigned int size;
+	effort_t effort;
+	unsigned int omp_threads;
+
+};
+
+/**
+ * An FFTTransformer that interprets Image data as real numbers.
+ *
+ * Because
+ * therefore using
+ */
+class FFTRealTransformer: public FFTTransformer {
+
+public:
+
+	/**
+	 * Creates a new transformer that will work with images and vectors of size
+	 * @p size, using effort @p effort and @p omp_threads threads.
+	 *
+	 * @param size The size of the data to be transformed
+	 * @param effort The kind of effort that should be put into creating this plan
+	 * @param omp_threads The number of threads to use to execute the plan
+	 */
+	FFTRealTransformer(unsigned int size, effort_t effort,
+			unsigned int omp_threads);
+
+	/**
+	 * Destructor. It destroys the underlying plans.
+	 */
+	~FFTRealTransformer();
+
+	dcomplex_vec forward(const std::vector<double> &data) const override;
+
+	std::vector<double> backward(const dcomplex_vec &data) const override;
+
+private:
+	std::unique_ptr<double> real_buf;
+	std::unique_ptr<fftw_complex> complex_buf;
+	fftw_plan forward_plan;
+	fftw_plan backward_plan;
+};
+
+class FFTComplexTransformer: public FFTTransformer {
 
 public:
 
@@ -55,100 +174,22 @@ public:
 	 * @param effort The kind of effort that should be put into creating this plan
 	 * @param omp_threads The number of threads to use to execute the plan
 	 */
-	FFTPlan(unsigned int size, effort_t effort, unsigned int omp_threads);
-
-	/**
-	 * Move constructor
-	 */
-	FFTPlan(FFTPlan &&plan);
-
-	/*
-	 * No copy constructor allowed
-	 */
-	FFTPlan(const FFTPlan &plan) = delete;
+	FFTComplexTransformer(unsigned int size, effort_t effort, unsigned int omp_threads);
 
 	/**
 	 * Destroy this plan
 	 */
-	~FFTPlan();
+	~FFTComplexTransformer();
 
-	/**
-	 * Returns the FFT of @p data
-	 *
-	 * @param data The data to transform
-	 * @return The FFT of @p data, an array of complex data
-	 */
-	std::vector<std::complex<double>> forward(const std::vector<std::complex<double>> &data) const;
+	dcomplex_vec forward(const std::vector<double> &data) const override;
 
-	/**
-	 * Returns the FFT of @p image
-	 *
-	 * @param image The image to transform
-	 * @return The FFT of @p image
-	 */
-	std::vector<std::complex<double>> forward(const Image &image) const;
-
-	/**
-	 * Returns the FFT of ``image`` (real)
-	 *
-	 * @param data The image to transform
-	 * @return The FFT of ``image``
-	 */
-	std::vector<std::complex<double>> forward_real(const Image &image) const;
-
-	/**
-	 * Returns the inverse FFT of @p data
-	 *
-	 * @param data The data to transform
-	 * @return The inverse FFT of @p data
-	 */
-	std::vector<std::complex<double>> backward(const std::vector<std::complex<double>> &data) const;
-
-	/**
-	 * Returns the inverse FFT of @p image
-	 *
-	 * @param image The image to transform
-	 * @return The inverse FFT of @p image
-	 */
-	std::vector<std::complex<double>> backward(const Image &image) const;
-
-	/**
-	 * Returns the inverse FFT of @p data
-	 *
-	 * @param data The data to transform
-	 * @return The inverse FFT of @p data
-	 */
-	std::vector<double> backward_real(const std::vector<std::complex<double>> &data) const;
-
-	/**
-	 * Method to be called to initialize the underlying library.
-	 */
-	static void initialize();
-
-	/**
-	 * Method to be called to finalize the underlying library.
-	 */
-	static void finalize();
+	std::vector<double> backward(const dcomplex_vec &data) const override;
 
 private:
-	unsigned int size;
-	effort_t effort;
-	unsigned int omp_threads;
 	std::unique_ptr<fftw_complex> in;
 	std::unique_ptr<fftw_complex> out;
-	std::unique_ptr<double> real;
 	fftw_plan forward_plan;
 	fftw_plan backward_plan;
-	fftw_plan forward_plan_real;
-	fftw_plan backward_plan_real;
-
-	int get_fftw_effort() const;
-	std::vector<std::complex<double>> to_complex(const Image &image) const;
-	std::vector<double> to_double(const std::vector<std::complex<double>> &data) const;
-	std::vector<std::complex<double>> execute(const std::vector<std::complex<double>> &data, fftw_plan plan) const;
-	std::vector<std::complex<double>> execute_fwd(const Image &data, fftw_plan plan) const;
-	std::vector<double> execute_back(const std::vector<std::complex<double>> &data, fftw_plan plan) const;
-
 };
 
 }  // namespace profit

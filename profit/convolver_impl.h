@@ -104,7 +104,7 @@ public:
 	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
-	std::unique_ptr<FFTPlan> plan;
+	std::unique_ptr<FFTTransformer> fft_transformer;
 
 	std::vector<std::complex<double>> krn_fft;
 
