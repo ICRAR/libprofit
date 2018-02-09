@@ -313,6 +313,14 @@ std::string create_dirs(const std::string &at, const std::vector<std::string> &p
 
 std::string get_profit_home()
 {
+	auto profit_home = std::getenv("PROFIT_HOME");
+	if (profit_home) {
+		if (not dir_exists(profit_home)) {
+			create_dir(profit_home);
+		}
+		return profit_home;
+	}
+
 	auto user_home = std::getenv("HOME");
 	if (not user_home) {
 		throw std::runtime_error("User doesn't have a home");

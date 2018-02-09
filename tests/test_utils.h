@@ -26,7 +26,10 @@
 
 
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
+
+#include <unistd.h>
 
 #include <cxxtest/TestSuite.h>
 
@@ -100,4 +103,21 @@ public:
 			TS_ASSERT_EQUALS(0., beta(x,x));
 		}
 	}
+
+	void test_get_profit_home() {
+
+		// Test both the normal, HOME-based profit home directory
+		// and the environment variable-based directory
+		auto run_test = []() {
+			auto home = get_profit_home();
+			TSM_ASSERT_DIFFERS("Profit's home is not empty", "", home);
+			TS_ASSERT(dir_exists(home));
+		};
+
+		run_test();
+		::setenv("PROFIT_HOME", ".profit", 1);
+		run_test();
+		::rmdir(".profit");
+	}
+
 };
