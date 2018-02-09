@@ -109,6 +109,38 @@ double integrate_qagi(integration_func_t f, double a, void *params);
  */
 double integrate_qags(integration_func_t f, double a, double b, void *params);
 
+/**
+ * Returns whether the named directory exists or not
+ * @param dname The directory name
+ * @return Whether the directory with the given name exists or not
+ */
+bool dir_exists(const std::string &dname);
+
+/**
+ * Returns whether the named file exists or not
+ * @param fname The file name
+ * @return Whether the file with the given name exists or not
+ */
+bool file_exists(const std::string &fname);
+
+/**
+ * Creates the hierarchy of directories given in @p parts at @p at
+ * @param at The directory where the hierarchy of new directories will be created
+ * @param parts The hierarchy of directories to create. The first element will
+ * be created directly under @p at, the second element directly under the first,
+ * and so on
+ * @return The path to the last created directory
+ */
+std::string create_dirs(const std::string &at, const std::vector<std::string> &parts);
+
+/**
+ * Returns the name of the directory where libprofit stores its internal data.
+ * If the directory doesn't exist it is created first.
+ *
+ * @return The name of the libprofit home directory.
+ */
+std::string get_profit_home();
+
 } /* namespace profit */
 
 #endif /* PROFIT_UTILS_H */

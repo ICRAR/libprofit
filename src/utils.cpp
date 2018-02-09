@@ -25,11 +25,18 @@
  */
 
 #include <algorithm>
+#include <cstring>
+#include <cerrno>
 #include <functional>
 #include <limits>
 #include <numeric>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
+
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
 #include "profit/common.h"
 #include "profit/config.h"
@@ -243,5 +250,75 @@ double integrate_qags(integration_func_t f, double a, double b, void *params) {
 }
 
 #endif
+
+static inline
+bool inode_exists(const std::string &fname, mode_t expected_type, const char *type_name) {
+
+	struct ::stat st;
+	int result = ::stat(fname.c_str(), &st);
+
+	if (result == -1) {
+
+		// it doesn't exist
+		if (errno == ENOENT) {
+			return false;
+		}
+
+		// Another kind of unexpected error
+		std::ostringstream os;
+		os << "Unexpected error found when inspecting " << fname << ": ";
+		os << strerror(errno);
+		throw std::runtime_error(os.str());
+	}
+
+
+	// it exists, but is it a the expected type
+	bool is_expected = (st.st_mode & S_IFMT) == expected_type;
+	if (not is_expected) {
+		std::ostringstream os;
+		os << fname << " exists but is not a " << type_name << ". Please remove it and try again";
+		throw std::runtime_error(os.str());
+	}
+
+	return true;
+}
+
+bool dir_exists(const std::string &fname)
+{
+	return inode_exists(fname, S_IFDIR, "directory");
+}
+
+bool file_exists(const std::string &fname)
+{
+	return inode_exists(fname, S_IFREG, "regular file");
+}
+
+static inline
+void create_dir(const std::string &fname) {
+	// mkdir with 755 permissions
+	::mkdir(fname.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+}
+
+std::string create_dirs(const std::string &at, const std::vector<std::string> &parts)
+{
+	std::string the_dir = at;
+	for(auto &part: parts) {
+		the_dir += "/" + part;
+		if (not dir_exists(the_dir)) {
+			create_dir(the_dir);
+		}
+	}
+	return the_dir;
+}
+
+std::string get_profit_home()
+{
+	auto user_home = std::getenv("HOME");
+	if (not user_home) {
+		throw std::runtime_error("User doesn't have a home");
+	}
+
+	return create_dirs(user_home, {std::string(".profit")});
+}
 
 } /* namespace profit */
