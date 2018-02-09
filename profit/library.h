@@ -62,6 +62,10 @@ bool has_openmp();
 /// @return Whether libprofit was compiled with FFTW support
 bool has_fftw();
 
+/// Returns whether libprofit was compiled against an FFTW library with OpenMP support
+/// @return Whether libprofit was compiled against an FFTW library with OpenMP support
+bool has_fftw_with_openmp();
+
 /// Returns whether libprofit was compiled with OpenCL support
 /// @return Whether libprofit was compiled with OpenCL support
 bool has_opencl();

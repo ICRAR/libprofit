@@ -330,7 +330,20 @@ void show_version() {
 		cout << "No" << endl;
 	}
 	cout << "OpenMP support: " << (has_openmp() ? "Yes" : "No") << endl;
-	cout << "FFTW support: " << (has_fftw() ? "Yes" : "No") << endl;
+	cout << "FFTW support: ";
+	if (has_fftw()) {
+		cout << "Yes ";
+		if (has_fftw_with_openmp()) {
+			cout << "(with OpenMP)";
+		}
+		else {
+			cout << "(without OpenMP)";
+		}
+	}
+	else {
+		cout << "No";
+	}
+	cout << endl;
 }
 
 void usage(FILE *file, char *argv[]) {

@@ -131,6 +131,15 @@ bool has_fftw()
 #endif // PROFIT_FFTW
 }
 
+bool has_fftw_with_openmp()
+{
+#ifdef PROFIT_FFTW_OPENMP
+	return true;
+#else
+	return false;
+#endif
+}
+
 bool has_opencl()
 {
 #ifdef PROFIT_OPENCL
