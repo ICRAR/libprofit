@@ -28,6 +28,7 @@
 
 #include "profit/config.h"
 #include "profit/library.h"
+#include "profit/utils.h"
 
 #ifdef PROFIT_FFTW
 #include <fftw3.h>
@@ -59,13 +60,22 @@ unsigned short version_patch()
 	return PROFIT_VERSION_PATCH;
 }
 
+static inline
+std::string get_fftw_wisdom_filename()
+{
+	auto fftw_cache_dir = create_dirs(get_profit_home(), {std::string("fftw_cache")});
+#ifdef PROFIT_FFTW_OPENMP
+	return fftw_cache_dir + "/threaded-wisdom";
+#else
+	return fftw_cache_dir + "/unthreaded-wisdom";
+#endif
+}
 
 bool init()
 {
-
 	// Initialize FFTW library, including its OpenMP support
-#ifdef PROFIT_FFTW
-	fftw_import_system_wisdom();
+	// It is important to configure the OpenMP support before reading the wisdom;
+	// otherwise the plans will fail to import
 #ifdef PROFIT_FFTW_OPENMP
 	int res = fftw_init_threads();
 	if (!res) {
@@ -73,6 +83,16 @@ bool init()
 		return false;
 	}
 #endif // PROFIT_FFTW_OPENMP
+
+#ifdef PROFIT_FFTW
+	auto fftw_wisdom_filename = get_fftw_wisdom_filename();
+	if (file_exists(fftw_wisdom_filename)) {
+		auto import_status = fftw_import_wisdom_from_filename(fftw_wisdom_filename.c_str());
+		if (import_status == 0) {
+			std::cerr << "Importing fftw wisdom from " << fftw_wisdom_filename << " failed" << std::endl;
+		}
+	}
+	fftw_import_system_wisdom();
 #endif // PROFIT_FFTW
 
 	return true;
@@ -81,6 +101,11 @@ bool init()
 void finish()
 {
 #ifdef PROFIT_FFTW
+	auto fftw_wisdom_file = get_fftw_wisdom_filename();
+	auto export_status = fftw_export_wisdom_to_filename(fftw_wisdom_file.c_str());
+	if (export_status != 1) {
+		std::cerr << "Error when exporting fftw wisdom from " << fftw_wisdom_file << ": " << export_status << std::endl;
+	}
 #ifdef PROFIT_FFTW_OPENMP
 	fftw_cleanup_threads();
 #endif /* PROFIT_FFTW_OPENMP */
