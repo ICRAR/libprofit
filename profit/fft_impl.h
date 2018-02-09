@@ -35,6 +35,7 @@
 
 #include <fftw3.h>
 
+#include "profit/common.h"
 #include "profit/fft.h"
 #include "profit/image.h"
 
