@@ -33,7 +33,7 @@ class TestLibrary : public CxxTest::TestSuite {
 public:
 	void test_init_finish() {
 		// simply run them and make sure they don't fail
-		profit::init();
+		TSM_ASSERT("Failed to initialize library", profit::init());
 		profit::finish();
 	}
 
