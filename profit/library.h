@@ -47,11 +47,18 @@ unsigned short version_minor();
 /// @return The patch version of this libprofit library
 unsigned short version_patch();
 
-/// Initializes all static requirements of libprofit.
+/// Initializes the libprofit library. This function must be called once
+/// before using the library in any way. At the end, call finish().
+/// If the user fails to call init() the library *might* work,
+/// but it's not guaranteed that it will do so correctly, or as intended.
+///
 /// @return If the initialization was correct
 bool init();
 
-/// Finalizes all static requirements of libprofit
+/// Finalizes the libprofit library. All internal resources are freed.
+/// This method should be called after the library has been used.
+/// After a call to finish(), no other usage of the library should occur,
+/// unless init() is called again.
 void finish();
 
 /// Returns whether libprofit was compiled with OpenMP support

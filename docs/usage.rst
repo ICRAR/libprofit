@@ -38,16 +38,21 @@ The basic usage pattern then is as follows:
 
 	 #include <profit/profit.h>
 
+#. Initialize the library with the :func:`init` function.
+   This needs to be called *only once* in your program::
+
+	 profit::init();
+
 #. First obtain a model instance::
 
-	 Model model;
+	 profit::Model model;
 
 #. Create a profile. For a list of supported names see :doc:`profiles`;
    if you want to support a new profile see :doc:`new_profile`.
    If an unknown name is given an :class:`invalid_parameter` exception will be
    thrown::
 
-	 Profile &sersic_profile = model.add_profile("sersic");
+	 profit::Profile &sersic_profile = model.add_profile("sersic");
 
 #. Customize your profile.
    To set the different parameters on your profile call
@@ -66,7 +71,7 @@ The basic usage pattern then is as follows:
 
 #. Evaluate the model simply run::
 
-	 ImageAndOffset result = model.evaluate();
+	 profit::ImageAndOffset result = model.evaluate();
 
 #. The result of an evaluation consists on a pair
    containing the resulting image,
@@ -74,8 +79,8 @@ The basic usage pattern then is as follows:
    (see :ref:`convolution.model` for details on this).
    Users can extract these pieces of information like this::
 
-	 Image image = result.first;
-	 Point offset = result.second;
+	 profit::Image image = result.first;
+	 profit::Point offset = result.second;
 
 #. If there are have been errors
    while generating the image
@@ -90,6 +95,11 @@ The basic usage pattern then is as follows:
 	 }
 
 #. When the model is destroyed the underlying profiles are destroyed as well.
+
+#. When you are finished using the library,
+   call the :func:`finish` function::
+
+	 profit::finish();
 
 To illustrate this process, refer to the following figure:
 
