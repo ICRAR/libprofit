@@ -195,6 +195,15 @@ private:
 
 public:
 
+	void test_no_opencl() {
+		if (has_opencl()) {
+			TS_SKIP("OpenCL support is available, skipping test");
+		}
+
+		TSM_ASSERT("OpenCl environment found, but none expected", get_opencl_info().empty());
+		TSM_ASSERT_EQUALS("Got OpenCL environment, but none expected", nullptr, get_opencl_environment(0, 0, false, false));
+	}
+
 	void test_opencldiff_brokenexp() {
 		_check_opencl_support();
 		Model m {100, 100};
