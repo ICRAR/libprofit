@@ -143,6 +143,7 @@ std::vector<double> FFTRealTransformer::backward(const dcomplex_vec &cdata) cons
 }
 
 
+#if 0
 FFTComplexTransformer::FFTComplexTransformer(unsigned int size, effort_t effort, unsigned int omp_threads) :
 	FFTTransformer(size, effort, omp_threads),
 	in(), out(),
@@ -237,6 +238,7 @@ std::vector<double> FFTComplexTransformer::backward(const dcomplex_vec &cdata) c
 
 	return ret;
 }
+#endif // 0
 
 }  // namespace profit
 

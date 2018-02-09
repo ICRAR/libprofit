@@ -163,6 +163,7 @@ private:
 	fftw_plan backward_plan;
 };
 
+#if 0
 class FFTComplexTransformer: public FFTTransformer {
 
 public:
@@ -192,6 +193,7 @@ private:
 	fftw_plan forward_plan;
 	fftw_plan backward_plan;
 };
+#endif // 0
 
 }  // namespace profit
 
