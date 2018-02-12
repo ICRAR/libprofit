@@ -233,9 +233,9 @@ public:
 		moffat->parameter("convolve", true);
 		moffat->parameter("xcen", 34.);
 		moffat->parameter("ycen", 74.);
-		moffat->parameter("mag", 1.);
-		moffat->parameter("fwhm", 3.0);
-		moffat->parameter("con", 5.);
+		moffat->parameter("mag", 10.);
+		moffat->parameter("fwhm", 10.0);
+		moffat->parameter("con", 10.);
 		moffat->parameter("ang", 45.);
 		moffat->parameter("axrat", 0.95);
 		moffat->parameter("box", 0.1);
