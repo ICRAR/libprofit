@@ -25,9 +25,23 @@ R"===(
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+inline static double _d_broken_exponential(double r, double h1, double h2, double rb, double a) {
+
+	/*
+	 * See brokenexponential.cpp for an explanation about this
+	 */
+	double base = r - rb;
+	double expo = 1 / h1 - 1 / h2;
+	if (a * base < 40) {
+		base = log(1 + exp(a * base)) / a;
+	}
+
+	return exp(-r / h1 + expo * base);
+}
+
 inline double d_evaluate_brokenexp(double x, double y, double box, double h1, double h2, double rb, double a) {
 	private double r = pow(pow(fabs(x), 2+box) + pow(fabs(y), 2+box), 1/(2+box));
-	return exp(-r/h1)*pow(1+exp(a*(r-rb)),(1/a)*(1/h1-1/h2));
+	return _d_broken_exponential(r, h1, h2, rb, a);
 }
 
 kernel void brokenexp_double(

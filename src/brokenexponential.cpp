@@ -52,7 +52,7 @@ double _broken_exponential(double r, double h1, double h2, double rb, double a) 
 	 *
 	 *    exp(-r/h1) * (1 + exp(a * base)) ^ (exponent / a)
 	 *  = exp(-r/h1) * exp(log((1 + exp(a * base)) ^ (exponent / a)))
-	 *  = exp(-r/h1 + log((1 + exp(a * base)) ^ (exponent / a))
+	 *  = exp(-r/h1 + log((1 + exp(a * base)) ^ (exponent / a)))
 	 *  = exp(-r/h1 + exponent / a * log(1 + exp(a * base)))
 	 *
 	 * In this last expression, when (a * base) is big, then doing

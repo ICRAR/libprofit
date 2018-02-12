@@ -25,9 +25,26 @@ R"===(
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+inline static float _f_broken_exponential(float r, float h1, float h2, float rb, float a) {
+
+	/*
+	 * See brokenexponential.cpp for an explanation about this.
+	 * The only difference here is that since we are using single floating
+	 * point precision, the limit at which we simplify the maths is lower
+	 * (i.e., 20 instead of 40, although the limit seems to be at 15).
+	 */
+	float base = r - rb;
+	float expo = 1 / h1 - 1 / h2;
+	if (a * base < 20) {
+		base = log(1 + exp(a * base)) / a;
+	}
+
+	return exp(-r / h1 + expo * base);
+}
+
 inline float f_evaluate_brokenexp(float x, float y, float box, float h1, float h2, float rb, float a) {
 	private float r = pow(pow(fabs(x), 2+box) + pow(fabs(y), 2+box), 1/(2+box));
-	return exp(-r/h1)*pow(1+exp(a*(r-rb)),(1/a)*(1/h1-1/h2));
+	return _f_broken_exponential(r, h1, h2, rb, a);
 }
 
 kernel void brokenexp_float(
