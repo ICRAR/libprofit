@@ -34,9 +34,11 @@
 #include <stdexcept>
 #include <vector>
 
+#include <dirent.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "profit/common.h"
 #include "profit/config.h"
@@ -310,6 +312,70 @@ std::string create_dirs(const std::string &at, const std::vector<std::string> &p
 	}
 	return the_dir;
 }
+
+static
+void _removal_error(const char *path)
+{
+	std::ostringstream os;
+	os << "Unexpected error found when removing " << path << ": ";
+	os << strerror(errno);
+	throw std::runtime_error(os.str());
+}
+
+static
+void _recursive_remove(const char *path)
+{
+	struct ::stat st;
+	int result = ::stat(path, &st);
+	if (result == -1) {
+		_removal_error(path);
+	}
+
+	auto mode = st.st_mode & S_IFMT;
+	if (mode == S_IFDIR) {
+
+		// We open the directory, recursively remove its contents
+		// (making sure we skip . and ..), close it, and finally remove it
+		DIR *dir;
+		if ((dir = ::opendir(path)) == nullptr) {
+			_removal_error(path);
+		}
+
+		struct dirent *ent;
+		while ((ent = ::readdir (dir)) != nullptr) {
+
+			if (!strcmp(".", ent->d_name) || !strcmp("..", ent->d_name)) {
+				continue;
+			}
+
+			std::ostringstream full_path;
+			full_path << path << "/" << ent->d_name;
+			_recursive_remove(full_path.str().c_str());
+		}
+
+		if (::closedir(dir) == -1) {
+			_removal_error(path);
+		}
+
+		if (::rmdir(path) == -1) {
+			_removal_error(path);
+		}
+
+		return;
+	}
+
+	// No recursion needed, just remove
+	auto ret = ::unlink(path);
+	if (ret == -1) {
+		_removal_error(path);
+	}
+}
+
+void recursive_remove(const std::string &path)
+{
+	_recursive_remove(path.c_str());
+}
+
 
 std::string get_profit_home()
 {

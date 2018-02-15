@@ -29,8 +29,6 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <unistd.h>
-
 #include <cxxtest/TestSuite.h>
 
 #include "profit/config.h"
@@ -114,10 +112,40 @@ public:
 			TS_ASSERT(dir_exists(home));
 		};
 
+		// Small utility to keep the previous PROFIT_HOME, if any
+		struct env_keeper {
+			std::string _home;
+			env_keeper() : _home() {
+				auto h = ::getenv("PROFIT_HOME");
+				if (h != nullptr) {
+					_home = h;
+				}
+			}
+			~env_keeper() {
+				if (!_home.empty()) {
+					::setenv("PROFIT_HOME", _home.c_str(), 1);
+				}
+				else {
+					::unsetenv("PROFIT_HOME");
+				}
+			}
+		} keeper;
+
+		// Run the tests both with the default profit home and with a hardcoded one
 		run_test();
 		::setenv("PROFIT_HOME", ".profit", 1);
 		run_test();
-		::rmdir(".profit");
+		recursive_remove(".profit");
+	}
+
+	void test_recursive_remove() {
+		auto home = get_profit_home();
+		recursive_remove(home);
+		TS_ASSERT(not dir_exists(home));
+	}
+
+	void test_recursive_remove_failures() {
+		TS_ASSERT_THROWS(recursive_remove(".this_shouldn_exist_at_all"), std::runtime_error);
 	}
 
 };

@@ -134,6 +134,12 @@ bool file_exists(const std::string &fname);
 std::string create_dirs(const std::string &at, const std::vector<std::string> &parts);
 
 /**
+ * Recursively remove the given path
+ * @param path The path to remove. If it doesn't exist, an error is issued
+ */
+void recursive_remove(const std::string &path);
+
+/**
  * Returns the name of the directory where libprofit stores its internal data.
  * If the directory doesn't exist it is created first.
  *
