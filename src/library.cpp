@@ -173,4 +173,17 @@ unsigned short opencl_version_minor()
 #endif // PROFIT_OPENCL
 }
 
+void clear_cache()
+{
+	auto profit_home = get_profit_home();
+
+#ifdef PROFIT_FFTW
+	fftw_forget_wisdom();
+	auto fftw_cache = profit_home + "/fftw_cache";
+	if (dir_exists(fftw_cache)) {
+		recursive_remove(fftw_cache);
+	}
+#endif
+}
+
 }

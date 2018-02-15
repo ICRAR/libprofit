@@ -96,6 +96,10 @@ unsigned short opencl_version_major();
 /// If OpenCL is not supported, the result is undefined.
 unsigned short opencl_version_minor();
 
+/// Clears the cache area used by libprofit. Depending on the supported features
+/// this will remove certain files from the disk
+void clear_cache();
+
 }
 
 #endif // PROFIT_INIT_FINI_H_

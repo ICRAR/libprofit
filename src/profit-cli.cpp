@@ -370,6 +370,7 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -H        Height in pixels. Defaults to 100\n");
 	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
 	fprintf(file,"  -P        PSF function (specified as w:h:val1,val2..., or as a FITS filename)\n");
+	fprintf(file,"  -R        Clear libprofit's cache and exit\n");
 	fprintf(file,"  -h,-?     Show this help and exit\n");
 	fprintf(file,"  -V        Show the program version and exit\n\n");
 	fprintf(file,"The following convolver types are supported:\n\n");
@@ -738,7 +739,7 @@ int parse_and_run(int argc, char *argv[]) {
 	unsigned int clplat_idx = 0, cldev_idx = 0;
 	vector<string> tokens;
 
-	const char *options = "h?VsP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:C:cF:rn:"
+	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:C:cF:rn:"
 	;
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
@@ -751,6 +752,10 @@ int parse_and_run(int argc, char *argv[]) {
 
 			case 'V':
 				show_version();
+				return 0;
+
+			case 'R':
+				clear_cache();
 				return 0;
 
 			case 's':
