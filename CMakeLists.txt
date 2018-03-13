@@ -276,6 +276,7 @@ install(FILES
         profit/exceptions.h
         profit/fft.h
         profit/image.h
+        profit/library.h
         profit/model.h
         profit/opencl.h
         profit/profile.h
