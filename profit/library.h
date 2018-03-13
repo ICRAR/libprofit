@@ -47,6 +47,11 @@ unsigned short version_minor();
 /// @return The patch version of this libprofit library
 unsigned short version_patch();
 
+/// Returns the version suffix (e.g., "dev" or "rc1") of this libprofit library.
+/// If no version suffix is present in this version, an empty string is returned.
+/// @return The version suffix of this libprofit library
+std::string version_suffix();
+
 /// Initializes the libprofit library. This function must be called once
 /// before using the library in any way. At the end, call finish().
 /// If the user fails to call init() the library *might* work,

@@ -38,7 +38,8 @@ namespace profit {
 
 static std::string _version = std::to_string(PROFIT_VERSION_MAJOR) + "." +
                               std::to_string(PROFIT_VERSION_MINOR) + "." +
-                              std::to_string(PROFIT_VERSION_PATCH);
+                              std::to_string(PROFIT_VERSION_PATCH) +
+                              (std::string("") != PROFIT_VERSION_SUFFIX ? std::string("-") + PROFIT_VERSION_SUFFIX : "");
 
 std::string version()
 {
@@ -58,6 +59,11 @@ unsigned short version_minor()
 unsigned short version_patch()
 {
 	return PROFIT_VERSION_PATCH;
+}
+
+std::string version_suffix()
+{
+	return PROFIT_VERSION_SUFFIX;
 }
 
 static inline

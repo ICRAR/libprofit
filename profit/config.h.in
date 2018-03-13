@@ -31,6 +31,7 @@
 #define PROFIT_VERSION_MAJOR @PROFIT_VERSION_MAJOR@
 #define PROFIT_VERSION_MINOR @PROFIT_VERSION_MINOR@
 #define PROFIT_VERSION_PATCH @PROFIT_VERSION_PATCH@
+#define PROFIT_VERSION_SUFFIX "@PROFIT_VERSION_SUFFIX@"
 
 /**
  * Whether libprofit should use the R/Rmath mathematical functions to perform

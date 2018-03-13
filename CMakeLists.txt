@@ -24,12 +24,21 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-# We have the version here
+# Extract version information from VERSION file
 file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION PROFIT_VERSION)
+message("-- Building libproft version ${PROFIT_VERSION}")
 string(REPLACE "." ";" VERSION_LIST ${PROFIT_VERSION})
+string(REPLACE "-" ";" VERSION_LIST "${VERSION_LIST}")
+
+list(LENGTH VERSION_LIST PROFIT_VERSION_N_ITEMS)
 list(GET VERSION_LIST 0 PROFIT_VERSION_MAJOR)
 list(GET VERSION_LIST 1 PROFIT_VERSION_MINOR)
 list(GET VERSION_LIST 2 PROFIT_VERSION_PATCH)
+if (${PROFIT_VERSION_N_ITEMS} GREATER 3)
+	list(GET VERSION_LIST 3 PROFIT_VERSION_SUFFIX)
+else ()
+	set(PROFIT_VERSION_SUFFIX "")
+endif()
 
 # We have only C++ sources, but until cmake 3.4 the check_symbol_exists
 # macro didn't work properly if only defining C++ as the project language
@@ -40,7 +49,7 @@ else()
 endif()
 
 # Our project...
-project(libprofit VERSION ${PROFIT_VERSION} LANGUAGES ${PROFIT_LANGS})
+project(libprofit VERSION "${PROFIT_VERSION_MAJOR}.${PROFIT_VERSION_MINOR}.${PROFIT_VERSION_PATCH}" LANGUAGES ${PROFIT_LANGS})
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/)
 
