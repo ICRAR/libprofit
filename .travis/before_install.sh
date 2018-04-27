@@ -44,6 +44,10 @@ then
 		brew cask uninstall oclint
 	fi
 
+	# cxxtest pulls python@2, so we need to unlink
+	# the pre-installed python first
+	brew unlink python
+
 	# Minimal dependencies for testing
 	brew install gsl fftw cxxtest
 	return
