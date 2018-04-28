@@ -102,3 +102,5 @@ Profile classes
 
 .. doxygenclass:: profit::SkyProfile
    :members: bg
+
+.. doxygenclass:: profit::NullProfile

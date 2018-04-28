@@ -139,3 +139,10 @@ at a specific location and for a given user-defined magnitude.
 * **ycen**: The y position at which to generate the centred PSF
   (can be fractional pixels).
 * **mag**: The total flux magnitude of the PSF.
+
+
+``null``
+--------
+
+The null profile leaves the image area untouched. It is only useful for testing
+purposes.
