@@ -127,6 +127,18 @@ macro(find_opencl)
 					set(PROFIT_OPENCL_TARGET_VERSION 120)
 				endif()
 			endif()
+
+			# Some platforms (Ubuntu 18.04, for instance) are already
+			# shipping with OpenCL versions above 2.0, which is the
+			# maximum version our bundled cl2.hpp header supports
+			# (and there doesn't seem to be many updates upstream).
+			# In such cases, the header will complain about the
+			# version not having a supported value, and will default
+			# to using 2.0. This is fine (we use up to 1.2 features),
+			# but it's nicer to *not* get a warning because of that.
+			if (${PROFIT_OPENCL_MAJOR} EQUAL 2 AND NOT ${PROFIT_OPENCL_MINOR} EQUAL 0)
+				set(PROFIT_OPENCL_MINOR 0)
+			endif()
 			set(profit_LIBS ${profit_LIBS} ${OpenCL_LIBRARIES})
 		endif()
 	endif()
