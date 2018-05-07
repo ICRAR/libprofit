@@ -29,6 +29,7 @@
 
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -133,6 +134,9 @@ public:
 	 * Sets the finesampling factor to use in this Model
 	 */
 	void set_finesampling(unsigned int finesampling) {
+		if (finesampling == 0) {
+			throw std::invalid_argument("finesampling must be > 0");
+		}
 		this->finesampling = finesampling;
 	}
 
