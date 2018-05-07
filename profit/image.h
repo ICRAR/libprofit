@@ -397,6 +397,17 @@ public:
 		return _data[idx];
 	}
 
+	/// [] operator that works with a Point
+	reference operator[](const Point &p)
+	{
+		return _data[p.x + p.y * getWidth()];
+	}
+
+	const_reference operator[](const Point &p) const
+	{
+		return _data[p.x + p.y * getWidth()];
+	}
+
 	/// iterator to beginning of data
 	iterator begin() { return _data.begin(); }
 	const_iterator begin() const { return _data.begin(); }

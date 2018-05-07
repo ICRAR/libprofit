@@ -198,13 +198,26 @@ public:
 
 	void test_subscript() {
 
-		auto x = double(rand());
+		auto r = []() { return double(rand()); };
+		auto x = r();
 		Image im({x}, 1, 1);
 		TS_ASSERT_EQUALS(x, im[0]);
+		auto val = im[{0, 0}];
+		TS_ASSERT_EQUALS(x, val);
 
-		auto x2 = rand();
-		im[0] = x2;
+		auto x2 = r();
+		im[{0, 0}] = x2;
 		TS_ASSERT_EQUALS(x2, im[0]);
+		val = im[{0, 0}];
+		TS_ASSERT_EQUALS(x2, val);
+
+		Image larger_im {{r(), r(), r(), r(), r(), r(), r(), r(), r()}, 3, 3};
+		val = larger_im[{2, 2}];
+		TS_ASSERT_EQUALS(larger_im[8], val);
+		val = larger_im[{1, 2}];
+		TS_ASSERT_EQUALS(larger_im[7], val);
+		val = larger_im[{2, 1}];
+		TS_ASSERT_EQUALS(larger_im[5], val);
 	}
 
 	void test_iterators() {
