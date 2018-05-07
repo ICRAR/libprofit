@@ -361,11 +361,12 @@ void usage(FILE *file, char *argv[]) {
 	fprintf(file,"  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)\n");
 	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
 	fprintf(file,"  -n <n>    Use n OpenMP threads to calculate profiles\n");
-	fprintf(file,"  -F <n>    FFTW plans created with n effort (more takes longer)\n");
+	fprintf(file,"  -e <n>    FFTW plans created with n effort (more takes longer)\n");
 	fprintf(file,"  -r        Reuse FFT-transformed PSF across evaluations (if -T fft)\n");
 	fprintf(file,"  -x        Image width. Defaults to 100\n");
 	fprintf(file,"  -y        Image height. Defaults to 100\n");
 	fprintf(file,"  -S <n>    Finesampling factor. Defaults to 1\n");
+	fprintf(file,"  -F        Do *not* return finesampled image (if -S <n>)\n");
 	fprintf(file,"  -w        Width in pixels. Defaults to 100\n");
 	fprintf(file,"  -H        Height in pixels. Defaults to 100\n");
 	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
@@ -730,6 +731,7 @@ int parse_and_run(int argc, char *argv[]) {
 	output_t output = none;
 	Model m;
 	Image psf;
+	unsigned int finesampling = 1;
 	string convolver_type = "brute";
 	ConvolverCreationPreferences convolver_prefs;
 	struct stat stat_buf;
@@ -739,7 +741,7 @@ int parse_and_run(int argc, char *argv[]) {
 	unsigned int clplat_idx = 0, cldev_idx = 0;
 	vector<string> tokens;
 
-	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:C:cF:rn:"
+	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:C:ce:rn:F"
 	;
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
@@ -770,7 +772,7 @@ int parse_and_run(int argc, char *argv[]) {
 				m.set_crop(false);
 				break;
 
-			case 'F':
+			case 'e':
 				convolver_prefs.effort = effort_t(std::atoi(optarg));
 				break;
 
@@ -825,7 +827,11 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'S':
-				m.set_finesampling((unsigned int)atoi(optarg));
+				finesampling = (unsigned int)atoi(optarg);
+				break;
+
+			case 'F':
+				m.set_return_finesampled(false);
 				break;
 
 			case 'x':
@@ -877,9 +883,10 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 
 	Dimensions dims {width, height};
-	convolver_prefs.src_dims = dims;
 	m.set_dimensions(dims);
 	m.set_image_pixel_scale({scale_x, scale_y});
+	m.set_finesampling(finesampling);
+	convolver_prefs.src_dims = dims * finesampling;
 
 	/* Get an OpenCL environment */
 	if( use_opencl ) {

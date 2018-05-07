@@ -217,23 +217,41 @@ public:
 		}
 	}
 
-	void test_finesampling_flux()
+	void test_finesampling_dimensions()
 	{
-
-		// Total flux should be more or less maintained when finesampling
 		Model m {100, 200};
-		m.set_finesampling(2);
-		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(200, 400));
+
+		// no finesampling
 		m.set_finesampling(1);
 		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(100, 200));
 
+		// finesampling = 2, dimensions should be double
+		m.set_finesampling(2);
+		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(200, 400));
+
+		// finesampling = 2, return finesampled = false, dimensions should be original
+		m.set_finesampling(2);
+		m.set_return_finesampled(false);
+		TS_ASSERT_EQUALS(m.evaluate().getDimensions(), Dimensions(100, 200));
+	}
+
+	void test_finesampling_flux()
+	{
+		Model m {100, 200};
 		auto p = m.add_profile("sersic");
 		p->parameter("xcen", 50.);
 		p->parameter("ycen", 100.);
 		p->parameter("re", 30.);
 		auto flux = m.evaluate().getTotal();
+
+		// Total flux should be more or less maintained when finesampling
 		m.set_finesampling(2);
 		auto finesampled_flux = m.evaluate().getTotal();
+		TS_ASSERT_DELTA(flux, finesampled_flux, flux * 0.001);
+
+		// Total flux should also be maintained when finesampling *and* not returning the fine image
+		m.set_return_finesampled(false);
+		finesampled_flux = m.evaluate().getTotal();
 		TS_ASSERT_DELTA(flux, finesampled_flux, flux * 0.001);
 	}
 

@@ -59,7 +59,8 @@ Model::Model(unsigned int width, unsigned int height) :
 	dry_run(false),
 	opencl_env(),
 	omp_threads(0),
-	profiles()
+	profiles(),
+	return_finesampled(true)
 {
 	// no-op
 }
@@ -222,6 +223,12 @@ Image Model::evaluate(Point &offset_out) {
 	}
 	else {
 		image += no_convolved_images;
+	}
+
+	// Downsample image if necessary
+	if (finesampling > 1 and !return_finesampled) {
+		image = image.downsample(finesampling, Image::DownsamplingMode::SUM);
+		offset /= finesampling;
 	}
 
 	/* Done! Good job :-) */

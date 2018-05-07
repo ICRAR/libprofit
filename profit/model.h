@@ -263,6 +263,26 @@ public:
 		this->dry_run = dry_run;
 	}
 
+	/**
+	 * Set the return finesampled flag.
+	 *
+	 * When users set a finesampling factor on the model (via
+	 * set_finesampling()) the image calculated by this model will have bigger
+	 * dimensions than those originally set in the Model. This flag controls
+	 * whether this bigger image should be returned (default behavior), or
+	 * whether a smaller version of the image with dimensions equals to the ones
+	 * requested (plus any padding introduced by convolution) should be
+	 * returned. If a smaller image is returned, the total flux of the image is
+	 * still preserved.
+	 *
+	 * @param return_finesampled Whether this model should return finesampled
+	 * images as-is (`true`) or if they should be downsampled to match the
+	 * original model dimensions.
+	 */
+	void set_return_finesampled(bool return_finesampled) {
+		this->return_finesampled = return_finesampled;
+	}
+
 	void set_opencl_env(const OpenCLEnvPtr &opencl_env) {
 		this->opencl_env = opencl_env;
 	}
@@ -308,6 +328,7 @@ private:
 	ConvolverPtr convolver;
 	bool crop;
 	bool dry_run;
+	bool return_finesampled;
 	OpenCLEnvPtr opencl_env;
 	unsigned int omp_threads;
 	std::vector<ProfilePtr> profiles;
