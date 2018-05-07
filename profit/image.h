@@ -487,12 +487,82 @@ public:
 	Image(const Image& other);
 	Image(Image &&other);
 
+	/** Available image upsampling modes */
+	enum UpsamplingMode {
+
+		/**
+		 * Scales the value of the original pixel by `factor * factor` before
+		 * copying it into each corresponding upsampled pixel. This has the
+		 * effect of preserving the total flux of the original image
+		 */
+		SCALE = 0,
+
+		/**
+		 * Copies the value of the original pixel unmodified into each
+		 * corresponding upsampled pixel
+		 */
+		COPY
+
+	};
+
+	/** Available image downsampling modes */
+	enum DownsamplingMode {
+
+		/**
+		 * Pixel values on the resulting image are the average of the
+		 * corresponding pixels on the original image.
+		 */
+		AVERAGE = 0,
+
+		/**
+		 * Pixel values on the resulting image are the sum of the corresponding
+		 * pixels on the original image.
+		 */
+		SUM,
+
+		/**
+		 * Pixel values on the resulting image are samples from the original
+		 * image. Samples are taken from the lowest placed pixel, in both
+		 * dimensions, of the corresponding pixels of the original image.
+		 */
+		SAMPLE
+
+	};
+
 	/**
 	 * Returns the sum of the image pixel's values
 	 *
 	 * @return The sum of the image pixel's values
 	 */
 	double getTotal() const;
+
+	/**
+	 * Upsamples this image by the given factor.
+	 *
+	 * The resulting image's dimensions will be the original image's times the
+	 * upsampling factor. The particular upsampling method is determined by
+	 * @p mode
+	 *
+	 * @param factor The upsampling factor. Must be greater than 0. If equals to
+	 * 1, the upsampled image is equals to the original image.
+	 * @param mode The upsampling mode to use
+	 * @return An upsampled image, without interpolation.
+	 */
+	Image upsample(unsigned int factor, UpsamplingMode mode = SCALE) const;
+
+	/**
+	 * Downsamples this image by the given factor.
+	 *
+	 * The resulting image's dimensions will be the ceiling of this image's
+	 * divided by the downsampling factor. The particular downsampling method is
+	 * determined by @p mode
+	 *
+	 * @param factor The downsampling factor. Must be greater than 0. If equals
+	 * to 1, the upsampled image is equals to the original image.
+	 * @param mode The downsampling mode to use
+	 * @return A downsampled image, without interpolation.
+	 */
+	Image downsample(unsigned int factor, DownsamplingMode = SUM) const;
 
 	/**
 	 * Normalized this image; i.e., rescales its values so the sum of all its

@@ -25,6 +25,7 @@
  */
 
 #include <cxxtest/TestSuite.h>
+#include <list>
 
 #include "profit/profit.h"
 
@@ -202,21 +203,21 @@ public:
 		auto x = r();
 		Image im({x}, 1, 1);
 		TS_ASSERT_EQUALS(x, im[0]);
-		auto val = im[{0, 0}];
+		auto val = im[Point{0, 0}];
 		TS_ASSERT_EQUALS(x, val);
 
 		auto x2 = r();
-		im[{0, 0}] = x2;
+		im[Point{0, 0}] = x2;
 		TS_ASSERT_EQUALS(x2, im[0]);
-		val = im[{0, 0}];
+		val = im[Point{0, 0}];
 		TS_ASSERT_EQUALS(x2, val);
 
 		Image larger_im {{r(), r(), r(), r(), r(), r(), r(), r(), r()}, 3, 3};
-		val = larger_im[{2, 2}];
+		val = larger_im[Point{2, 2}];
 		TS_ASSERT_EQUALS(larger_im[8], val);
-		val = larger_im[{1, 2}];
+		val = larger_im[Point{1, 2}];
 		TS_ASSERT_EQUALS(larger_im[7], val);
-		val = larger_im[{2, 1}];
+		val = larger_im[Point{2, 1}];
 		TS_ASSERT_EQUALS(larger_im[5], val);
 	}
 
@@ -400,5 +401,124 @@ public:
 		// vertically overflows
 		TS_ASSERT_THROWS(im.crop({5, 5}, {0, 4}), std::invalid_argument);
 
+	}
+
+	void test_upsampling() {
+
+		Image im({1, 2, 3, 4}, 2, 2);
+
+		// zero is not allowed
+		TS_ASSERT_THROWS(im.upsample(0), std::invalid_argument);
+
+		// identity upsampling
+		TS_ASSERT_EQUALS(im, im.upsample(1));
+
+		// Upsampling dimensions are correct
+		TS_ASSERT_EQUALS(im.upsample(2).getDimensions(), (Dimensions{4, 4}));
+		TS_ASSERT_EQUALS(im.upsample(4).getDimensions(), (Dimensions{8, 8}));
+		TS_ASSERT_EQUALS(im.upsample(50).getDimensions(), (Dimensions{100, 100}));
+
+		// Individual pixels seem fine when upsampling without total flux preservation
+		auto upsampled = im.upsample(2, Image::UpsamplingMode::COPY);
+		std::list<std::pair<double, std::list<Point>>> expectations {
+			{im[0], {{0, 0}, {0, 1}, {1, 0}, {1, 1}}},
+			{im[1], {{2, 0}, {3, 0}, {2, 1}, {3, 1}}},
+			{im[2], {{0, 2}, {1, 2}, {0, 3}, {1, 3}}},
+			{im[3], {{2, 2}, {3, 2}, {2, 3}, {3, 3}}}
+		};
+		for(auto& expectation: expectations) {
+			for(auto &point: expectation.second) {
+				TS_ASSERT_EQUALS(upsampled[point], expectation.first);
+			}
+		}
+
+		// And everything is good when upsampling and preserving total flux
+		upsampled = im.upsample(2, Image::UpsamplingMode::SCALE);
+		for(auto& expectation: expectations) {
+			for(auto &point: expectation.second) {
+				TS_ASSERT_EQUALS(upsampled[point], expectation.first / 4);
+			}
+		}
+	}
+
+	void test_downsampling() {
+
+		// Two images, we'll check that ceiling works with the im1
+		Image im1({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}, 8, 2);
+		Image im2({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, 5, 3);
+
+		// zero is not allowed
+		TS_ASSERT_THROWS(im1.downsample(0), std::invalid_argument);
+		TS_ASSERT_THROWS(im2.downsample(0), std::invalid_argument);
+
+		// identity downsampling
+		TS_ASSERT_EQUALS(im1, im1.downsample(1));
+		TS_ASSERT_EQUALS(im2, im2.downsample(1));
+
+		// Downsampling dimensions are correct
+		TS_ASSERT_EQUALS(im1.downsample(2).getDimensions(), (Dimensions{4, 1}));
+		TS_ASSERT_EQUALS(im1.downsample(4).getDimensions(), (Dimensions{2, 1}));
+		TS_ASSERT_EQUALS(im1.downsample(50).getDimensions(), (Dimensions{1, 1}));
+
+		TS_ASSERT_EQUALS(im2.downsample(2).getDimensions(), (Dimensions{3, 2}));
+		TS_ASSERT_EQUALS(im2.downsample(4).getDimensions(), (Dimensions{2, 1}));
+		TS_ASSERT_EQUALS(im2.downsample(50).getDimensions(), (Dimensions{1, 1}));
+
+		// Testing SAMPLE mode
+		// Image 1
+		auto downsampled1 = im1.downsample(2, Image::DownsamplingMode::SAMPLE);
+		std::vector<std::pair<Point, double>> expectations1 {
+			{{0, 0}, 1}, {{1, 0}, 3}, {{2, 0}, 5}, {{3, 0}, 7}
+		};
+		for(auto& expectation: expectations1) {
+			TS_ASSERT_EQUALS(downsampled1[expectation.first], expectation.second);
+		}
+
+		// Image 2
+		auto downsampled2 = im2.downsample(2, Image::DownsamplingMode::SAMPLE);
+		std::list<std::pair<Point, double>> expectations2 {
+			{{0, 0}, 1}, {{1, 0}, 3}, {{2, 0}, 5}, {{0, 1}, 11}, {{1, 1}, 13}, {{2, 1}, 15}
+		};
+		for(auto& expectation: expectations2) {
+			TS_ASSERT_EQUALS(downsampled2[expectation.first], expectation.second);
+		}
+
+		// Testing SUM mode
+		// Image 1
+		downsampled1 = im1.downsample(2, Image::DownsamplingMode::SUM);
+		expectations1 = {
+			{{0, 0}, 22}, {{1, 0}, 30}, {{2, 0}, 38}, {{3, 0}, 46}
+		};
+		for(auto& expectation: expectations1) {
+			TS_ASSERT_DELTA(downsampled1[expectation.first], expectation.second, 1e-8);
+		}
+
+		// Image 2
+		downsampled2 = im2.downsample(2, Image::DownsamplingMode::SUM);
+		expectations2 = {
+			{{0, 0}, 16}, {{1, 0}, 24}, {{2, 0}, 15}, {{0, 1}, 23}, {{1, 1}, 27}, {{2, 1}, 15}
+		};
+		for(auto& expectation: expectations2) {
+			TS_ASSERT_DELTA(downsampled2[expectation.first], expectation.second, 1e-8);
+		}
+
+		// Testing AVERAGE mode
+		// Image 1
+		downsampled1 = im1.downsample(2, Image::DownsamplingMode::AVERAGE);
+		expectations1 = {
+			{{0, 0}, 5.5}, {{1, 0}, 7.5}, {{2, 0}, 9.5}, {{3, 0}, 11.5}
+		};
+		for(auto& expectation: expectations1) {
+			TS_ASSERT_DELTA(downsampled1[expectation.first], expectation.second, 1e-8);
+		}
+
+		// Image 2
+		downsampled2 = im2.downsample(2, Image::DownsamplingMode::AVERAGE);
+		expectations2 = {
+			{{0, 0}, 4}, {{1, 0}, 6}, {{2, 0}, 7.5}, {{0, 1}, 11.5}, {{1, 1}, 13.5}, {{2, 1}, 15}
+		};
+		for(auto& expectation: expectations2) {
+			TS_ASSERT_DELTA(downsampled2[expectation.first], expectation.second, 1e-8);
+		}
 	}
 };
