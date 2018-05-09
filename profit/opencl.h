@@ -47,7 +47,7 @@ typedef unsigned int cl_ver_t;
  * A structure holding two times associated with OpenCL commands:
  * submission and execution
  */
-struct OpenCL_command_times {
+struct PROFIT_API OpenCL_command_times {
 	OpenCL_command_times();
 	nsecs_t submit;
 	nsecs_t exec;
@@ -59,7 +59,7 @@ struct OpenCL_command_times {
  * A structure holding a number of OpenCL command times (filling, writing,
  * kernel and reading) plus other OpenCL-related times.
  */
-struct OpenCL_times {
+struct PROFIT_API OpenCL_times {
 	OpenCL_times();
 	nsecs_t kernel_prep;
 	unsigned int nwork_items;
@@ -76,7 +76,7 @@ struct OpenCL_times {
  * This class holds all the required information to make libprofit work
  * against a given device in a particular platform.
  */
-class OpenCLEnv {
+class PROFIT_API OpenCLEnv {
 
 public:
 	virtual ~OpenCLEnv() {};
@@ -107,7 +107,7 @@ typedef std::shared_ptr<OpenCLEnv> OpenCLEnvPtr;
 /**
  * A structure holding information about a specific OpenCL device
  */
-typedef struct _OpenCL_dev_info {
+typedef struct PROFIT_API _OpenCL_dev_info {
 
 	/** The name of the device */
 	std::string name;
@@ -123,7 +123,7 @@ typedef struct _OpenCL_dev_info {
 /**
  * An structure holding information about a specific OpenCL platform.
  */
-typedef struct _OpenCL_plat_info {
+typedef struct PROFIT_API _OpenCL_plat_info {
 
 	/** The name of the platform */
 	std::string name;
@@ -143,7 +143,7 @@ typedef struct _OpenCL_plat_info {
  * @return A map keyed by index, containing the information of each of the
  *         OpenCL platforms found on this system.
  */
-std::map<int, OpenCL_plat_info> get_opencl_info();
+PROFIT_API std::map<int, OpenCL_plat_info> get_opencl_info();
 
 /**
  * Prepares an OpenCL working space for using with libprofit.
@@ -161,7 +161,7 @@ std::map<int, OpenCL_plat_info> get_opencl_info();
  * @return A pointer to a OpenCL_env structure, which contains the whole set of
  *         elements required to work with the requested device.
  */
-OpenCLEnvPtr get_opencl_environment(
+PROFIT_API OpenCLEnvPtr get_opencl_environment(
 	unsigned int platform_idx,
 	unsigned int device_idx,
 	bool use_double,

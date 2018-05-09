@@ -42,13 +42,13 @@ namespace profit
 /* Forward declaration */
 class Model;
 
-struct ProfileStats {
+struct PROFIT_API ProfileStats {
 	ProfileStats();
 	virtual ~ProfileStats();
 	nsecs_t total;
 };
 
-struct RadialProfileStats : ProfileStats {
+struct PROFIT_API RadialProfileStats : ProfileStats {
 	RadialProfileStats();
 	OpenCL_times cl_times;
 	struct radial_subsampling_stats {
@@ -65,7 +65,7 @@ struct RadialProfileStats : ProfileStats {
 /**
  * The base profile class
  */
-class Profile {
+class PROFIT_API Profile {
 
 public:
 

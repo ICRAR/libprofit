@@ -35,6 +35,7 @@
 #include <vector>
 
 #include "profit/config.h"
+#include "profit/common.h"
 #include "profit/convolve.h"
 #include "profit/opencl.h"
 #include "profit/profile.h"
@@ -59,7 +60,7 @@ typedef std::pair<double, double> PixelScale;
  * allows us to specify pixel position with decimal places; e.g., the center
  * point for a given profile.
  */
-class Model {
+class PROFIT_API Model {
 
 public:
 

@@ -62,7 +62,7 @@ enum ConvolverType {
  * This is the base class for all Convolvers. Deriving classes must implement
  * the convolve method, which performs the actual operation.
  */
-class Convolver {
+class PROFIT_API Convolver {
 
 public:
 	virtual ~Convolver();
@@ -109,7 +109,7 @@ protected:
 ///
 /// A set of preferences used to create convolvers.
 ///
-class ConvolverCreationPreferences {
+class PROFIT_API ConvolverCreationPreferences {
 
 public:
 	ConvolverCreationPreferences() :
@@ -165,7 +165,7 @@ typedef std::shared_ptr<Convolver> ConvolverPtr;
  * @param prefs The creation preferences used to create the new convolver
  * @return A shared pointer to a new convolver
  */
-ConvolverPtr
+PROFIT_API ConvolverPtr
 create_convolver(const ConvolverType type,
                  const ConvolverCreationPreferences &prefs = ConvolverCreationPreferences());
 
@@ -175,7 +175,7 @@ create_convolver(const ConvolverType type,
  *
  * @overload
  */
-ConvolverPtr
+PROFIT_API ConvolverPtr
 create_convolver(const std::string &type,
                  const ConvolverCreationPreferences &prefs = ConvolverCreationPreferences());
 

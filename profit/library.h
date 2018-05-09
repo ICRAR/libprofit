@@ -29,28 +29,30 @@
 
 #include <string>
 
+#include "profit/common.h"
+
 namespace profit {
 
 /// Returns the version of this libprofit library
 /// @return The version of this libprofit library
-std::string version();
+PROFIT_API std::string version();
 
 /// Returns the major version of this libprofit library
 /// @return The major version of this libprofit library
-unsigned short version_major();
+PROFIT_API unsigned short version_major();
 
 /// Returns the minor version of this libprofit library
 /// @return The minor version of this libprofit library
-unsigned short version_minor();
+PROFIT_API unsigned short version_minor();
 
 /// Returns the patch version of this libprofit library
 /// @return The patch version of this libprofit library
-unsigned short version_patch();
+PROFIT_API unsigned short version_patch();
 
 /// Returns the version suffix (e.g., "dev" or "rc1") of this libprofit library.
 /// If no version suffix is present in this version, an empty string is returned.
 /// @return The version suffix of this libprofit library
-std::string version_suffix();
+PROFIT_API std::string version_suffix();
 
 /// Initializes the libprofit library. This function must be called once
 /// before using the library in any way. At the end, call finish().
@@ -58,29 +60,29 @@ std::string version_suffix();
 /// but it's not guaranteed that it will do so correctly, or as intended.
 ///
 /// @return If the initialization was correct
-bool init();
+PROFIT_API bool init();
 
 /// Finalizes the libprofit library. All internal resources are freed.
 /// This method should be called after the library has been used.
 /// After a call to finish(), no other usage of the library should occur,
 /// unless init() is called again.
-void finish();
+PROFIT_API void finish();
 
 /// Returns whether libprofit was compiled with OpenMP support
 /// @return Whether libprofit was compiled with OpenMP support
-bool has_openmp();
+PROFIT_API bool has_openmp();
 
 /// Returns whether libprofit was compiled with FFTW support
 /// @return Whether libprofit was compiled with FFTW support
-bool has_fftw();
+PROFIT_API bool has_fftw();
 
 /// Returns whether libprofit was compiled against an FFTW library with OpenMP support
 /// @return Whether libprofit was compiled against an FFTW library with OpenMP support
-bool has_fftw_with_openmp();
+PROFIT_API bool has_fftw_with_openmp();
 
 /// Returns whether libprofit was compiled with OpenCL support
 /// @return Whether libprofit was compiled with OpenCL support
-bool has_opencl();
+PROFIT_API bool has_opencl();
 
 /// If OpenCL is supported, returns the major portion of the highest OpenCL
 /// platform version libprofit can work against. For example, if libprofit was
@@ -88,17 +90,17 @@ bool has_opencl();
 /// If OpenCL is not supported, the result is undefined.
 /// @return The major highest OpenCL platform version that libprofit can work
 /// against.
-unsigned short opencl_version_major();
+PROFIT_API unsigned short opencl_version_major();
 
 /// If OpenCL is supported, returns the minor portion of the highest OpenCL
 /// platform version libprofit can work against. For example, if libprofit was
 /// compiled against a platform supporting OpenCL 1.2, this method returns 2.
 /// If OpenCL is not supported, the result is undefined.
-unsigned short opencl_version_minor();
+PROFIT_API unsigned short opencl_version_minor();
 
 /// Clears the cache area used by libprofit. Depending on the supported features
 /// this will remove certain files from the disk
-void clear_cache();
+PROFIT_API void clear_cache();
 
 }
 

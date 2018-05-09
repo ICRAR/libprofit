@@ -29,6 +29,8 @@
 
 #include <vector>
 
+#include "profit/common.h"
+
 namespace profit
 {
 
@@ -40,18 +42,18 @@ namespace profit
  * @param e The maximum allowed difference
  * @return Whether the values are almost equals
  */
-bool almost_equals(double x, double y, double e = 1e-10);
+PROFIT_API bool almost_equals(double x, double y, double e = 1e-10);
 
 
 /**
  * Computes the quantile of the gamma distribution for ``p`` and ``shape``
  */
-double qgamma(double p, double shape);
+PROFIT_API double qgamma(double p, double shape);
 
 /**
  * Computes the probability of the gamma distribution for ``q`` and ``shape``
  */
-double pgamma(double q, double shape);
+PROFIT_API double pgamma(double q, double shape);
 
 /**
  * Computes the gamma function for ``x``.
@@ -61,7 +63,7 @@ double pgamma(double q, double shape);
  * `NaN` is returned. If underflow occurs, `0` is returned.
  * If x is positive and overflow occurs, `+Inf` is returned.
  */
-double gammafn(double x);
+PROFIT_API double gammafn(double x);
 
 /**
  * Computes the beta function for ``a`` and ``b``.
@@ -75,7 +77,7 @@ double gammafn(double x);
  * If either is negative `NaN` is returned. If either is 0,
  * `+Inf` is returned.
  */
-double beta(double a, double b);
+PROFIT_API double beta(double a, double b);
 
 /**
  * A function that can be integrated
@@ -95,7 +97,7 @@ typedef double (*integration_func_t)(double x, void *params);
  * @param params A void pointer to any extra data needed by `f`
  * @return The integration result
  */
-double integrate_qagi(integration_func_t f, double a, void *params);
+PROFIT_API double integrate_qagi(integration_func_t f, double a, void *params);
 
 /**
  * Integrates the function `f` on the defined interval (a, b) using the
@@ -107,21 +109,21 @@ double integrate_qagi(integration_func_t f, double a, void *params);
  * @param params A void pointer to any extra data needed by `f`
  * @return The integration result
  */
-double integrate_qags(integration_func_t f, double a, double b, void *params);
+PROFIT_API double integrate_qags(integration_func_t f, double a, double b, void *params);
 
 /**
  * Returns whether the named directory exists or not
  * @param dname The directory name
  * @return Whether the directory with the given name exists or not
  */
-bool dir_exists(const std::string &dname);
+PROFIT_API bool dir_exists(const std::string &dname);
 
 /**
  * Returns whether the named file exists or not
  * @param fname The file name
  * @return Whether the file with the given name exists or not
  */
-bool file_exists(const std::string &fname);
+PROFIT_API bool file_exists(const std::string &fname);
 
 /**
  * Creates the hierarchy of directories given in @p parts at @p at
@@ -131,13 +133,13 @@ bool file_exists(const std::string &fname);
  * and so on
  * @return The path to the last created directory
  */
-std::string create_dirs(const std::string &at, const std::vector<std::string> &parts);
+PROFIT_API std::string create_dirs(const std::string &at, const std::vector<std::string> &parts);
 
 /**
  * Recursively remove the given path
  * @param path The path to remove. If it doesn't exist, an error is issued
  */
-void recursive_remove(const std::string &path);
+PROFIT_API void recursive_remove(const std::string &path);
 
 /**
  * Returns the name of the directory where libprofit stores its internal data.
@@ -145,7 +147,7 @@ void recursive_remove(const std::string &path);
  *
  * @return The name of the libprofit home directory.
  */
-std::string get_profit_home();
+PROFIT_API std::string get_profit_home();
 
 } /* namespace profit */
 

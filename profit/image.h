@@ -31,10 +31,12 @@
 #include <stdexcept>
 #include <vector>
 
+#include "profit/common.h"
+
 namespace profit {
 
 /// An (x, y) pair in a 2-dimensional discrete surface
-struct _2dcoordinate {
+struct PROFIT_API _2dcoordinate {
 
 	_2dcoordinate() : x(0), y(0) {}
 	_2dcoordinate(unsigned int x, unsigned int y) : x(x), y(y) {}
@@ -438,7 +440,7 @@ private:
 /**
  * A mask is surface of bools
  */
-class Mask : public surface<bool, Mask> {
+class PROFIT_API Mask : public surface<bool, Mask> {
 
 public:
 
@@ -474,7 +476,7 @@ public:
 /**
  * An image is a surface of doubles.
  */
-class Image : public surface<double, Image> {
+class PROFIT_API Image : public surface<double, Image> {
 
 public:
 
