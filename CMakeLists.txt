@@ -250,7 +250,6 @@ configure_file(profit/config.h.in profit/config.h @ONLY)
 #
 # Common definitions for the shared lib and the binary
 #
-add_definitions(-DPROFIT_BUILD)
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
 #
