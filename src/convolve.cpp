@@ -51,7 +51,7 @@ Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Di
 	// Extend the mask to the size of the image, apply it,
 	// and save the offset of the original image with respect to the extension
 	// into offset_out
-	if (not crop) {
+	if (!crop) {
 		if (&offset_out != &NO_OFFSET) {
 			offset_out = ext_offset;
 		}
@@ -95,7 +95,7 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 			auto im_idx = i + j * src_width;
 
 			/* Don't convolve this pixel */
-			if( mask and !mask[im_idx]) {
+			if( mask && !mask[im_idx]) {
 				convolution[im_idx] = 0;
 				continue;
 			}
@@ -161,7 +161,7 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 			auto im_idx = i + j * src_width;
 
 			/* Don't convolve this pixel */
-			if (mask and !mask[im_idx]) {
+			if (mask && !mask[im_idx]) {
 				convolution[im_idx] = 0;
 				continue;
 			}
@@ -205,7 +205,7 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 					k_incr = krn_width - k_max;
 				}
 
-				if (!suboffset and srcPtr2 >= src_krn_offset)
+				if (!suboffset && srcPtr2 >= src_krn_offset)
 				{
 					srcPtr2 -= src_krn_offset;
 					suboffset = true;
@@ -346,10 +346,10 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 	// The resulting image now starts at x_offset/y_offset
 	// even image and odd kernel requires slight adjustment
 	auto ext_offset = src_dims / 2;
-	if (src_dims.x % 2 == 0 or krn_dims.x % 2 == 0) {
+	if (src_dims.x % 2 == 0 || krn_dims.x % 2 == 0) {
 		ext_offset.x -= 1;
 	}
-	if (src_dims.y % 2 == 0 or krn_dims.y % 2 == 0) {
+	if (src_dims.y % 2 == 0 || krn_dims.y % 2 == 0) {
 		ext_offset.y -= 1;
 	}
 

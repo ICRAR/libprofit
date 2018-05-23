@@ -38,7 +38,7 @@ namespace profit
 
 void PsfProfile::validate()  {
 
-	if( not model.psf ) {
+	if( !model.psf ) {
 		throw invalid_parameter("No psf present in the model, cannot produce a psf profile");
 	}
 

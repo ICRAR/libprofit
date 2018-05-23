@@ -141,7 +141,7 @@ public:
 	void test_recursive_remove() {
 		auto home = get_profit_home();
 		recursive_remove(home);
-		TS_ASSERT(not dir_exists(home));
+		TS_ASSERT(!dir_exists(home));
 	}
 
 	void test_recursive_remove_failures() {

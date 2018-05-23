@@ -54,7 +54,7 @@ class OpenCLFixtures : CxxTest::GlobalFixture {
 public:
 	OpenCLFixtures() {
 
-		if (not has_opencl()) {
+		if (!has_opencl()) {
 			return;
 		}
 
@@ -121,7 +121,7 @@ class TestOpenCL : public CxxTest::TestSuite {
 private:
 
 	void _check_opencl_support() {
-		if( not has_opencl() ) {
+		if( !has_opencl() ) {
 			TS_SKIP("No OpenCL support found, cannot run this test");
 		}
 	}

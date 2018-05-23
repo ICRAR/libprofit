@@ -469,7 +469,7 @@ OpenCLEnvPtr _get_opencl_environment(unsigned int platform_idx, unsigned int dev
 
 	cl::Device device = all_devices[device_idx];
 
-	if( use_double and not supports_double(device)) {
+	if( use_double && !supports_double(device)) {
 		throw opencl_error("Double precision requested but not supported by device");
 	}
 	cl::Context context(device);

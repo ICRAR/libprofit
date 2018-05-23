@@ -257,7 +257,7 @@ void RadialProfile::evaluate(Image &image, const Mask &mask, const PixelScale &s
 	 * given, or if there is no OpenCL kernel implementing the profile
 	 */
 	auto env = OpenCLEnvImpl::fromOpenCLEnvPtr(model.get_opencl_env());
-	if( force_cpu or !env or !supports_opencl() ) {
+	if( force_cpu || !env || !supports_opencl() ) {
 		evaluate_cpu(image, mask, scale);
 		return;
 	}

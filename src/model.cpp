@@ -121,7 +121,7 @@ void inform_offset(const Point &offset, Point &offset_out) {
 Image Model::evaluate(Point &offset_out) {
 
 	/* Check limits */
-	if( not requested_dimensions ) {
+	if( !requested_dimensions ) {
 		throw invalid_parameter( "Model's requested dimensions are 0");
 	}
 	else if( this->scale.first <= 0 ) {
@@ -137,7 +137,7 @@ Image Model::evaluate(Point &offset_out) {
 	 */
 	for(auto &profile: this->profiles) {
 		if( profile->do_convolve() ) {
-			if( not this->psf ) {
+			if( !this->psf ) {
 				std::ostringstream ss;
 				ss << "Profile " << profile->get_name() << " requires convolution but no valid psf was provided";
 				throw invalid_parameter(ss.str());
@@ -226,7 +226,7 @@ Image Model::evaluate(Point &offset_out) {
 	}
 
 	// Downsample image if necessary
-	if (finesampling > 1 and !return_finesampled) {
+	if (finesampling > 1 && !return_finesampled) {
 		image = image.downsample(finesampling, Image::DownsamplingMode::SUM);
 		offset /= finesampling;
 	}

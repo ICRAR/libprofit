@@ -257,7 +257,7 @@ public:
 
 	void _test_no_crop(const Dimensions &dims, unsigned int finesampling)
 	{
-		if (not has_fftw()) {
+		if (!has_fftw()) {
 			TS_SKIP("No FFTW available");
 		}
 

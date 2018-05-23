@@ -45,15 +45,15 @@ struct _2dcoordinate {
 	unsigned int y;
 
 	bool operator==(const _2dcoordinate &other) const {
-		return x == other.x and y == other.y;
+		return x == other.x && y == other.y;
 	}
 
 	bool operator!=(const _2dcoordinate &other) const {
-		return x != other.x or y != other.y;
+		return x != other.x || y != other.y;
 	}
 
 	explicit operator bool() const {
-		return x > 0 and y > 0;
+		return x > 0 && y > 0;
 	}
 
 	_2dcoordinate &operator=(const _2dcoordinate &other) {
@@ -185,12 +185,12 @@ public:
 	}
 
 	bool empty() const {
-		return dimensions.x == 0 and dimensions.y == 0;
+		return dimensions.x == 0 && dimensions.y == 0;
 	}
 
 	/// Surfaces are true if they have a dimension
 	operator bool() const {
-		return dimensions.x > 0 and dimensions.y > 0;
+		return dimensions.x > 0 && dimensions.y > 0;
 	}
 
 	/// Comparison operator
@@ -357,7 +357,7 @@ public:
 
 	/// Comparison operator
 	bool operator==(const surface &other) const {
-		return surface_base::operator==(other) and
+		return surface_base::operator==(other) &&
 		       _data == other._data;
 	}
 

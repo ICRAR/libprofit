@@ -51,7 +51,7 @@ public:
 		dims(dims)
 	{
 
-		if (not has_fftw()) {
+		if (!has_fftw()) {
 			return;
 		}
 
@@ -98,7 +98,7 @@ class TestFFT : public CxxTest::TestSuite {
 public:
 
 	void _check_fftw_support() {
-		if (not has_fftw()) {
+		if (!has_fftw()) {
 			TS_SKIP("No FFTW support found, cannot run this test");
 		}
 	}

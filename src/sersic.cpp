@@ -338,7 +338,7 @@ void SersicProfile::subsampling_params(double x, double y,
 	/* Higher subsampling params for central pixel if nser > 1 (only when auto-adjusting) */
 	bool center_pixel = abs(x - xcen) < model.get_image_pixel_scale().first &&
 	                    abs(y - ycen) < model.get_image_pixel_scale().second;
-	if( adjust and center_pixel and nser > 1 ) {
+	if( adjust && center_pixel && nser > 1 ) {
 		resolution = 8;
 		max_recursions = 10;
 	}

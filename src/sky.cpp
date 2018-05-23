@@ -53,7 +53,7 @@ void SkyProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scal
 	for(auto &pixel: image) {
 
 		/* Check the calculation mask and avoid pixel if necessary  */
-		if( mask and !*mask_it++ ) {
+		if( mask && !*mask_it++ ) {
 			continue;
 		}
 

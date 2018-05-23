@@ -276,7 +276,7 @@ bool inode_exists(const std::string &fname, mode_t expected_type, const char *ty
 
 	// it exists, but is it a the expected type
 	bool is_expected = (st.st_mode & S_IFMT) == expected_type;
-	if (not is_expected) {
+	if (!is_expected) {
 		std::ostringstream os;
 		os << fname << " exists but is not a " << type_name << ". Please remove it and try again";
 		throw std::runtime_error(os.str());
@@ -306,7 +306,7 @@ std::string create_dirs(const std::string &at, const std::vector<std::string> &p
 	std::string the_dir = at;
 	for(auto &part: parts) {
 		the_dir += "/" + part;
-		if (not dir_exists(the_dir)) {
+		if (!dir_exists(the_dir)) {
 			create_dir(the_dir);
 		}
 	}
@@ -381,14 +381,14 @@ std::string get_profit_home()
 {
 	auto profit_home = std::getenv("PROFIT_HOME");
 	if (profit_home) {
-		if (not dir_exists(profit_home)) {
+		if (!dir_exists(profit_home)) {
 			create_dir(profit_home);
 		}
 		return profit_home;
 	}
 
 	auto user_home = std::getenv("HOME");
-	if (not user_home) {
+	if (!user_home) {
 		throw std::runtime_error("User doesn't have a home");
 	}
 
