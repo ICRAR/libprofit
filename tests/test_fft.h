@@ -63,8 +63,6 @@ public:
 		prefs.reuse_krn_fft = reuse_psf_fft;
 		fft_convolver = create_convolver(ConvolverType::FFT, prefs);
 		// a random psf
-		unsigned int seed = (unsigned int)time(NULL);
-		rand_r(&seed);
 		for (unsigned int i = 0; i < psf.size(); i++) {
 			psf[i] = (rand() % 10000) / 10000.0;
 		}
