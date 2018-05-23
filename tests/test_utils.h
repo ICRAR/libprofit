@@ -116,24 +116,36 @@ public:
 		struct env_keeper {
 			std::string _home;
 			env_keeper() : _home() {
-				auto h = ::getenv("PROFIT_HOME");
+				auto h = std::getenv("PROFIT_HOME");
 				if (h != nullptr) {
 					_home = h;
 				}
 			}
 			~env_keeper() {
 				if (!_home.empty()) {
+#ifdef _MSC_VER
+					::_putenv_s("PROFIT_HOME", _home.c_str());
+#else
 					::setenv("PROFIT_HOME", _home.c_str(), 1);
+#endif
 				}
 				else {
+#ifdef _MSC_VER
+					::_putenv_s("PROFIT_HOME", "");
+#else
 					::unsetenv("PROFIT_HOME");
+#endif
 				}
 			}
 		} keeper;
 
 		// Run the tests both with the default profit home and with a hardcoded one
 		run_test();
+#ifdef _MSC_VER
+		::_putenv_s("PROFIT_HOME", ".profit");
+#else
 		::setenv("PROFIT_HOME", ".profit", 1);
+#endif
 		run_test();
 		recursive_remove(".profit");
 	}
