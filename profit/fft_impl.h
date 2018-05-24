@@ -30,6 +30,7 @@
 #ifdef PROFIT_FFTW
 
 #include <complex>
+#include <iterator>
 #include <memory>
 #include <stdexcept>
 #include <vector>

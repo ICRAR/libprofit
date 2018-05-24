@@ -23,6 +23,7 @@
 //
 
 #include <algorithm>
+#include <iterator>
 #include <string>
 #include <stdexcept>
 
