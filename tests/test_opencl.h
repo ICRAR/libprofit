@@ -86,7 +86,7 @@ public:
 					}
 				}
 			}
-		} catch (const opencl_error &e) {
+		} catch (const opencl_error &) {
 			// no-op
 		}
 
@@ -98,7 +98,7 @@ public:
 
 		try {
 			opencl_env = get_opencl_environment(plat_idx, dev_idx, use_double, false);
-		} catch (const opencl_error &e) {
+		} catch (const opencl_error &) {
 			// we simply loose hope
 			return;
 		}
