@@ -355,14 +355,6 @@ public:
 		return crop;
 	}
 
-	value_type *data() {
-		return _data.data();
-	}
-
-	const value_type *data() const {
-		return _data.data();
-	}
-
 	/// Comparison operator
 	bool operator==(const surface &other) const {
 		return surface_base::operator==(other) and
@@ -421,6 +413,15 @@ public:
 	/// type casting to std::vector<T>
 	operator std::vector<T>() const {
 		return std::vector<T>(_data);
+	}
+
+protected:
+	std::vector<T> &_get() {
+		return _data;
+	}
+
+	const std::vector<T> &_get() const {
+		return _data;
 	}
 
 private:
@@ -576,6 +577,26 @@ public:
 	 * identical to this image.
 	 */
 	Image normalize() const;
+
+	/**
+	 * Exposes the underlying data pointer in case it becomes necessary to
+	 * access it directly.
+	 *
+	 * @return The underlying data pointer
+	 */
+	value_type *data() {
+		return _get().data();
+	}
+
+	/**
+	 * Exposes the underlying data pointer in case it becomes necessary to
+	 * access it directly
+	 *
+	 * @return The underlying data pointer
+	 */
+	const value_type *data() const {
+		return _get().data();
+	}
 
 	// Move and copy assignment need to be declared because we explicitly
 	// declare constructors for this class
