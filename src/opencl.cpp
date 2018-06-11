@@ -410,7 +410,7 @@ cl::Program KernelCache::get_program(const cl::Context &context, const cl::Devic
 	// Make sure we know all sources and their checksums
 	init_sources();
 
-	bool device_supports_double = device.getInfo<CL_DEVICE_DOUBLE_FP_CONFIG>();
+	bool device_supports_double = supports_double(device);
 	SourceInformation sources_for_device = float_only_sources;
 	if (device_supports_double) {
 		sources_for_device = all_sources;
