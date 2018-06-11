@@ -345,9 +345,9 @@ std::string create_dirs(const std::string &at, const std::vector<std::string> &p
 	std::string the_dir = at;
 	for(auto &part: parts) {
 #ifdef _WIN32
-		the_dir += "/" + part;
-#else
 		the_dir += "\\" + part;
+#else
+		the_dir += "/" + part;
 #endif
 		if (!dir_exists(the_dir)) {
 			create_dir(the_dir);
