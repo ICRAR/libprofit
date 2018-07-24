@@ -34,7 +34,9 @@ public:
 	void test_init_finish() {
 		// simply run them and make sure they don't fail
 		TSM_ASSERT("Failed to initialize library", profit::init());
+		TS_ASSERT(profit::init_diagnose().empty())
 		profit::finish();
+		TS_ASSERT(profit::finish_diagnose().empty())
 	}
 
 };

@@ -955,9 +955,14 @@ int parse_and_run(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 
-	if (not profit::init()) {
-		cerr << "Error initializing libprofit" << endl;
+	bool success = profit::init();
+	auto init_diagnose = profit::init_diagnose();
+	if (!success) {
+		cerr << "Error initializing libprofit: " << init_diagnose << endl;
 		return 1;
+	}
+	else if (!init_diagnose.empty()){
+		cerr << "Warning while initializing libprofit: " << init_diagnose << endl;
 	}
 
 	int ret;
@@ -985,6 +990,10 @@ int main(int argc, char *argv[]) {
 		ret = 1;
 	}
 	profit::finish();
+	auto finish_diagnose = profit::finish_diagnose();
+	if (!finish_diagnose.empty()) {
+		cerr << "Warning while finishing libprofit: " << finish_diagnose << endl;
+	}
 
 	return ret;
 }

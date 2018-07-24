@@ -24,7 +24,7 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#include <sstream>
 
 #include "profit/config.h"
 #include "profit/library.h"
@@ -77,6 +77,19 @@ std::string get_fftw_wisdom_filename()
 #endif
 }
 
+static std::string _init_diagnose;
+static std::string _finish_diagnose;
+
+std::string init_diagnose()
+{
+	return _init_diagnose;
+}
+
+std::string finish_diagnose()
+{
+	return _finish_diagnose;
+}
+
 bool init()
 {
 	// Initialize FFTW library, including its OpenMP support
@@ -85,7 +98,9 @@ bool init()
 #ifdef PROFIT_FFTW_OPENMP
 	int res = fftw_init_threads();
 	if (!res) {
-		std::cerr << "Error while initializing FFTW threads support, errno = " << res << std::endl;
+		std::ostringstream os;
+		os << "Error while initializing FFTW threads support, errno = " << res;
+		_init_diagnose = os.str();
 		return false;
 	}
 #endif // PROFIT_FFTW_OPENMP
@@ -95,10 +110,22 @@ bool init()
 	if (file_exists(fftw_wisdom_filename)) {
 		auto import_status = fftw_import_wisdom_from_filename(fftw_wisdom_filename.c_str());
 		if (import_status == 0) {
-			std::cerr << "Importing fftw wisdom from " << fftw_wisdom_filename << " failed" << std::endl;
+			std::ostringstream os;
+			os << "Importing fftw wisdom from " << fftw_wisdom_filename << " failed";
+			_init_diagnose = os.str();
 		}
 	}
-	fftw_import_system_wisdom();
+
+#if !(defined(__WIN32__) || defined(WIN32) || defined(_WINDOWS))
+	if (file_exists("/etc/fftw/wisdom")) {
+		if (fftw_import_system_wisdom() == 0) {
+			std::ostringstream os;
+			os << _init_diagnose << '\n';
+			os << "Importing fftw system wisdom failed (returned 0)";
+			_init_diagnose = os.str();
+		}
+	}
+#endif // !WIN32
 #endif // PROFIT_FFTW
 
 	return true;
@@ -110,7 +137,9 @@ void finish()
 	auto fftw_wisdom_file = get_fftw_wisdom_filename();
 	auto export_status = fftw_export_wisdom_to_filename(fftw_wisdom_file.c_str());
 	if (export_status != 1) {
-		std::cerr << "Error when exporting fftw wisdom from " << fftw_wisdom_file << ": " << export_status << std::endl;
+		std::ostringstream os;
+		os << "Error when exporting fftw wisdom from " << fftw_wisdom_file << ": " << export_status;
+		_finish_diagnose = os.str();
 	}
 #ifdef PROFIT_FFTW_OPENMP
 	fftw_cleanup_threads();

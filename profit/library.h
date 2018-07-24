@@ -59,14 +59,25 @@ PROFIT_API std::string version_suffix();
 /// If the user fails to call init() the library *might* work,
 /// but it's not guaranteed that it will do so correctly, or as intended.
 ///
+/// A successful initialization does not mean that all went internally. Use
+/// init_diagnose() to get a report on what may have possibly gone wrong,
+/// specially if a call to init() does not succeed.
+///
 /// @return If the initialization was correct
 PROFIT_API bool init();
 
+/// @return a diagnose about errors occurring during the last call to init(),
+/// regardless of whether init() returned successfully or not
+PROFIT_API std::string init_diagnose();
+
 /// Finalizes the libprofit library. All internal resources are freed.
 /// This method should be called after the library has been used.
-/// After a call to finish(), no other usage of the library should occur,
-/// unless init() is called again.
+/// After a call to finish(), no other usage of the library should occur
+/// (except for finish_diagnose()) unless init() is called again.
 PROFIT_API void finish();
+
+/// @return a diagnose about errors occurring during the last call to finish()
+PROFIT_API std::string finish_diagnose();
 
 /// Returns whether libprofit was compiled with OpenMP support
 /// @return Whether libprofit was compiled with OpenMP support
