@@ -57,10 +57,10 @@ Model::Model(unsigned int width, unsigned int height) :
 	convolver(),
 	crop(true),
 	dry_run(false),
+	return_finesampled(true),
 	opencl_env(),
 	omp_threads(0),
-	profiles(),
-	return_finesampled(true)
+	profiles()
 {
 	// no-op
 }
