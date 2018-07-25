@@ -437,8 +437,8 @@ KernelCache get_cache() {
 }
 
 static
-OpenCLEnvPtr _get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
-
+cl::Platform get_platform(unsigned int platform_idx)
+{
 	std::vector<cl::Platform> all_platforms;
 	if( cl::Platform::get(&all_platforms) != CL_SUCCESS ) {
 		throw opencl_error("Error while getting OpenCL platforms");
@@ -453,9 +453,12 @@ OpenCLEnvPtr _get_opencl_environment(unsigned int platform_idx, unsigned int dev
 		throw invalid_parameter(ss.str());
 	}
 
-	cl::Platform platform = all_platforms[platform_idx];
+	return all_platforms[platform_idx];
+}
 
-	//get default device of the default platform
+static
+cl::Device get_device(const cl::Platform &platform, unsigned int device_idx, bool use_double)
+{
 	std::vector<cl::Device> all_devices;
 	platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
 	if( all_devices.size() == 0 ){
@@ -467,11 +470,19 @@ OpenCLEnvPtr _get_opencl_environment(unsigned int platform_idx, unsigned int dev
 		throw invalid_parameter(ss.str());
 	}
 
-	cl::Device device = all_devices[device_idx];
-
+	auto device = all_devices[device_idx];
 	if( use_double && !supports_double(device)) {
 		throw opencl_error("Double precision requested but not supported by device");
 	}
+	return device;
+}
+
+static
+OpenCLEnvPtr _get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling) {
+
+	auto platform = get_platform(platform_idx);
+	auto device = get_device(platform, device_idx, use_double);
+
 	cl::Context context(device);
 
 	// Check if there is an entry in the cache for this platform/device
