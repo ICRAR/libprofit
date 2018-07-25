@@ -268,7 +268,6 @@ void parse_profile(Model &model, const string &description) {
 
 Image parse_psf(string optarg, Model &m)
 {
-	unsigned int size, i = 0;
 	bool read_scales = false;
 
 	/* format is w:h:[optional scale_x:scale_y:]:val1,val2... */
@@ -296,22 +295,17 @@ Image parse_psf(string optarg, Model &m)
 		m.set_psf_pixel_scale({psf_scale_x, psf_scale_y});
 	}
 
-	size = psf_width * psf_height;
-	vector<double> psf(size);
-
+	Image psf(psf_width, psf_height);
 	auto values = tokenize(*it, ",");
-	i = 0;
-	for(auto value: values) {
-		psf[i++] = stod(value);
-	}
-
-	if( i != size ) {
-		ostringstream os;
-		os << "Not enough values provided for PSF. Provided: " << i << ", expected: " << size;
+	if (values.size() != psf.size()) {
+		std::ostringstream os;
+		os << "Not enough values provided for PSF. Provided: " << values.size() << ", expected: " << psf.size();
 		throw invalid_cmdline(os.str());
 	}
 
-	return Image(psf, psf_width, psf_height);
+	auto stod = [] (const std::string &s) -> double { return std::stod(s); };
+	std::transform(values.begin(), values.end(), psf.begin(), stod);
+	return psf;
 }
 
 void show_version() {
@@ -604,9 +598,8 @@ Image read_image_from_fits_file(const string &filename, Model &m) {
 	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
 	fseek(f, padding, SEEK_CUR);
 
-	unsigned int size = width * height;
-	vector<double> psf(size);
-	size_t nitems = fread(psf.data(), sizeof(double), size, f);
+	Image psf(width, height);
+	size_t nitems = fread(psf.data(), sizeof(double), psf.size(), f);
 	fclose(f);
 	if( nitems != size ) {
 		throw invalid_cmdline("Error while reading file: less data found than expected");
@@ -617,7 +610,7 @@ Image read_image_from_fits_file(const string &filename, Model &m) {
 		transform(psf.begin(), psf.end(), psf.begin(), swap_bytes);
 	}
 
-	return Image(psf, width, height);
+	return psf;
 }
 
 int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
