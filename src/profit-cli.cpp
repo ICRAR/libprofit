@@ -62,20 +62,21 @@ private:
 /**
  * Breaks down a string into substrings delimited by delims
  *
- * Taken from:
+ * Adapted from:
  *  http://oopweb.com/CPP/Documents/CPPHOWTO/Volume/C++Programming-HOWTO-7.html
  */
-void tokenize(const string &s, vector<string> &tokens, const string &delims) {
+std::vector<std::string> tokenize(const std::string &s, const std::string &delims) {
 
-	string::size_type lastPos = s.find_first_not_of(delims, 0);
-	string::size_type pos     = s.find_first_of(delims, lastPos);
+	auto lastPos = s.find_first_not_of(delims, 0);
+	auto pos = s.find_first_of(delims, lastPos);
 
-	while (string::npos != pos || string::npos != lastPos) {
+	std::vector<std::string> tokens;
+	while (std::string::npos != pos || std::string::npos != lastPos) {
 		tokens.push_back(s.substr(lastPos, pos - lastPos));
 		lastPos = s.find_first_not_of(delims, pos);
 		pos = s.find_first_of(delims, lastPos);
 	}
-
+	return tokens;
 }
 
 template <typename T, typename F>
@@ -213,10 +214,8 @@ static map<string, keyval_to_param_t> reader_functions = {
 void desc_to_profile(
 	Model &model,
 	const string &name,
-	string description
-) {
-
-	string tok;
+	string description)
+{
 
 	shared_ptr<Profile> p = model.add_profile(name);
 	if (reader_functions.find(name) == reader_functions.end()) {
@@ -230,12 +229,9 @@ void desc_to_profile(
 		return;
 	}
 
-	vector<string> tokens;
-	tokenize(description, tokens, ":");
-	for(auto token: tokens) {
+	for(auto &token: tokenize(description, ":")) {
 
-		vector<string> name_and_value;
-		tokenize(token, name_and_value, "=");
+		auto name_and_value = tokenize(token, "=");
 		if( name_and_value.size() != 2 ) {
 			ostringstream os;
 			os <<  "Parameter " << token << " of profile " << name << " doesn't obey the form name=value";
@@ -276,9 +272,8 @@ Image parse_psf(string optarg, Model &m)
 	bool read_scales = false;
 
 	/* format is w:h:[optional scale_x:scale_y:]:val1,val2... */
-	vector<string> tokens;
-	tokenize(optarg, tokens, ":");
-	vector<string>::size_type ntokens = tokens.size();
+	auto tokens = tokenize(optarg, ":");
+	auto ntokens = tokens.size();
 	if( ntokens < 1 ) {
 		throw invalid_cmdline("Missing psf's width");
 	}
@@ -304,8 +299,7 @@ Image parse_psf(string optarg, Model &m)
 	size = psf_width * psf_height;
 	vector<double> psf(size);
 
-	vector<string> values;
-	tokenize(*it, values, ",");
+	auto values = tokenize(*it, ",");
 	i = 0;
 	for(auto value: values) {
 		psf[i++] = stod(value);
@@ -807,7 +801,7 @@ int parse_and_run(int argc, char *argv[]) {
 					throw invalid_cmdline("libprofit was compiled without OpenCL support, but support was requested. See -V for details");
 				}
 				use_opencl = true;
-				tokenize(optarg, tokens, ",");
+				tokens = tokenize(optarg, ",");
 				if( tokens.size() != 3 ) {
 					throw invalid_cmdline("-C argument must be of the form 'p,d,D' (e.g., -C 0,1,0)");
 				}
