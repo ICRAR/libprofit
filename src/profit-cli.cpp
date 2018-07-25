@@ -346,55 +346,69 @@ void show_version() {
 	cout << endl;
 }
 
+static const char *help_msg = R"===(
+%s: utility program to generate an image out of a model and a set of profiles
+
+This program is licensed under the GPLv3 license.
+
+Usage: %s [options] -p <spec> [-p <spec> ...]
+
+Options:
+  -t        Output image as text values on stdout
+  -b        Output image as binary content on stdout
+  -f <file> Output image as fits file
+  -i <n>    Output performance information after evaluating the model n times
+  -s        Show runtime stats
+  -T <conv> Use this type of convolver (see below)
+  -u        Return an un-cropped image from the convolver
+  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)
+  -c        Display OpenCL information about devices and platforms
+  -n <n>    Use n OpenMP threads to calculate profiles
+  -e <n>    FFTW plans created with n effort (more takes longer)
+  -r        Reuse FFT-transformed PSF across evaluations (if -T fft)
+  -x        Image width. Defaults to 100
+  -y        Image height. Defaults to 100
+  -S <n>    Finesampling factor. Defaults to 1
+  -F        Do *not* return finesampled image (if -S <n>)
+  -w        Width in pixels. Defaults to 100
+  -H        Height in pixels. Defaults to 100
+  -m        Zero magnitude. Defaults to 0
+  -P        PSF function (specified as w:h:val1,val2..., or as a FITS filename)
+  -R        Clear libprofit's cache and exit
+  -h,-?     Show this help and exit
+  -V        Show the program version and exit
+
+The following convolver types are supported:
+
+ * brute: A brute-force convolver
+ * brute-old: An older, slower brute-force convolver (used only for comparisons)
+ * opencl: An OpenCL-based brute-force convolver
+ * fft: An FFT-based convolver
+
+Profiles should be specified as follows:
+
+-p name:param1=val1:param2=val2:...
+
+The following profiles (and parameters) are currently accepted:
+
+ * psf: xcen, ycen, mag
+ * sky: bg
+ * sersic: re, nser, rescale_flux
+ * moffat: fwhm, con
+ * ferrer: a, b, rout
+ * coresersic: re, nser, rb, a, b
+ * brokenexp: h1, h2, rb, a
+ * king: rc, rt, a
+ * sersic, moffat, ferrer, coresersic, king: xcen, ycen, mag, box, ang, axrat,
+                           rough, rscale_switch, max_recursions,
+                           resolution, acc, rscale_max, adjust
+
+For more information visit https://libprofit.readthedocs.io.
+
+)===";
+
 void usage(FILE *file, char *argv[]) {
-	fprintf(file,"\n%s: utility program to generate an image out of a model and a set of profiles\n\n", argv[0]);
-	fprintf(file,"This program is licensed under the GPLv3 license.\n\n");
-	fprintf(file,"Usage: %s [options] -p <spec> [-p <spec> ...]\n\n",argv[0]);
-	fprintf(file,"Options:\n");
-	fprintf(file,"  -t        Output image as text values on stdout\n");
-	fprintf(file,"  -b        Output image as binary content on stdout\n");
-	fprintf(file,"  -f <file> Output image as fits file\n");
-	fprintf(file,"  -i <n>    Output performance information after evaluating the model n times\n");
-	fprintf(file,"  -s        Show runtime stats\n");
-	fprintf(file,"  -T <conv> Use this type of convolver (see below)\n");
-	fprintf(file,"  -u        Return an un-cropped image from the convolver\n");
-	fprintf(file,"  -C <p,d>  Use OpenCL with platform p, device d, and double support (0|1)\n");
-	fprintf(file,"  -c        Display OpenCL information about devices and platforms\n");
-	fprintf(file,"  -n <n>    Use n OpenMP threads to calculate profiles\n");
-	fprintf(file,"  -e <n>    FFTW plans created with n effort (more takes longer)\n");
-	fprintf(file,"  -r        Reuse FFT-transformed PSF across evaluations (if -T fft)\n");
-	fprintf(file,"  -x        Image width. Defaults to 100\n");
-	fprintf(file,"  -y        Image height. Defaults to 100\n");
-	fprintf(file,"  -S <n>    Finesampling factor. Defaults to 1\n");
-	fprintf(file,"  -F        Do *not* return finesampled image (if -S <n>)\n");
-	fprintf(file,"  -w        Width in pixels. Defaults to 100\n");
-	fprintf(file,"  -H        Height in pixels. Defaults to 100\n");
-	fprintf(file,"  -m        Zero magnitude. Defaults to 0.\n");
-	fprintf(file,"  -P        PSF function (specified as w:h:val1,val2..., or as a FITS filename)\n");
-	fprintf(file,"  -R        Clear libprofit's cache and exit\n");
-	fprintf(file,"  -h,-?     Show this help and exit\n");
-	fprintf(file,"  -V        Show the program version and exit\n\n");
-	fprintf(file,"The following convolver types are supported:\n\n");
-	fprintf(file," * brute: A brute-force convolver\n");
-	fprintf(file," * brute-old: An older, slower brute-force convolver (used only for comparisons)\n");
-	fprintf(file," * opencl: An OpenCL-based brute-force convolver\n");
-	fprintf(file," * fft: An FFT-based convolver\n");
-	fprintf(file,"\nProfiles should be specified as follows:\n\n");
-	fprintf(file,"-p name:param1=val1:param2=val2:...\n\n");
-	fprintf(file,"The following profiles (and parameters) are currently accepted:\n\n");
-	fprintf(file," * psf: xcen, ycen, mag\n");
-	fprintf(file," * sky: bg\n");
-	fprintf(file," * sersic: re, nser, rescale_flux\n");
-	fprintf(file," * moffat: fwhm, con\n");
-	fprintf(file," * ferrer: a, b, rout\n");
-	fprintf(file," * coresersic: re, nser, rb, a, b\n");
-	fprintf(file," * brokenexp: h1, h2, rb, a\n");
-	fprintf(file," * king: rc, rt, a\n");
-	fprintf(file,"\
- * sersic, moffat, ferrer, coresersic, king: xcen, ycen, mag, box, ang, axrat,\n\
-                           rough, rscale_switch, max_recursions,\n\
-                           resolution, acc, rscale_max, adjust\n\n");
-	fprintf(file,"For more information visit https://libprofit.readthedocs.io.\n\n");
+	std::fprintf(file, help_msg, argv[0], argv[0]);
 }
 
 static
