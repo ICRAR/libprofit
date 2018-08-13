@@ -149,6 +149,17 @@ PROFIT_API void recursive_remove(const std::string &path);
  */
 PROFIT_API std::string get_profit_home();
 
+/**
+ * Set the environment variable @a name to @a value. If a variable with that
+ * name exists its value is replaced. If @a value is empty the variable is
+ * removed from the environment
+ *
+ * @param name The environment variable's name
+ * @param value The new value for the environment variable. An empty string
+ * causes the variable to be removed from the environment.
+ */
+PROFIT_API void setenv(const std::string &name, const std::string &value);
+
 } /* namespace profit */
 
 #endif /* PROFIT_UTILS_H */

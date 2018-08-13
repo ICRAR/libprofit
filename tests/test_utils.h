@@ -122,30 +122,13 @@ public:
 				}
 			}
 			~env_keeper() {
-				if (!_home.empty()) {
-#ifdef _MSC_VER
-					::_putenv_s("PROFIT_HOME", _home.c_str());
-#else
-					::setenv("PROFIT_HOME", _home.c_str(), 1);
-#endif
-				}
-				else {
-#ifdef _MSC_VER
-					::_putenv_s("PROFIT_HOME", "");
-#else
-					::unsetenv("PROFIT_HOME");
-#endif
-				}
+				profit::setenv("PROFIT_HOME", _home);
 			}
 		} keeper;
 
 		// Run the tests both with the default profit home and with a hardcoded one
 		run_test();
-#ifdef _MSC_VER
-		::_putenv_s("PROFIT_HOME", ".profit");
-#else
-		::setenv("PROFIT_HOME", ".profit", 1);
-#endif
+		profit::setenv("PROFIT_HOME", ".profit");
 		run_test();
 		recursive_remove(".profit");
 	}

@@ -492,4 +492,18 @@ std::string get_profit_home()
 	return create_dirs(user_home, {std::string(profit_basedir)});
 }
 
+void setenv(const std::string &name, const std::string &value)
+{
+#ifdef _WIN32
+	::_putenv_s(name.c_str(), value.c_str());
+#else
+	if (!value.empty()) {
+		::setenv(name.c_str(), value.c_str(), 1);
+	}
+	else {
+		::unsetenv(name.c_str());
+	}
+#endif // _WIN32
+}
+
 } /* namespace profit */
