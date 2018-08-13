@@ -24,9 +24,8 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cxxtest/TestSuite.h>
-
-#include "profit/profit.h"
+#define PROFIT_TEST_NO_LIBRARY_FIXTURE
+#include "common_test_setup.h"
 
 class TestLibrary : public CxxTest::TestSuite {
 

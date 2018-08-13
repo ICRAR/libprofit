@@ -25,9 +25,7 @@
  */
 
 
-#include <cxxtest/TestSuite.h>
-
-#include "profit/profit.h"
+#include "common_test_setup.h"
 
 using namespace profit;
 

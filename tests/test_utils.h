@@ -29,10 +29,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <cxxtest/TestSuite.h>
-
-#include "profit/config.h"
-#include "profit/utils.h"
+#include "common_test_setup.h"
 
 #ifdef PROFIT_USES_GSL
 	#include <gsl/gsl_errno.h>

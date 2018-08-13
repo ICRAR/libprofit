@@ -24,10 +24,9 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cxxtest/TestSuite.h>
 #include <list>
 
-#include "profit/profit.h"
+#include "common_test_setup.h"
 
 using namespace profit;
 
