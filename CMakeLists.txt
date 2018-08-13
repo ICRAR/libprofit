@@ -340,6 +340,7 @@ if( LIBPROFIT_TEST )
 
 
 	if( CXXTEST_FOUND )
+		include(CTest)
 		enable_testing()
 		add_subdirectory(tests)
 	endif()
