@@ -30,9 +30,7 @@
 #ifdef PROFIT_FFTW
 
 #include <complex>
-#include <iterator>
 #include <memory>
-#include <stdexcept>
 #include <vector>
 
 #include <fftw3.h>
@@ -98,26 +96,6 @@ protected:
 	int get_fftw_effort() const;
 	unsigned int get_size() const {
 		return size;
-	}
-
-	template <typename T>
-	void check_size(const std::vector<T> &data, unsigned int size) const
-	{
-		if (data.size() != size) {
-			std::ostringstream os;
-			os << "data size != plan size: " << data.size() << " != " << size;
-			throw std::invalid_argument(os.str());
-		}
-	}
-
-	dcomplex_vec as_dcomplex_vec(const fftw_complex *cdata, unsigned int size) const
-	{
-		dcomplex_vec ret;
-		ret.reserve(size);
-		std::transform(cdata, cdata + size, std::inserter(ret, ret.begin()), [](const fftw_complex &c) {
-			return dcomplex {c[0], c[1]};
-		});
-		return ret;
 	}
 
 private:

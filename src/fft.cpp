@@ -34,6 +34,24 @@
 
 namespace profit {
 
+template <typename T>
+void check_size(const std::vector<T> &data, unsigned int size)
+{
+	if (data.size() != size) {
+		std::ostringstream os;
+		os << "data size != plan size: " << data.size() << " != " << size;
+		throw std::invalid_argument(os.str());
+	}
+}
+
+FFTTransformer::dcomplex_vec as_dcomplex_vec(const fftw_complex *cdata, unsigned int size)
+{
+	FFTTransformer::dcomplex_vec ret(size);
+	std::transform(cdata, cdata + size, ret.begin(), [](const fftw_complex &c) {
+		return FFTTransformer::dcomplex {c[0], c[1]};
+	});
+	return ret;
+}
 
 int FFTTransformer::get_fftw_effort() const
 {
@@ -136,10 +154,9 @@ std::vector<double> FFTRealTransformer::backward(const dcomplex_vec &cdata) cons
 	fftw_execute(backward_plan);
 
 	auto size = get_size();
-	std::vector<double> ret;
-	ret.reserve(size);
+	std::vector<double> ret(size);
 	auto *out_it = real_buf.get();
-	std::copy(out_it, out_it + size, std::inserter(ret, ret.begin()));
+	std::copy(out_it, out_it + size, ret.begin());
 
 	return ret;
 }
