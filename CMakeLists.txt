@@ -313,6 +313,7 @@ install(FILES
         profit/opencl.h
         profit/profile.h
         profit/profit.h
+        profit/utils.h
         DESTINATION include/profit)
 install(FILES
         profit/cl/cl2.hpp
