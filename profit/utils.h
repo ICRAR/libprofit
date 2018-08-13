@@ -160,6 +160,14 @@ PROFIT_API std::string get_profit_home();
  */
 PROFIT_API void setenv(const std::string &name, const std::string &value);
 
+/**
+ * Breaks down @p s into substrings delimited by @p delims
+ * @param s The string to split
+ * @param delims The individual delimiters
+ * @return The individual substrings after splitting
+ */
+PROFIT_API std::vector<std::string> split(const std::string &s, const std::string &delims);
+
 } /* namespace profit */
 
 #endif /* PROFIT_UTILS_H */

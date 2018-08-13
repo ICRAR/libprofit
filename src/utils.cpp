@@ -506,4 +506,19 @@ void setenv(const std::string &name, const std::string &value)
 #endif // _WIN32
 }
 
+// Adapted from: http://oopweb.com/CPP/Documents/CPPHOWTO/Volume/C++Programming-HOWTO-7.html
+std::vector<std::string> split(const std::string &s, const std::string &delims)
+{
+	auto lastPos = s.find_first_not_of(delims, 0);
+	auto pos = s.find_first_of(delims, lastPos);
+
+	std::vector<std::string> tokens;
+	while (std::string::npos != pos || std::string::npos != lastPos) {
+		tokens.push_back(s.substr(lastPos, pos - lastPos));
+		lastPos = s.find_first_not_of(delims, pos);
+		pos = s.find_first_of(delims, lastPos);
+	}
+	return tokens;
+}
+
 } /* namespace profit */

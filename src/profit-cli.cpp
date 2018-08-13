@@ -60,26 +60,6 @@ private:
 	string m_what;
 };
 
-/**
- * Breaks down a string into substrings delimited by delims
- *
- * Adapted from:
- *  http://oopweb.com/CPP/Documents/CPPHOWTO/Volume/C++Programming-HOWTO-7.html
- */
-std::vector<std::string> tokenize(const std::string &s, const std::string &delims) {
-
-	auto lastPos = s.find_first_not_of(delims, 0);
-	auto pos = s.find_first_of(delims, lastPos);
-
-	std::vector<std::string> tokens;
-	while (std::string::npos != pos || std::string::npos != lastPos) {
-		tokens.push_back(s.substr(lastPos, pos - lastPos));
-		lastPos = s.find_first_not_of(delims, pos);
-		pos = s.find_first_of(delims, lastPos);
-	}
-	return tokens;
-}
-
 template <typename T, typename F>
 void read_from_string(Profile &p, const string& key, string &val, const string &name, F reader) {
 
@@ -230,9 +210,9 @@ void desc_to_profile(
 		return;
 	}
 
-	for(auto &token: tokenize(description, ":")) {
+	for(auto &token: split(description, ":")) {
 
-		auto name_and_value = tokenize(token, "=");
+		auto name_and_value = split(token, "=");
 		if( name_and_value.size() != 2 ) {
 			ostringstream os;
 			os <<  "Parameter " << token << " of profile " << name << " doesn't obey the form name=value";
@@ -272,7 +252,7 @@ Image parse_psf(string optarg, Model &m)
 	bool read_scales = false;
 
 	/* format is w:h:[optional scale_x:scale_y:]:val1,val2... */
-	auto tokens = tokenize(optarg, ":");
+	auto tokens = split(optarg, ":");
 	auto ntokens = tokens.size();
 	if( ntokens < 1 ) {
 		throw invalid_cmdline("Missing psf's width");
@@ -297,7 +277,7 @@ Image parse_psf(string optarg, Model &m)
 	}
 
 	Image psf(psf_width, psf_height);
-	auto values = tokenize(*it, ",");
+	auto values = split(*it, ",");
 	if (values.size() != psf.size()) {
 		std::ostringstream os;
 		os << "Not enough values provided for PSF. Provided: " << values.size() << ", expected: " << psf.size();
@@ -795,7 +775,7 @@ int parse_and_run(int argc, char *argv[]) {
 					throw invalid_cmdline("libprofit was compiled without OpenCL support, but support was requested. See -V for details");
 				}
 				use_opencl = true;
-				tokens = tokenize(optarg, ",");
+				tokens = split(optarg, ",");
 				if( tokens.size() != 3 ) {
 					throw invalid_cmdline("-C argument must be of the form 'p,d,D' (e.g., -C 0,1,0)");
 				}
