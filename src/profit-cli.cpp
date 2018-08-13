@@ -46,7 +46,8 @@
 
 
 using namespace std;
-using namespace profit;
+
+namespace profit {
 
 class invalid_cmdline : exception {
 public:
@@ -954,6 +955,10 @@ int parse_and_run(int argc, char *argv[]) {
 
 }
 
+} // namespace shark
+
+extern "C" {
+
 int main(int argc, char *argv[]) {
 
 	bool success = profit::init();
@@ -968,21 +973,21 @@ int main(int argc, char *argv[]) {
 
 	int ret;
 	try {
-		ret = parse_and_run(argc, argv);
+		ret = profit::parse_and_run(argc, argv);
 	}
-	catch (invalid_cmdline &e) {
+	catch (profit::invalid_cmdline &e) {
 		cerr << "Error on command line: " << e.what() << endl;
 		ret = 1;
 	}
-	catch (invalid_parameter &e) {
+	catch (profit::invalid_parameter &e) {
 		cerr << "Error while calculating model: " << e.what() << endl;
 		ret = 1;
 	}
-	catch (opencl_error &e) {
+	catch (profit::opencl_error &e) {
 		cerr << "Error in OpenCL operation: " << e.what() << endl;
 		ret = 1;
 	}
-	catch (fft_error &e) {
+	catch (profit::fft_error &e) {
 		cerr << "Error in FFT operation: " << e.what() << endl;
 		ret = 1;
 	}
@@ -998,3 +1003,5 @@ int main(int argc, char *argv[]) {
 
 	return ret;
 }
+
+} // extern "C"
