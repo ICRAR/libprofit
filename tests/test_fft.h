@@ -76,21 +76,36 @@ public:
 	Dimensions dims;
 };
 
-// all combinations of: even/odd image, even/odd psf, psf fft reuse/no_reuse
-static fft_convolution_test_case test_cases[] = {
-	{{100, 100}, {25, 25}, true},
-	{{100, 100}, {26, 26}, true},
-	{{99, 99}, {25, 25}, true},
-	{{99, 99}, {26, 26}, true},
-	{{100, 100}, {25, 25}, false},
-	{{100, 100}, {26, 26}, false},
-	{{99, 99}, {25, 25}, false},
-	{{99, 99}, {26, 26}, false}
-};
-
 class TestFFT : public CxxTest::TestSuite {
 
+private:
+	// these are declared non-static and re-created every time (via setUp and
+	// tearDown) so their creation and destruction happens *before* and *after*
+	// libprofit has been initialized by the global library initialization
+	// fixture, respectively. This ensures that the FFT plans created by these
+	// objects are known to libprofit and properly cleaned up before the library
+	// is shut down.
+	std::vector<fft_convolution_test_case> test_cases;
+
 public:
+
+	void setUp() {
+		// all combinations of: even/odd image, even/odd psf, psf fft reuse/no_reuse
+		test_cases = {
+			{{100, 100}, {25, 25}, true},
+			{{100, 100}, {26, 26}, true},
+			{{99, 99}, {25, 25}, true},
+			{{99, 99}, {26, 26}, true},
+			{{100, 100}, {25, 25}, false},
+			{{100, 100}, {26, 26}, false},
+			{{99, 99}, {25, 25}, false},
+			{{99, 99}, {26, 26}, false}
+		};
+	}
+
+	void tearDown() {
+		test_cases.clear();
+	}
 
 	void _check_fftw_support() {
 		if (!has_fftw()) {
