@@ -38,10 +38,10 @@ using namespace profit;
 /**
  * Create and keep a pointer to an appropriate plan for the given sizes
  */
-class FFTFixtures : CxxTest::GlobalFixture {
+class fft_convolution_test_case {
 
 public:
-	FFTFixtures(const Dimensions &dims, const Dimensions &psf_dims, bool reuse_psf_fft) :
+	fft_convolution_test_case(const Dimensions &dims, const Dimensions &psf_dims, bool reuse_psf_fft) :
 		tolerance(0.01),
 		fft_convolver(nullptr),
 		psf(psf_dims),
@@ -77,7 +77,7 @@ public:
 };
 
 // all combinations of: even/odd image, even/odd psf, psf fft reuse/no_reuse
-static FFTFixtures fixtures[] = {
+static fft_convolution_test_case test_cases[] = {
 	{{100, 100}, {25, 25}, true},
 	{{100, 100}, {26, 26}, true},
 	{{99, 99}, {25, 25}, true},
@@ -99,26 +99,26 @@ public:
 	}
 
 	void _check_images_within_tolerance(Model &m) {
-		for(auto &fixture: fixtures) {
-			_check_images_within_tolerance_with_fixtures(m, fixture);
+		for(auto &test_case: test_cases) {
+			_check_images_within_tolerance_with_fixtures(m, test_case);
 		}
 	}
 
-	void _check_images_within_tolerance_with_fixtures(Model &m, FFTFixtures &fftFixtures)
+	void _check_images_within_tolerance_with_fixtures(Model &m, fft_convolution_test_case &test_case)
 	{
 
-		if( !fftFixtures.fft_convolver ) {
+		if( !test_case.fft_convolver ) {
 			TS_SKIP("No FFTPlan found to run FFT tests with this fixture");
 		}
 
-		auto width = fftFixtures.dims.x;
-		m.set_dimensions(fftFixtures.dims);
-		m.set_psf(fftFixtures.psf);
+		auto width = test_case.dims.x;
+		m.set_dimensions(test_case.dims);
+		m.set_psf(test_case.psf);
 
 		// evaluate normally first, and then using the FFTPlan
 		m.set_convolver(nullptr);
 		std::vector<double> original = m.evaluate();
-		m.set_convolver(fftFixtures.fft_convolver);
+		m.set_convolver(test_case.fft_convolver);
 		std::vector<double> fft_produced = m.evaluate();
 
 		// Pixel by pixel the images should be fairly similar
@@ -147,7 +147,7 @@ public:
 			auto relative_diff = diff / denomin;
 			msg << "Pixel [" << i % width << "," << i / width << "] has values that are too different: ";
 			msg << original_pixel << " v/s " << fft_pixel;
-			TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), relative_diff, fftFixtures.tolerance);
+			TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), relative_diff, test_case.tolerance);
 		}
 	}
 
