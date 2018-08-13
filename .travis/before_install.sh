@@ -37,9 +37,9 @@ then
 		brew update
 	fi
 
-	# The xcode 8.1 and 9.1 images need oclint to be uninstalled
+	# The xcode 8.3 and 9.3 images need oclint to be uninstalled
 	# (see travis-ci issue #8826)
-	if [ "${XCODE}" = "8.1" -o "${XCODE}" = "9.1" ]
+	if [ "${XCODE}" = "8.3" -o "${XCODE}" = "9.3" ]
 	then
 		brew cask uninstall oclint
 	fi
