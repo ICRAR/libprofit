@@ -101,7 +101,7 @@ protected:
 	}
 
 	template <typename T>
-	void check_size(const std::vector<T> &data) const
+	void check_size(const std::vector<T> &data, unsigned int size) const
 	{
 		if (data.size() != size) {
 			std::ostringstream os;
@@ -110,7 +110,7 @@ protected:
 		}
 	}
 
-	dcomplex_vec as_dcomplex_vec(const fftw_complex *cdata) const
+	dcomplex_vec as_dcomplex_vec(const fftw_complex *cdata, unsigned int size) const
 	{
 		dcomplex_vec ret;
 		ret.reserve(size);
@@ -158,6 +158,7 @@ public:
 	std::vector<double> backward(const dcomplex_vec &data) const override;
 
 private:
+	unsigned int hermitian_size;
 	std::unique_ptr<double> real_buf;
 	std::unique_ptr<fftw_complex> complex_buf;
 	fftw_plan forward_plan;

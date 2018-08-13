@@ -54,6 +54,7 @@ int FFTTransformer::get_fftw_effort() const
 
 FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsigned int omp_threads) :
 	FFTTransformer(size, effort, omp_threads),
+	hermitian_size(size / 2 + 1),
 	real_buf(), complex_buf(),
 	forward_plan(nullptr),
 	backward_plan(nullptr)
@@ -64,7 +65,7 @@ FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsig
 		throw std::bad_alloc();
 	}
 
-	fftw_complex *complex_tmp = fftw_alloc_complex(size);
+	fftw_complex *complex_tmp = fftw_alloc_complex(hermitian_size);
 	if (!complex_tmp) {
 		throw std::bad_alloc();
 	}
@@ -108,7 +109,7 @@ FFTRealTransformer::~FFTRealTransformer()
 
 FFTTransformer::dcomplex_vec FFTRealTransformer::forward(const std::vector<double> &data) const
 {
-	check_size(data);
+	check_size(data, get_size());
 
 	// Copy image data into input array, transform,
 	// and copy output of transformation into returned vector
@@ -116,12 +117,12 @@ FFTTransformer::dcomplex_vec FFTRealTransformer::forward(const std::vector<doubl
 
 	fftw_execute(forward_plan);
 
-	return as_dcomplex_vec(complex_buf.get());
+	return as_dcomplex_vec(complex_buf.get(), hermitian_size);
 }
 
 std::vector<double> FFTRealTransformer::backward(const dcomplex_vec &cdata) const
 {
-	check_size(cdata);
+	check_size(cdata, hermitian_size);
 
 	// Copy input data into complex buffer, execute plan,
 	// and copy data out of the real buffer into the returned Image
