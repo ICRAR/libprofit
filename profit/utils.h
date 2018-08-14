@@ -168,6 +168,20 @@ PROFIT_API void setenv(const std::string &name, const std::string &value);
  */
 PROFIT_API std::vector<std::string> split(const std::string &s, const std::string &delims);
 
+/**
+ * Trims @p s on both ends
+ * @param s The string to trim
+ * @return A reference to @p s
+ */
+PROFIT_API std::string &trim(std::string &s);
+
+/**
+ * Trims @p s on both ends
+ * @param s The string to trim
+ * @return The new trimmed string
+ */
+PROFIT_API std::string trim(const std::string &s);
+
 } /* namespace profit */
 
 #endif /* PROFIT_UTILS_H */

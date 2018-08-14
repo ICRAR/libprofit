@@ -25,6 +25,7 @@
  */
 
 #include <algorithm>
+#include <cctype>
 #include <cstring>
 #include <cstdlib>
 #include <cerrno>
@@ -519,6 +520,31 @@ std::vector<std::string> split(const std::string &s, const std::string &delims)
 		pos = s.find_first_of(delims, lastPos);
 	}
 	return tokens;
+}
+
+// trim from start
+static inline std::string &ltrim(std::string &s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+	        std::not1(std::ptr_fun<int, int>(std::isspace))));
+	return s;
+}
+
+// trim from end
+static inline std::string &rtrim(std::string &s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(),
+	        std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	return s;
+}
+
+// trim from both ends
+std::string &trim(std::string &s) {
+	return ltrim(rtrim(s));
+}
+
+std::string trim(const std::string &s) {
+	std::string s_copy(s);
+	ltrim(rtrim(s_copy));
+	return s_copy;
 }
 
 } /* namespace profit */
