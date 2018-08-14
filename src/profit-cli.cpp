@@ -24,16 +24,13 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <getopt.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <algorithm>
+#include <cerrno>
+#include <cstring>
 #include <cmath>
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -158,7 +155,6 @@ Usage: %s [options] -p <spec> [-p <spec> ...]
 
 Options:
   -t        Output image as text values on stdout
-  -b        Output image as binary content on stdout
   -f <file> Output image as fits file
   -i <n>    Output performance information after evaluating the model n times
   -s        Show runtime stats
@@ -210,9 +206,13 @@ For more information visit https://libprofit.readthedocs.io.
 
 )===";
 
+template <typename T>
 static
-void usage(FILE *file, char *argv[]) {
-	std::fprintf(file, help_msg, argv[0], argv[0]);
+void usage(std::basic_ostream<T> &os, char *prog_name) {
+	char *buff = new char[std::strlen(help_msg) - 4 + std::strlen(prog_name) * 2 + 1];
+	std::sprintf(buff, help_msg, prog_name, prog_name);
+	os << buff;
+	delete []buff;
 }
 
 static
@@ -387,7 +387,7 @@ Image read_image_from_fits_file(const std::string &filename, Model &m) {
 	f = fopen(filename.c_str(), "rb");
 	if( !f ) {
 		std::ostringstream os;
-		os << "Couldn't open '" << filename << "' for reading: " << strerror(errno);
+		os << "Couldn't open '" << filename << "' for reading: " << std::strerror(errno);
 		throw invalid_cmdline(os.str());
 	}
 
@@ -536,9 +536,8 @@ Image run(unsigned int iterations, Model &m, Point &offset) {
 
 typedef enum _output_type {
 	none = 0,
-	binary = 1,
-	text = 2,
-	fits = 3,
+	text,
+	fits,
 } output_t;
 
 static
@@ -551,7 +550,6 @@ int parse_and_run(int argc, char *argv[]) {
 	unsigned int width = 100, height = 100, iterations = 1;
 	double scale_x = 1, scale_y = 1;
 	unsigned int i, j;
-	char *endptr = NULL;
 	std::string fits_output;
 	output_t output = none;
 	Model m;
@@ -559,21 +557,20 @@ int parse_and_run(int argc, char *argv[]) {
 	unsigned int finesampling = 1;
 	std::string convolver_type = "brute";
 	ConvolverCreationPreferences convolver_prefs;
-	struct stat stat_buf;
 	bool show_stats = false;
 
 	bool use_opencl = false, use_double = false;
 	unsigned int clplat_idx = 0, cldev_idx = 0;
 	std::vector<std::string> tokens;
 
-	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:C:ce:rn:F";
+	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tf:i:T:uS:C:ce:rn:F";
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
 		switch(opt) {
 
 			case 'h':
 			case '?':
-				usage(stdout, argv);
+				usage(std::cout, argv[0]);
 				return 0;
 
 			case 'V':
@@ -597,7 +594,7 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'e':
-				convolver_prefs.effort = effort_t(std::atoi(optarg));
+				convolver_prefs.effort = effort_t(std::stoul(optarg));
 				break;
 
 			case 'r':
@@ -621,18 +618,18 @@ int parse_and_run(int argc, char *argv[]) {
 				if( tokens.size() != 3 ) {
 					throw invalid_cmdline("-C argument must be of the form 'p,d,D' (e.g., -C 0,1,0)");
 				}
-				clplat_idx = (unsigned int)atoi(tokens[0].c_str());
-				cldev_idx = (unsigned int)atoi(tokens[1].c_str());
-				use_double = (bool)atoi(tokens[2].c_str());
+				clplat_idx = std::stoul(tokens[0].c_str());
+				cldev_idx = std::stoul(tokens[1].c_str());
+				use_double = std::stoul(tokens[2].c_str());
 				break;
 
 			case 'n':
-				m.set_omp_threads((unsigned int)atoi(optarg));
+				m.set_omp_threads(std::stoul(optarg));
 				convolver_prefs.omp_threads = m.get_omp_threads();
 				break;
 
 			case 'P':
-				if( !stat(optarg, &stat_buf) ) {
+				if( file_exists(optarg) ) {
 					psf = read_image_from_fits_file(optarg, m);
 				}
 				else {
@@ -643,15 +640,15 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'w':
-				width = (unsigned int)atoi(optarg);
+				width = std::stoul(optarg);
 				break;
 
 			case 'H':
-				height = (unsigned int)atoi(optarg);
+				height = std::stoul(optarg);
 				break;
 
 			case 'S':
-				finesampling = (unsigned int)atoi(optarg);
+				finesampling = std::stoul(optarg);
 				break;
 
 			case 'F':
@@ -659,29 +656,19 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'x':
-				scale_x = atof(optarg);
+				scale_x = std::stod(optarg);
 				break;
 
 			case 'y':
-				scale_y = atof(optarg);
+				scale_y = std::stod(optarg);
 				break;
 
 			case 'm':
-				m.set_magzero(strtod(optarg, &endptr));
+				m.set_magzero(std::stod(optarg));
 				break;
 
 			case 't':
-				if( output != none ) {
-					throw invalid_cmdline("-t and -b cannot be used together");
-				}
 				output = text;
-				break;
-
-			case 'b':
-				if( output != none ) {
-					throw invalid_cmdline("-b and -t cannot be used together");
-				}
-				output = binary;
 				break;
 
 			case 'f':
@@ -690,11 +677,11 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'i':
-				iterations = (unsigned int)atoi(optarg);
+				iterations = std::stoul(optarg);
 				break;
 
 			default:
-				usage(stderr, argv);
+				usage(std::cerr, argv[0]);
 				return 1;
 
 		}
@@ -702,7 +689,7 @@ int parse_and_run(int argc, char *argv[]) {
 
 	/* No profiles given */
 	if( !m.has_profiles() ) {
-		usage(stderr, argv);
+		usage(std::cerr, argv[0]);
 		return 1;
 	}
 
@@ -743,10 +730,6 @@ int parse_and_run(int argc, char *argv[]) {
 	switch(output) {
 
 		case none:
-			break;
-
-		case binary:
-			fwrite(image.data(), sizeof(double), image.size(), stdout);
 			break;
 
 		case text:
