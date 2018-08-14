@@ -47,6 +47,16 @@ const char *invalid_parameter::what() const throw() {
 	return m_what.c_str();
 }
 
+unknown_parameter::unknown_parameter(const std::string &what_arg) :
+	invalid_parameter(what_arg)
+{
+	// no-op
+}
+
+unknown_parameter::~unknown_parameter() throw () {
+	// no-op
+}
+
 opencl_error::opencl_error(const std::string &what_arg) :
 	exception(),
 	m_what(what_arg)

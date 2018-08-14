@@ -53,6 +53,17 @@ private:
 };
 
 /**
+ * Exception thrown by the Profile class when a user gives a parameter that the
+ * profile doesn't understand.
+ */
+class PROFIT_API unknown_parameter : public invalid_parameter
+{
+public:
+	unknown_parameter(const std::string &what);
+	~unknown_parameter() throw();
+};
+
+/**
  * Exception class thrown when an error occurs while dealing with OpenCL.
  */
 class PROFIT_API opencl_error : public std::exception
