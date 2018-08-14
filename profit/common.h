@@ -59,26 +59,47 @@ namespace profit {
 	/// A type to hold nanosecond values
 	typedef std::chrono::nanoseconds::rep nsecs_t;
 
+	/// Trait naming different types
+	template <typename T>
+	struct type_info {};
+
+	template <>
+	struct type_info<bool> {
+		constexpr static const char *name = "bool";
+	};
+
+	template <>
+	struct type_info<unsigned int> {
+		constexpr static const char *name = "unsigned int";
+	};
+
+	template <>
+	struct type_info<float> {
+		constexpr static const char *name = "float";
+	};
+
+	template <>
+	struct type_info<double> {
+		constexpr static const char *name = "double";
+	};
+
 	/// Trait describing specific float and double floating types
 	template <typename FT>
 	struct float_traits {
 		const static bool is_float = false;
 		const static bool is_double = false;
-		constexpr const static char * name = "unknown";
 	};
 
 	template <>
-	struct float_traits<float> {
+	struct float_traits<float> : public type_info<float> {
 		const static bool is_float = true;
 		const static bool is_double = false;
-		constexpr const static char * name = "float";
 	};
 
 	template <>
-	struct float_traits<double> {
+	struct float_traits<double> : public type_info<double> {
 		const static bool is_float = false;
 		const static bool is_double = true;
-		constexpr const static char * name = "double";
 	};
 
 }
