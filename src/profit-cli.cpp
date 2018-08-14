@@ -46,19 +46,17 @@
 #include "profit/profit.h"
 
 
-using namespace std;
-
 namespace profit {
 
-class invalid_cmdline : exception {
+class invalid_cmdline : std::exception {
 public:
-	invalid_cmdline(const string& what) : m_what(what) {}
+	invalid_cmdline(const std::string& what) : m_what(what) {}
 	invalid_cmdline(const invalid_cmdline &e) : m_what(e.m_what) {}
 	~invalid_cmdline() throw() {}
 	const char *what() const throw() { return m_what.c_str(); }
 
 private:
-	string m_what;
+	std::string m_what;
 };
 
 void parse_profile(Model &model, const std::string &description)
@@ -78,7 +76,7 @@ void parse_profile(Model &model, const std::string &description)
 	}
 }
 
-Image parse_psf(string optarg, Model &m)
+Image parse_psf(std::string optarg, Model &m)
 {
 	bool read_scales = false;
 
@@ -98,12 +96,12 @@ Image parse_psf(string optarg, Model &m)
 		read_scales = true;
 	}
 
-	vector<string>::iterator it = tokens.begin();
-	unsigned int psf_width = stoul(*it++);
-	unsigned int psf_height = stoul(*it++);
+	auto it = tokens.begin();
+	unsigned int psf_width = std::stoul(*it++);
+	unsigned int psf_height = std::stoul(*it++);
 	if( read_scales ) {
-		double psf_scale_x = stod(*it++);
-		double psf_scale_y = stod(*it++);
+		double psf_scale_x = std::stod(*it++);
+		double psf_scale_y = std::stod(*it++);
 		m.set_psf_pixel_scale({psf_scale_x, psf_scale_y});
 	}
 
@@ -121,6 +119,8 @@ Image parse_psf(string optarg, Model &m)
 }
 
 void show_version() {
+	using std::cout;
+	using std::endl;
 	cout << "libprofit version " << version() << endl;
 	cout << "OpenCL support: ";
 	if (has_opencl()) {
@@ -212,12 +212,13 @@ void usage(FILE *file, char *argv[]) {
 }
 
 static
-void print_stats_line(const string &prefix, const string &stat_name, double val) {
+void print_stats_line(const std::string &prefix, const std::string &stat_name, double val) {
 	const auto static name_width = 50u;
 	int nchars = prefix.size() + stat_name.size();
 	int nspaces = name_width - nchars;
-	string spaces(max(0, nspaces), ' ');
-	cout << prefix << stat_name << spaces << " : " << setw(10) << setprecision(3) << setiosflags(ios::fixed) << val << " [ms]" << endl;
+	std::string spaces(std::max(0, nspaces), ' ');
+	std::cout << prefix << stat_name << spaces << " : " << std::setw(10)
+	          << std::setprecision(3) << std::fixed << val << " [ms]" << std::endl;
 }
 
 struct clver {
@@ -237,22 +238,25 @@ std::basic_ostream<T> &operator<<(std::basic_ostream<T> &os, const clver &ver)
 static
 void print_opencl_info() {
 
+	using std::cout;
+	using std::endl;
+
 	const auto info = get_opencl_info();
 
 	if( info.size() > 0 ) {
 		cout << "OpenCL information" << endl;
 		cout << "==================" << endl << endl;
 		for(auto platform_info: info) {
-			auto plat_id = get<0>(platform_info);
-			auto plat_info = get<1>(platform_info);
+			auto plat_id = std::get<0>(platform_info);
+			auto plat_info = std::get<1>(platform_info);
 			cout << "Platform [" << plat_id << "]" << endl;
 			cout << "  Name           : " << plat_info.name << endl;
 			cout << "  OpenCL version : " << clver(plat_info.supported_opencl_version) << endl;
 			for(auto device_info: plat_info.dev_info) {
-				cout << "  Device [" << get<0>(device_info) << "]" << endl;
-				cout << "    Name           : " << get<1>(device_info).name << endl;
-				cout << "    OpenCL version : " << clver(get<1>(device_info).cl_version) << endl;
-				cout << "    Double         : " << (get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
+				cout << "  Device [" << std::get<0>(device_info) << "]" << endl;
+				cout << "    Name           : " << std::get<1>(device_info).name << endl;
+				cout << "    OpenCL version : " << clver(std::get<1>(device_info).cl_version) << endl;
+				cout << "    Double         : " << (std::get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
 			}
 			cout << endl;
 		}
@@ -263,11 +267,11 @@ void print_opencl_info() {
 }
 
 static
-void print_cl_stats(const string &prefix0, bool opencl_120, const OpenCL_times &stats) {
+void print_cl_stats(const std::string &prefix0, bool opencl_120, const OpenCL_times &stats) {
 
 	auto prefix1 = prefix0 + "  ";
 
-	ostringstream os;
+	std::ostringstream os;
 	os << "OpenCL operations (" << stats.nwork_items << " work items)";
 	print_stats_line(prefix0, os.str(), stats.total / 1e6 );
 	print_stats_line(prefix1, "Kernel preparation", stats.kernel_prep / 1e6 );
@@ -289,36 +293,36 @@ void print_stats(const Model &m) {
 #ifdef PROFIT_DEBUG
 	for(const auto &profile_integrations: m.get_profile_integrations()) {
 		int total = 0;
-		if( get<1>(profile_integrations).size() > 0 ) {
-			cout << "Integrations per recursion level for profile " << get<0>(profile_integrations) << endl;
-			for(const auto level_integrations: get<1>(profile_integrations)) {
-				auto integrations = get<1>(level_integrations);
+		if( std::get<1>(profile_integrations).size() > 0 ) {
+			std::cout << "Integrations per recursion level for profile " << std::get<0>(profile_integrations) << std::endl;
+			for(const auto level_integrations: std::get<1>(profile_integrations)) {
+				auto integrations = std::get<1>(level_integrations);
 				total += integrations;
-				cout << " Level " << get<0>(level_integrations) << ": " << integrations << " integrations" << endl;
+				std::cout << " Level " << std::get<0>(level_integrations) << ": " << integrations << " integrations" << std::endl;
 			}
-			cout << " Total: " << total << " integrations" << endl;
+			std::cout << " Total: " << total << " integrations" << std::endl;
 		}
 		else {
-			cout << "Profile " << get<0>(profile_integrations) << " didn't run into any recursion" << endl;
+			std::cout << "Profile " << std::get<0>(profile_integrations) << " didn't run into any recursion" << std::endl;
 		}
 	}
 #endif /* PROFIT_DEBUG */
 
-	cout << endl;
+	std::cout << std::endl;
 	auto const &stats = m.get_stats();
 
 	auto prefix0 = "";
 	for(auto const &stat_pair: stats) {
 
 		// Some profile might not have gathered stats
-		auto profile_name = get<0>(stat_pair);
-		auto stat = get<1>(stat_pair);
+		auto profile_name = std::get<0>(stat_pair);
+		auto stat = std::get<1>(stat_pair);
 		ProfileStats *profile_stats = stat.get();
 		if( !profile_stats ) {
 			continue;
 		}
 
-		cout << "Stats for profile " << profile_name << endl;
+		std::cout << "Stats for profile " << profile_name << std::endl;
 
 		auto prefix1 = "  ";
 		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
@@ -363,7 +367,7 @@ double swap_bytes(const double v) {
 
 #define FITS_BLOCK_SIZE (36*80)
 
-Image read_image_from_fits_file(const string &filename, Model &m) {
+Image read_image_from_fits_file(const std::string &filename, Model &m) {
 
 	FILE *f;
 	unsigned int pos, padding;
@@ -376,9 +380,9 @@ Image read_image_from_fits_file(const string &filename, Model &m) {
 
 	f = fopen(filename.c_str(), "rb");
 	if( !f ) {
-		ostringstream ss;
-		ss << "Couldn't open '" << filename << "' for reading: " << strerror(errno);
-		throw invalid_cmdline(ss.str());
+		std::ostringstream os;
+		os << "Couldn't open '" << filename << "' for reading: " << strerror(errno);
+		throw invalid_cmdline(os.str());
 	}
 
 	/*
@@ -425,7 +429,7 @@ Image read_image_from_fits_file(const string &filename, Model &m) {
 	return psf;
 }
 
-int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
+int to_fits(Model &m, const Image &image, const Point &offset, std::string fname) {
 
 	FILE *f;
 	unsigned int i, pos, padding;
@@ -482,8 +486,8 @@ int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
 	/* data has to be big-endian */
 	size_t image_size = image.size();
 	if( is_little_endian() ) {
-		vector<double> big_endian_image(image_size);
-		transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
+		std::vector<double> big_endian_image(image_size);
+		std::transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
 		fwrite(big_endian_image.data(), sizeof(double), image_size, f);
 	}
 	else {
@@ -492,7 +496,7 @@ int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
 
 	/* Pad with zeroes until we complete the current 36*80 block */
 	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * image_size) % FITS_BLOCK_SIZE);
-	string zeros(padding, 0);
+	std::string zeros(padding, 0);
 	fwrite(zeros.c_str(), 1, padding, f);
 	fclose(f);
 
@@ -501,7 +505,7 @@ int to_fits(Model &m, const Image &image, const Point &offset, string fname) {
 
 Image run(unsigned int iterations, Model &m, Point &offset) {
 
-	using chrono::system_clock;
+	using std::chrono::system_clock;
 
 	/* This means that we evaluated the model once, but who cares */
 	Image result;
@@ -510,15 +514,15 @@ Image run(unsigned int iterations, Model &m, Point &offset) {
 		result = m.evaluate(offset);
 	}
 	auto end = system_clock::now();
-	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 
 	double dur_secs = (double)duration/1000;
 	double dur_per_iter = (double)duration/iterations;
-	cout << std::fixed << std::setprecision(3);
-	cout << "Ran " << iterations << " iterations in ";
-	cout << setprecision(3) << fixed << dur_secs << " [s] ";
-	cout << "(" << setprecision(3) << fixed << dur_per_iter << " [ms] per iteration)";
-	cout << endl;
+	std::cout << std::fixed << std::setprecision(3);
+	std::cout << "Ran " << iterations << " iterations in ";
+	std::cout << std::setprecision(3) << std::fixed << dur_secs << " [s] ";
+	std::cout << "(" << std::setprecision(3) << std::fixed << dur_per_iter << " [ms] per iteration)";
+	std::cout << std::endl;
 
 	return result;
 }
@@ -532,7 +536,7 @@ typedef enum _output_type {
 
 int parse_and_run(int argc, char *argv[]) {
 
-	using namespace std::chrono;
+	namespace chrono = std::chrono;
 	using chrono::system_clock;
 
 	int opt;
@@ -540,22 +544,21 @@ int parse_and_run(int argc, char *argv[]) {
 	double scale_x = 1, scale_y = 1;
 	unsigned int i, j;
 	char *endptr = NULL;
-	string fits_output;
+	std::string fits_output;
 	output_t output = none;
 	Model m;
 	Image psf;
 	unsigned int finesampling = 1;
-	string convolver_type = "brute";
+	std::string convolver_type = "brute";
 	ConvolverCreationPreferences convolver_prefs;
 	struct stat stat_buf;
 	bool show_stats = false;
 
 	bool use_opencl = false, use_double = false;
 	unsigned int clplat_idx = 0, cldev_idx = 0;
-	vector<string> tokens;
+	std::vector<std::string> tokens;
 
-	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:C:ce:rn:F"
-	;
+	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tbf:i:T:uS:C:ce:rn:F";
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
 		switch(opt) {
@@ -709,11 +712,11 @@ int parse_and_run(int argc, char *argv[]) {
 		m.set_opencl_env(opencl_env);
 		convolver_prefs.opencl_env = opencl_env;
 		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
-		cout << "OpenCL environment (platform=" <<
-		        opencl_env->get_platform_name() << ", device=" <<
-		        opencl_env->get_device_name() << ", version=" <<
-		        clver(opencl_env->get_version()) <<
-		        ") created in " << opencl_duration << " [ms]" << endl;
+		std::cout << "OpenCL environment (platform=" <<
+		            opencl_env->get_platform_name() << ", device=" <<
+		            opencl_env->get_device_name() << ", version=" <<
+		            clver(opencl_env->get_version()) <<
+		            ") created in " << opencl_duration << " [ms]" << std::endl;
 	}
 
 	// Create the convolver
@@ -722,8 +725,8 @@ int parse_and_run(int argc, char *argv[]) {
 	auto end = system_clock::now();
 
 	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
-	cout << std::fixed << std::setprecision(3);
-	cout << "Created convolver in " << duration << " [ms]" << endl;
+	std::cout << std::fixed << std::setprecision(3);
+	std::cout << "Created convolver in " << duration << " [ms]" << std::endl;
 
 	// Now run the model as many times as requested
 	Point offset;
@@ -741,9 +744,9 @@ int parse_and_run(int argc, char *argv[]) {
 		case text:
 			for(j=0; j!=image.getHeight(); j++) {
 				for(i=0; i!=image.getWidth(); i++) {
-					cout << image[j*image.getWidth() + i] << " ";
+					std::cout << image[j*image.getWidth() + i] << " ";
 				}
-				cout << endl;
+				std::cout << std::endl;
 			}
 			break;
 
@@ -755,7 +758,7 @@ int parse_and_run(int argc, char *argv[]) {
 			break;
 
 		default:
-			cerr << "Output not currently supported: " << output << endl;
+			std::cerr << "Output not currently supported: " << output << std::endl;
 	}
 
 	if( show_stats ) {
@@ -763,7 +766,6 @@ int parse_and_run(int argc, char *argv[]) {
 	}
 
 	return 0;
-
 }
 
 } // namespace shark
@@ -775,41 +777,41 @@ int main(int argc, char *argv[]) {
 	bool success = profit::init();
 	auto init_diagnose = profit::init_diagnose();
 	if (!success) {
-		cerr << "Error initializing libprofit: " << init_diagnose << endl;
+		std::cerr << "Error initializing libprofit: " << init_diagnose << std::endl;
 		return 1;
 	}
 	else if (!init_diagnose.empty()){
-		cerr << "Warning while initializing libprofit: " << init_diagnose << endl;
+		std::cerr << "Warning while initializing libprofit: " << init_diagnose << std::endl;
 	}
 
 	int ret;
 	try {
 		ret = profit::parse_and_run(argc, argv);
 	}
-	catch (profit::invalid_cmdline &e) {
-		cerr << "Error on command line: " << e.what() << endl;
+	catch (const profit::invalid_cmdline &e) {
+		std::cerr << "Error on command line: " << e.what() << std::endl;
 		ret = 1;
 	}
-	catch (profit::invalid_parameter &e) {
-		cerr << "Error while calculating model: " << e.what() << endl;
+	catch (const profit::invalid_parameter &e) {
+		std::cerr << "Error while calculating model: " << e.what() << std::endl;
 		ret = 1;
 	}
-	catch (profit::opencl_error &e) {
-		cerr << "Error in OpenCL operation: " << e.what() << endl;
+	catch (const profit::opencl_error &e) {
+		std::cerr << "Error in OpenCL operation: " << e.what() << std::endl;
 		ret = 1;
 	}
-	catch (profit::fft_error &e) {
-		cerr << "Error in FFT operation: " << e.what() << endl;
+	catch (const profit::fft_error &e) {
+		std::cerr << "Error in FFT operation: " << e.what() << std::endl;
 		ret = 1;
 	}
 	catch (const std::exception &e) {
-		cerr << "Unexpected error: " << e.what() << endl;
+		std::cerr << "Unexpected error: " << e.what() << std::endl;
 		ret = 1;
 	}
 	profit::finish();
 	auto finish_diagnose = profit::finish_diagnose();
 	if (!finish_diagnose.empty()) {
-		cerr << "Warning while finishing libprofit: " << finish_diagnose << endl;
+		std::cerr << "Warning while finishing libprofit: " << finish_diagnose << std::endl;
 	}
 
 	return ret;
