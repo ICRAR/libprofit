@@ -70,8 +70,13 @@ class PROFIT_API Profile {
 
 public:
 
+#if __cpp_alias_templates == 200704
 	template <typename T>
 	using parameter_holder = std::map<std::string, std::reference_wrapper<T>>;
+#else
+	template <typename T>
+	class parameter_holder : public std::map<std::string, std::reference_wrapper<T>> { };
+#endif
 
 	/**
 	 * Constructor
@@ -119,6 +124,17 @@ public:
 	 * @param magzero The profile's zero magnitude value.
 	 */
 	virtual void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) = 0;
+
+	/**
+	 * Parses @p parameter_spec, which should look like `name = value`, and
+	 * sets that parameter value on the profile.
+	 * @param parameter_spec The parameter name
+	 * @throws invalid_parameter if @p parameter_spec fails to parse, or the
+	 * parameter's value cannot be parsed correctly
+	 * @throws unknown_parameter if @p parameter_spec refers to a parameter not
+	 * supported by this profile
+	 */
+	void parameter(const std::string &parameter_spec);
 
 	/**
 	 * Sets the parameter `name` to `value`.

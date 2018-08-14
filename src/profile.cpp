@@ -30,6 +30,7 @@
 #include "profit/common.h"
 #include "profit/exceptions.h"
 #include "profit/profile.h"
+#include "profit/utils.h"
 
 
 namespace profit {
@@ -113,6 +114,32 @@ void set_parameter(
 	parameters.at(name).get() = val;
 }
 
+template <typename T, typename Converter>
+bool set_parameter(
+	Profile::parameter_holder<T> &parameters,
+	const std::string &name,
+	const std::string &profile_name,
+	const std::string &val,
+	Converter &&converter)
+{
+	if (parameters.find(name) == parameters.end()) {
+		return false;
+	}
+
+	try {
+		T bval = converter(val);
+		parameters.at(name).get() = bval;
+		return true;
+	} catch (const std::invalid_argument &e) {
+		constexpr auto type_name = type_info<T>::name;
+		std::ostringstream os;
+		os << "Parameter " << name << " in profile " << profile_name;
+		os << " is of type " << type_name << ", but given value cannot be parsed";
+		os << " as " << type_name << ": " << val;
+		throw invalid_parameter(os.str());
+	}
+}
+
 void Profile::parameter(const std::string &name, bool val) {
 	set_parameter(bool_parameters, name, get_name(), val);
 }
@@ -123,6 +150,32 @@ void Profile::parameter(const std::string &name, double val) {
 
 void Profile::parameter(const std::string &name, unsigned int val) {
 	set_parameter(uint_parameters, name, get_name(), val);
+}
+
+void Profile::parameter(const std::string &param_spec)
+{
+	auto parts = split(param_spec, "=");
+	if (parts.size() != 2) {
+		std::ostringstream os;
+		os << "missing = in parameter: " << param_spec;
+		throw invalid_parameter(os.str());
+	}
+
+	auto &name = trim(parts[0]);
+	auto &val = trim(parts[1]);
+
+	bool found = (
+		set_parameter(bool_parameters, name, get_name(), val, [](const std::string &s) { return std::stoul(s, nullptr, 10); }) ||
+		set_parameter(uint_parameters, name, get_name(), val, [](const std::string &s) { return std::stoul(s, nullptr, 10); }) ||
+		set_parameter(double_parameters, name, get_name(), val, [](const std::string &s) { return std::stod(s); })
+	);
+
+	if (!found) {
+		std::ostringstream os;
+		os << "Profile " << get_name() << " doesn't support parameter " << name;
+		os << ", or parameter has invalid value: " << val;
+		throw unknown_parameter(os.str());
+	}
 }
 
 } /* namespace profit */
