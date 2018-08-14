@@ -290,7 +290,7 @@ set(PROFIT_TARGETS profit)
 # The executable
 #
 if (NOT MSVC)
-	add_executable(profit-cli src/profit-cli.cpp)
+	add_executable(profit-cli src/fits_utils.cpp src/profit-cli.cpp)
 	target_link_libraries(profit-cli profit)
 	set(PROFIT_TARGETS ${PROFIT_TARGETS} profit-cli)
 endif()

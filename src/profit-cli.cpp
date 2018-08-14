@@ -26,11 +26,9 @@
 #include <getopt.h>
 
 #include <algorithm>
-#include <cerrno>
 #include <cstring>
 #include <cmath>
 #include <chrono>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -41,7 +39,7 @@
 #include <sstream>
 
 #include "profit/profit.h"
-
+#include "profit/fits_utils.h"
 
 namespace profit {
 
@@ -348,167 +346,6 @@ void print_stats(const Model &m) {
 	}
 }
 
-static inline
-bool is_little_endian() {
-	const uint32_t i = 0x01234567;
-	return *reinterpret_cast<const uint8_t *>(&i) == 0x67;
-}
-
-static inline
-double swap_bytes(const double v) {
-	double r;
-	const char *vbytes = reinterpret_cast<const char *>(&v);
-	char *rbytes = reinterpret_cast<char *>(&r);
-	rbytes[0] = vbytes[7];
-	rbytes[1] = vbytes[6];
-	rbytes[2] = vbytes[5];
-	rbytes[3] = vbytes[4];
-	rbytes[4] = vbytes[3];
-	rbytes[5] = vbytes[2];
-	rbytes[6] = vbytes[1];
-	rbytes[7] = vbytes[0];
-	return r;
-}
-
-#define FITS_BLOCK_SIZE (36*80)
-
-static
-Image read_image_from_fits_file(const std::string &filename, Model &m) {
-
-	FILE *f;
-	unsigned int pos, padding;
-	char hdr[80];
-
-	unsigned int width = 0;
-	unsigned int height = 0;
-	double scale_x = 1;
-	double scale_y = 1;
-
-	f = fopen(filename.c_str(), "rb");
-	if( !f ) {
-		std::ostringstream os;
-		os << "Couldn't open '" << filename << "' for reading: " << std::strerror(errno);
-		throw invalid_cmdline(os.str());
-	}
-
-	/*
-	 * Standard headers, we're assuming they say 'T" for SIMPLE, -64 for BITPIX
-	 * and 2 for NAXIS.
-	 */
-	while( fread(hdr, 1, 80, f) ) {
-
-		if( !strncmp("NAXIS1", hdr, 6) ) {
-			sscanf(hdr, "NAXIS1 = %u", &width);
-		}
-		else if( !strncmp("NAXIS2", hdr, 6) ) {
-			sscanf(hdr, "NAXIS2 = %u", &height);
-		}
-		else if( !strncmp("CDELT1", hdr, 6) ) {
-			sscanf(hdr, "CDELT1 = %lf", &scale_x);
-		}
-		else if( !strncmp("CDELT2", hdr, 6) ) {
-			sscanf(hdr, "CDELT2 = %lf", &scale_y);
-		}
-		else if( !strncmp("END", hdr, 3) ) {
-			break;
-		}
-	}
-
-	m.set_psf_pixel_scale({scale_x, scale_y});
-
-	pos = (unsigned int)ftell(f);
-	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
-	fseek(f, padding, SEEK_CUR);
-
-	Image psf(width, height);
-	size_t nitems = fread(psf.data(), sizeof(double), psf.size(), f);
-	fclose(f);
-	if( nitems != size ) {
-		throw invalid_cmdline("Error while reading file: less data found than expected");
-	}
-
-	/* data has to be big-endian */
-	if( is_little_endian() ) {
-		transform(psf.begin(), psf.end(), psf.begin(), swap_bytes);
-	}
-
-	return psf;
-}
-
-int to_fits(Model &m, const Image &image, const Point &offset, std::string fname) {
-
-	FILE *f;
-	unsigned int i, pos, padding;
-	char hdr[80];
-
-	/* Append .fits if not in the name yet */
-	size_t fname_size = fname.size();
-	if( fname_size <= 5 || fname.compare(fname_size - 5, fname_size, ".fits") != 0 ) {
-		fname = fname + ".fits";
-	}
-
-	f = fopen(fname.c_str(), "w+");
-	if( !f ) {
-		return 1;
-	}
-
-	/*
-	 * Standard headers
-	 *
-	 * The first five headers are required, and must be in "fixed format",
-	 * meaning that their values must be right-indented on column 30, sigh...
-	 */
-	auto scale_x = m.get_image_pixel_scale().first;
-	auto scale_y = m.get_image_pixel_scale().second;
-	fprintf(f, "%-80s", "SIMPLE  =                    T / File conforms to FITS standard");
-	fprintf(f, "%-80s", "BITPIX  =                  -64 / Bits per pixel");
-	fprintf(f, "%-80s", "NAXIS   =                    2 / Number of axes");
-	sprintf(hdr, "NAXIS1  =           %10.0u / Width", image.getWidth());
-	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "NAXIS2  =           %10.0u / Height", image.getHeight());
-	fprintf(f, "%-80s", hdr);
-	fprintf(f, "%-80s", "CRPIX1  = 1");
-	sprintf(hdr, "CRVAL1  = %f", (0.5 - offset.x) * scale_x);
-	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "CDELT1  = %f", scale_x);
-	fprintf(f, "%-80s", hdr);
-	fprintf(f, "%-80s", "CTYPE1  = ' '");
-	fprintf(f, "%-80s", "CUNIT1  = ' '");
-	fprintf(f, "%-80s", "CRPIX2  = 1");
-	sprintf(hdr, "CRVAL2  = %f", (0.5 - offset.y) * scale_y);
-	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "CDELT2  = %f", scale_y);
-	fprintf(f, "%-80s", hdr);
-	fprintf(f, "%-80s", "CTYPE2  = ' '");
-	fprintf(f, "%-80s", "CUNIT2  = ' '");
-	fprintf(f, "%-80s", "END");
-
-	pos = (unsigned int)ftell(f);
-	padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
-	for(i=0; i<padding; i++) {
-		fprintf(f, " ");
-	}
-
-	/* data has to be big-endian */
-	size_t image_size = image.size();
-	if( is_little_endian() ) {
-		std::vector<double> big_endian_image(image_size);
-		std::transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
-		fwrite(big_endian_image.data(), sizeof(double), image_size, f);
-	}
-	else {
-		fwrite(image.data(), sizeof(double), image_size, f);
-	}
-
-	/* Pad with zeroes until we complete the current 36*80 block */
-	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * image_size) % FITS_BLOCK_SIZE);
-	std::string zeros(padding, 0);
-	fwrite(zeros.c_str(), 1, padding, f);
-	fclose(f);
-
-	return 0;
-}
-
 static
 Image run(unsigned int iterations, Model &m, Point &offset) {
 
@@ -630,7 +467,15 @@ int parse_and_run(int argc, char *argv[]) {
 
 			case 'P':
 				if( file_exists(optarg) ) {
-					psf = read_image_from_fits_file(optarg, m);
+					try {
+						PixelScale psf_pixel_scale;
+						psf = from_fits(optarg, psf_pixel_scale);
+						m.set_psf_pixel_scale(psf_pixel_scale);
+					} catch (const invalid_file &e) {
+						std::ostringstream os;
+						os << "Error loading PSF from " << optarg << ": " << e.what();
+						throw invalid_cmdline(os.str());
+					}
 				}
 				else {
 					psf = parse_psf(optarg, m);
@@ -742,10 +587,7 @@ int parse_and_run(int argc, char *argv[]) {
 			break;
 
 		case fits:
-			if( to_fits(m, image, offset, fits_output) ) {
-				perror("Error while saving image to FITS file");
-				return 1;
-			}
+			to_fits(image, offset, m.get_image_pixel_scale(), fits_output);
 			break;
 
 		default:
