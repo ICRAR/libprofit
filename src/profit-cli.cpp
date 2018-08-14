@@ -59,6 +59,7 @@ private:
 	std::string m_what;
 };
 
+static
 void parse_profile(Model &model, const std::string &description)
 {
 	auto desc = trim(description);
@@ -76,6 +77,7 @@ void parse_profile(Model &model, const std::string &description)
 	}
 }
 
+static
 Image parse_psf(std::string optarg, Model &m)
 {
 	bool read_scales = false;
@@ -118,6 +120,7 @@ Image parse_psf(std::string optarg, Model &m)
 	return psf;
 }
 
+static
 void show_version() {
 	using std::cout;
 	using std::endl;
@@ -207,6 +210,7 @@ For more information visit https://libprofit.readthedocs.io.
 
 )===";
 
+static
 void usage(FILE *file, char *argv[]) {
 	std::fprintf(file, help_msg, argv[0], argv[0]);
 }
@@ -227,6 +231,7 @@ struct clver {
 };
 
 template <typename T>
+static
 std::basic_ostream<T> &operator<<(std::basic_ostream<T> &os, const clver &ver)
 {
 	auto major = ver.ver / 100;
@@ -367,6 +372,7 @@ double swap_bytes(const double v) {
 
 #define FITS_BLOCK_SIZE (36*80)
 
+static
 Image read_image_from_fits_file(const std::string &filename, Model &m) {
 
 	FILE *f;
@@ -503,6 +509,7 @@ int to_fits(Model &m, const Image &image, const Point &offset, std::string fname
 	return 0;
 }
 
+static
 Image run(unsigned int iterations, Model &m, Point &offset) {
 
 	using std::chrono::system_clock;
@@ -534,6 +541,7 @@ typedef enum _output_type {
 	fits = 3,
 } output_t;
 
+static
 int parse_and_run(int argc, char *argv[]) {
 
 	namespace chrono = std::chrono;
