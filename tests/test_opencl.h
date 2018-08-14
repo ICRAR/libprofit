@@ -33,10 +33,10 @@
 
 using namespace profit;
 
-class OpenCLFixtures : CxxTest::GlobalFixture {
+class OpenCLParameters {
 
 public:
-	OpenCLFixtures() {
+	OpenCLParameters() {
 
 		if (!has_opencl()) {
 			return;
@@ -97,7 +97,7 @@ public:
 	double tolerance;
 	OpenCLEnvPtr opencl_env;
 };
-static OpenCLFixtures openCLFixtures;
+static OpenCLParameters openCLParameters;
 
 class TestOpenCL : public CxxTest::TestSuite {
 
@@ -136,19 +136,19 @@ private:
 
 	void _check_images_within_tolerance(Model &m) {
 
-		if( !openCLFixtures.opencl_env ) {
+		if( !openCLParameters.opencl_env ) {
 			TS_SKIP("No OpenCL environment found to run OpenCL tests");
 		}
 
 		// evaluate normally first, and then using the OpenCL environment,
 		// which they all support
 		auto original = m.evaluate();
-		m.set_opencl_env(openCLFixtures.opencl_env);
+		m.set_opencl_env(openCLParameters.opencl_env);
 		auto opencl_produced = m.evaluate();
 
 		// Pixel by pixel the images should be fairly similar
 		for(unsigned int i=0; i!=original.size(); i++) {
-			_pixels_within_tolerance(original, opencl_produced, i, openCLFixtures.tolerance);
+			_pixels_within_tolerance(original, opencl_produced, i, openCLParameters.tolerance);
 		}
 	}
 
@@ -285,11 +285,11 @@ public:
 
 	void test_convolver() {
 		_check_opencl_support();
-		if( !openCLFixtures.opencl_env ) {
+		if( !openCLParameters.opencl_env ) {
 			TS_SKIP("No OpenCL environment found to run OpenCL tests");
 		}
 		ConvolverCreationPreferences prefs;
-		prefs.opencl_env = openCLFixtures.opencl_env;
+		prefs.opencl_env = openCLParameters.opencl_env;
 		_check_convolver(create_convolver(ConvolverType::OPENCL, prefs));
 	}
 
