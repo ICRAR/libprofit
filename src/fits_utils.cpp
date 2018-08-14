@@ -26,6 +26,7 @@
 #include <cerrno>
 #include <cstring>
 #include <fstream>
+#include <utility>
 
 #include "profit/fits_utils.h"
 #include "profit/model.h"
@@ -123,18 +124,38 @@ Image from_fits(const std::string &filename, PixelScale &pixel_scale)
 	return psf;
 }
 
+static
+void write_header(std::ofstream &f, const char *header) {
+	char hdr[81];
+	std::sprintf(hdr, "%-80s", header);
+	f.write(hdr, 80);
+};
+
+template <typename ...Ts>
+static
+void write_header(std::ofstream &f, const char *fmt, Ts&&...values) {
+	char hdr[81];
+	std::sprintf(hdr, fmt, std::forward<Ts>(values)...);
+	write_header(f, hdr);
+};
+
+
+void add_padding(std::ofstream &f, std::ofstream::pos_type from, char padding_char)
+{
+	auto pad_size = FITS_BLOCK_SIZE - (from % FITS_BLOCK_SIZE);
+	std::string padding(pad_size, padding_char);
+	f.write(padding.c_str(), padding.size());
+}
+
 void to_fits(const Image &image, const Point &offset, const PixelScale &pixel_scale, std::string fname)
 {
-	FILE *f;
-	char hdr[80];
-
 	/* Append .fits if not in the name yet */
 	size_t fname_size = fname.size();
 	if( fname_size <= 5 || fname.compare(fname_size - 5, fname_size, ".fits") != 0 ) {
 		fname = fname + ".fits";
 	}
 
-	f = fopen(fname.c_str(), "w+");
+	std::ofstream f(fname, std::ios_base::binary);
 	if (!f) {
 		std::ostringstream os;
 		os << "Couldn't open '" << fname << "' for writing: " << std::strerror(errno);
@@ -149,50 +170,36 @@ void to_fits(const Image &image, const Point &offset, const PixelScale &pixel_sc
 	 */
 	auto scale_x = pixel_scale.first;
 	auto scale_y = pixel_scale.second;
-	fprintf(f, "%-80s", "SIMPLE  =                    T / File conforms to FITS standard");
-	fprintf(f, "%-80s", "BITPIX  =                  -64 / Bits per pixel");
-	fprintf(f, "%-80s", "NAXIS   =                    2 / Number of axes");
-	sprintf(hdr, "NAXIS1  =           %10.0u / Width", image.getWidth());
-	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "NAXIS2  =           %10.0u / Height", image.getHeight());
-	fprintf(f, "%-80s", hdr);
-	fprintf(f, "%-80s", "CRPIX1  = 1");
-	sprintf(hdr, "CRVAL1  = %f", (0.5 - offset.x) * scale_x);
-	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "CDELT1  = %f", scale_x);
-	fprintf(f, "%-80s", hdr);
-	fprintf(f, "%-80s", "CTYPE1  = ' '");
-	fprintf(f, "%-80s", "CUNIT1  = ' '");
-	fprintf(f, "%-80s", "CRPIX2  = 1");
-	sprintf(hdr, "CRVAL2  = %f", (0.5 - offset.y) * scale_y);
-	fprintf(f, "%-80s", hdr);
-	sprintf(hdr, "CDELT2  = %f", scale_y);
-	fprintf(f, "%-80s", hdr);
-	fprintf(f, "%-80s", "CTYPE2  = ' '");
-	fprintf(f, "%-80s", "CUNIT2  = ' '");
-	fprintf(f, "%-80s", "END");
-
-	auto pos = (unsigned int)ftell(f);
-	auto padding = FITS_BLOCK_SIZE - (pos % FITS_BLOCK_SIZE);
-	std::string spaces(padding, ' ');
-	fwrite(spaces.c_str(), 1, padding, f);
+	write_header(f, "SIMPLE  =                    T / File conforms to FITS standard");
+	write_header(f, "BITPIX  =                  -64 / Bits per pixel");
+	write_header(f, "NAXIS   =                    2 / Number of axes");
+	write_header(f, "NAXIS1  =           %10.0u / Width", image.getWidth());
+	write_header(f, "NAXIS2  =           %10.0u / Height", image.getHeight());
+	write_header(f, "CRPIX1  = 1");
+	write_header(f, "CRVAL1  = %f", (0.5 - offset.x) * scale_x);
+	write_header(f, "CDELT1  = %f", scale_x);
+	write_header(f, "CTYPE1  = ' '");
+	write_header(f, "CUNIT1  = ' '");
+	write_header(f, "CRPIX2  = 1");
+	write_header(f, "CRVAL2  = %f", (0.5 - offset.y) * scale_y);
+	write_header(f, "CDELT2  = %f", scale_y);
+	write_header(f, "CTYPE2  = ' '");
+	write_header(f, "CUNIT2  = ' '");
+	write_header(f, "END");
+	add_padding(f, f.tellp(), ' ');
 
 	/* data has to be big-endian */
 	size_t image_size = image.size();
 	if( is_little_endian() ) {
 		std::vector<double> big_endian_image(image_size);
 		std::transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
-		fwrite(big_endian_image.data(), sizeof(double), image_size, f);
+		f.write(reinterpret_cast<const char *>(big_endian_image.data()), sizeof(double) * image_size);
 	}
 	else {
-		fwrite(image.data(), sizeof(double), image_size, f);
+		f.write(reinterpret_cast<const char *>(image.data()), sizeof(double) * image_size);
 	}
 
-	/* Pad with zeroes until we complete the current 36*80 block */
-	padding = FITS_BLOCK_SIZE - (((unsigned int)sizeof(double) * image_size) % FITS_BLOCK_SIZE);
-	std::string zeros(padding, 0);
-	fwrite(zeros.c_str(), 1, padding, f);
-	fclose(f);
+	add_padding(f, sizeof(double) * image_size, 0);
 }
 
 } // namespace profit
