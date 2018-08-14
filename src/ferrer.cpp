@@ -124,22 +124,10 @@ FerrerProfile::FerrerProfile(const Model &model, const std::string &name) :
 {
 	// this profile defaults to a different accuracy
 	this->acc = 1;
-}
 
-bool FerrerProfile::parameter_impl(const std::string &name, double val) {
-
-	if( RadialProfile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "rout" )   { rout = val; }
-	else if( name == "a" ) { a = val; }
-	else if( name == "b" ) { b = val; }
-	else {
-		return false;
-	}
-
-	return true;
+	register_parameter("rout", rout);
+	register_parameter("a", a);
+	register_parameter("b", b);
 }
 
 #ifdef PROFIT_OPENCL

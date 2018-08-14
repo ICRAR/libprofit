@@ -107,22 +107,8 @@ MoffatProfile::MoffatProfile(const Model &model, const std::string &name) :
 	RadialProfile(model, name),
 	fwhm(3), con(2)
 {
-	// no-op
-}
-
-bool MoffatProfile::parameter_impl(const std::string &name, double val) {
-
-	if( RadialProfile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "fwhm" )     { fwhm = val; }
-	else if( name == "con" ) { con = val; }
-	else {
-		return false;
-	}
-
-	return true;
+	register_parameter("fwhm", fwhm);
+	register_parameter("con", con);
 }
 
 #ifdef PROFIT_OPENCL

@@ -77,15 +77,6 @@ public:
 
 protected:
 
-	/*
-	 * ----------------------
-	 * Inherited from Profile
-	 * ----------------------
-	 */
-	virtual bool parameter_impl(const std::string &name, bool value) override;
-	virtual bool parameter_impl(const std::string &name, double value) override;
-	virtual bool parameter_impl(const std::string &name, unsigned int value) override;
-
 	/**
 	 * Calculates the profile value at profile coordinates ``x``/``y``.
 	 * @param x The X profile coordinate to evaluate

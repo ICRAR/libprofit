@@ -151,24 +151,10 @@ BrokenExponentialProfile::BrokenExponentialProfile(const Model &model, const std
 	RadialProfile(model, name),
 	h1(1), h2(1), rb(1), a(1)
 {
-	// no-op
-}
-
-bool BrokenExponentialProfile::parameter_impl(const std::string &name, double val) {
-
-	if( RadialProfile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "h1" )      { h1 = val; }
-	else if( name == "h2" ) { h2 = val; }
-	else if( name == "rb" ) { rb = val; }
-	else if( name == "a" )  { a = val; }
-	else {
-		return false;
-	}
-
-	return true;
+	register_parameter("h1", h1);
+	register_parameter("h2", h2);
+	register_parameter("rb", rb);
+	register_parameter("a", a);
 }
 
 #ifdef PROFIT_OPENCL

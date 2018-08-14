@@ -353,36 +353,9 @@ SersicProfile::SersicProfile(const Model &model, const std::string &name) :
 	re(1), nser(1),
 	rescale_flux(false)
 {
-	// no-op
-}
-
-bool SersicProfile::parameter_impl(const std::string &name, double val) {
-
-	if( RadialProfile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "re" )        { re = val; }
-	else if( name == "nser" ) { nser = val; }
-	else {
-		return false;
-	}
-
-	return true;
-}
-
-bool SersicProfile::parameter_impl(const std::string &name, bool val) {
-
-	if( RadialProfile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "rescale_flux" ) {
-		rescale_flux = val;
-		return true;
-	}
-
-	return false;
+	register_parameter("re", re);
+	register_parameter("nser", nser);
+	register_parameter("rescale_flux", rescale_flux);
 }
 
 #ifdef PROFIT_OPENCL

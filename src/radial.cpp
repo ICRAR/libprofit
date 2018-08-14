@@ -733,7 +733,20 @@ RadialProfile::RadialProfile(const Model &model, const std::string &name) :
 	_cos_ang(0), _sin_ang(0),
 	magzero(0)
 {
-	// no-op
+	register_parameter("rough", rough);
+	register_parameter("adjust", adjust);
+	register_parameter("force_cpu", force_cpu);
+	register_parameter("xcen", xcen);
+	register_parameter("ycen", ycen);
+	register_parameter("mag", mag);
+	register_parameter("ang", ang);
+	register_parameter("axrat", axrat);
+	register_parameter("box", box);
+	register_parameter("acc", acc);
+	register_parameter("rscale_switch", rscale_switch);
+	register_parameter("rscale_max", rscale_max);
+	register_parameter("max_recursions", max_recursions);
+	register_parameter("resolution", resolution);
 }
 
 #ifdef PROFIT_DEBUG
@@ -741,59 +754,6 @@ std::map<int,int> RadialProfile::get_integrations() {
 	return n_integrations;
 }
 #endif
-
-bool RadialProfile::parameter_impl(const std::string &name, bool value) {
-
-	if( Profile::parameter_impl(name, value) ) {
-		return true;
-	}
-
-	if( name == "rough" )              { rough = value; }
-	else if( name == "adjust" )        { adjust = value; }
-	else if( name == "force_cpu" )     { force_cpu = value; }
-	else {
-		return false;
-	}
-
-	return true;
-}
-
-bool RadialProfile::parameter_impl(const std::string &name, double value) {
-
-	if( Profile::parameter_impl(name, value) ) {
-		return true;
-	}
-
-	if( name == "xcen" )               { xcen = value; }
-	else if( name == "ycen" )          { ycen = value; }
-	else if( name == "mag" )           { mag = value; }
-	else if( name == "ang" )           { ang = value; }
-	else if( name == "axrat" )         { axrat = value; }
-	else if( name == "box" )           { box = value; }
-	else if( name == "acc" )           { acc = value; }
-	else if( name == "rscale_switch" ) { rscale_switch = value; }
-	else if( name == "rscale_max" )    { rscale_max = value; }
-	else {
-		return false;
-	}
-
-	return true;
-}
-
-bool RadialProfile::parameter_impl(const std::string &name, unsigned int value) {
-
-	if( Profile::parameter_impl(name, value) ) {
-		return true;
-	}
-
-	if( name == "max_recursions" )  { max_recursions = value; }
-	else if( name == "resolution" ) { resolution = value; }
-	else {
-		return false;
-	}
-
-	return true;
-}
 
 #ifdef PROFIT_OPENCL
 void RadialProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {

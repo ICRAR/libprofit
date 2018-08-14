@@ -27,6 +27,7 @@
 #ifndef PROFIT_PROFILE_H
 #define PROFIT_PROFILE_H
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -68,6 +69,9 @@ struct PROFIT_API RadialProfileStats : ProfileStats {
 class PROFIT_API Profile {
 
 public:
+
+	template <typename T>
+	using parameter_holder = std::map<std::string, std::reference_wrapper<T>>;
 
 	/**
 	 * Constructor
@@ -167,25 +171,34 @@ public:
 protected:
 
 	/**
-	 * Sets the parameter `name` to `value`. This method is meant to be
-	 * overwritten by classes, and therefore care should be taken to check
-	 * the return value from the parent class's implementation.
+	 * Registers a boolean variable as a profile parameter. It is meant to be
+	 * called from the different profiles' constructors to register their
+	 * private members holding boolean parameter values.
 	 *
-	 * @param name The parameter name
-	 * @param value The parameter value
-	 * @return Whether the parameter was set or not.
+	 * @param name The name of the boolean parameter
+	 * @param variable The boolean variable holding the parameter
 	 */
-	virtual bool parameter_impl(const std::string &name, bool value);
+	void register_parameter(const char *name, bool &variable);
 
 	/**
-	 * @see parameter_impl(const std::string, bool)
+	 * Like register_parameter(const char *, bool), but for `unsigned int`
+	 * parameters
+	 *
+	 * @param name The name of the unsigned int parameter
+	 * @param variable The unsigned int variable holding the parameter
+	 * @see register_parameter(const char *, bool)
 	 */
-	virtual bool parameter_impl(const std::string &name, double value);
+	void register_parameter(const char *name, unsigned int &variable);
 
 	/**
-	 * @see parameter_impl(const std::string, bool)
+	 * Like register_parameter(const char *, bool), but for `double`
+	 * parameters
+	 *
+	 * @param name The name of the double parameter
+	 * @param variable The double variable holding the parameter
+	 * @see register_parameter(const char *, bool)
 	 */
-	virtual bool parameter_impl(const std::string &name, unsigned int value);
+	void register_parameter(const char *name, double &variable);
 
 	/**
 	 * A (constant) reference to the model this profile belongs to
@@ -208,9 +221,9 @@ protected:
 	// @}
 
 private:
-
-	template <typename T>
-	void set_parameter(const std::string &name, T value);
+	parameter_holder<bool> bool_parameters;
+	parameter_holder<unsigned int> uint_parameters;
+	parameter_holder<double> double_parameters;
 
 };
 

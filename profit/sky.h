@@ -62,13 +62,6 @@ public:
 protected:
 
 	/*
-	 * ----------------------
-	 * Inherited from Profile
-	 * ----------------------
-	 */
-	bool parameter_impl(const std::string &name, double value) override;
-
-	/*
 	 * -------------------------
 	 * Profile parameters follow
 	 * -------------------------

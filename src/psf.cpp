@@ -161,23 +161,9 @@ PsfProfile::PsfProfile(const Model &model, const std::string &name) :
 	ycen(0),
 	mag(0)
 {
-	// no-op
-}
-
-bool PsfProfile::parameter_impl(const std::string &name, double val) {
-
-	if( Profile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "xcen" )      { xcen = val; }
-	else if( name == "ycen" ) { ycen = val; }
-	else if( name == "mag" )  { mag = val; }
-	else {
-		return false;
-	}
-
-	return true;
+	register_parameter("xcen", xcen);
+	register_parameter("ycen", ycen);
+	register_parameter("mag", mag);
 }
 
 } /* namespace profit */

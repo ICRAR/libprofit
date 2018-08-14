@@ -138,24 +138,11 @@ CoreSersicProfile::CoreSersicProfile(const Model &model, const std::string &name
 	RadialProfile(model, name),
 	re(1), rb(1), nser(4), a(1), b(1)
 {
-	// no-op
-}
-bool CoreSersicProfile::parameter_impl(const std::string &name, double val) {
-
-	if( RadialProfile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "re" )        { re = val; }
-	else if( name == "rb" )   { rb = val; }
-	else if( name == "nser" ) { nser = val; }
-	else if( name == "a" )    { a = val; }
-	else if( name == "b" )    { b = val; }
-	else {
-		return false;
-	}
-
-	return true;
+	register_parameter("re", re);
+	register_parameter("rb", rb);
+	register_parameter("nser", nser);
+	register_parameter("a", a);
+	register_parameter("b", b);
 }
 
 #ifdef PROFIT_OPENCL

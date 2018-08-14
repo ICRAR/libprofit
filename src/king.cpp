@@ -121,23 +121,9 @@ KingProfile::KingProfile(const Model &model, const std::string &name) :
 	RadialProfile(model, name),
 	rc(1), rt(3), a(2)
 {
-	// no-op
-}
-
-bool KingProfile::parameter_impl(const std::string &name, double val) {
-
-	if( RadialProfile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "rc" )      { rc = val; }
-	else if( name == "rt" ) { rt = val; }
-	else if( name == "a" )  { a = val; }
-	else {
-		return false;
-	}
-
-	return true;
+	register_parameter("rc", rc);
+	register_parameter("rt", rt);
+	register_parameter("a", a);
 }
 
 #ifdef PROFIT_OPENCL

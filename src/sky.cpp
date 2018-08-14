@@ -66,21 +66,7 @@ SkyProfile::SkyProfile(const Model &model, const std::string &name) :
 	bg(0.),
 	requested_bg(0.)
 {
-	// no-op
-}
-
-bool SkyProfile::parameter_impl(const std::string &name, double val) {
-
-	if( Profile::parameter_impl(name, val) ) {
-		return true;
-	}
-
-	if( name == "bg" ) {
-		this->requested_bg = val;
-		return true;
-	}
-
-	return false;
+	register_parameter("bg", requested_bg);
 }
 
 } /* namespace profit */
