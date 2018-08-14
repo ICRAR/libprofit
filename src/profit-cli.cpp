@@ -36,6 +36,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -60,191 +61,21 @@ private:
 	string m_what;
 };
 
-template <typename T, typename F>
-void read_from_string(Profile &p, const string& key, string &val, const string &name, F reader) {
-
-	if( val.empty() || key != name ) {
-		return;
-	}
-
-	try {
-		T tgt = reader(val);
-		p.parameter(name, tgt);
-		val.erase();
-	} catch(invalid_argument &e) {
-		ostringstream os;
-		os << "Invalid double value '" << val << "' for " << key;
-		throw invalid_cmdline(os.str());
-	}
-}
-
-static
-void read_dble(Profile &p, const string &key, string &val, const string &name) {
-	read_from_string<double>(p, key, val, name, [](const string &v){return stod(v);});
-}
-
-static
-void read_uint(Profile &p, const string &key, string &val, const string &name) {
-	read_from_string<unsigned int>(p, key, val, name, [](const string &v){return stoul(v, nullptr, 10);});
-}
-
-static
-void read_bool(Profile &p, const string &key, string &val, const string &name) {
-	read_from_string<bool>(p, key, val, name, [](const string &v){return stoul(v, nullptr, 10);});
-}
-
-static
-void _keyval_to_radial(Profile &p, const string &key, string &val) {
-	read_dble(p, key, val, "xcen");
-	read_dble(p, key, val, "ycen");
-	read_dble(p, key, val, "mag");
-	read_dble(p, key, val, "ang");
-	read_dble(p, key, val, "axrat");
-	read_dble(p, key, val, "box");
-
-	read_bool(p, key, val, "rough");
-	read_dble(p, key, val, "acc");
-	read_dble(p, key, val, "rscale_switch");
-	read_uint(p, key, val, "resolution");
-	read_uint(p, key, val, "max_recursions");
-	read_bool(p, key, val, "adjust");
-	read_dble(p, key, val, "rscale_max");
-	read_bool(p, key, val, "force_cpu");
-}
-
-static
-void keyval_to_sersic(Profile &p, const string &key, string &val) {
-	_keyval_to_radial(p, key, val);
-	read_dble(p, key, val, "re");
-	read_dble(p, key, val, "nser");
-	read_bool(p, key, val, "rescale_flux");
-}
-
-static
-void keyval_to_moffat(Profile &p, const string &key, string &val) {
-	_keyval_to_radial(p, key, val);
-	read_dble(p, key, val, "fwhm");
-	read_dble(p, key, val, "con");
-}
-
-static
-void keyval_to_ferrer(Profile &p, const string &key, string &val) {
-	_keyval_to_radial(p, key, val);
-	read_dble(p, key, val, "rout");
-	read_dble(p, key, val, "a");
-	read_dble(p, key, val, "b");
-}
-
-static
-void keyval_to_coresersic(Profile &p, const string &key, string &val) {
-	_keyval_to_radial(p, key, val);
-	read_dble(p, key, val, "re");
-	read_dble(p, key, val, "nser");
-	read_dble(p, key, val, "rb");
-	read_dble(p, key, val, "a");
-	read_dble(p, key, val, "b");
-}
-
-static
-void keyval_to_brokenexp(Profile &p, const string &key, string &val) {
-	_keyval_to_radial(p, key, val);
-	read_dble(p, key, val, "h1");
-	read_dble(p, key, val, "h2");
-	read_dble(p, key, val, "rb");
-	read_dble(p, key, val, "a");
-}
-
-static
-void keyval_to_king(Profile &p, const string &key, string &val) {
-	_keyval_to_radial(p, key, val);
-	read_dble(p, key, val, "rt");
-	read_dble(p, key, val, "rc");
-	read_dble(p, key, val, "a");
-}
-
-static
-void keyval_to_sky(Profile &p, const string &key, string &val) {
-	read_dble(p, key, val, "bg");
-}
-
-static
-void keyval_to_psf(Profile &p, const string &key, string &val) {
-	read_dble(p, key, val, "xcen");
-	read_dble(p, key, val, "ycen");
-	read_dble(p, key, val, "mag");
-}
-
-static
-void keyval_to_null(Profile &p, const string &key, string &val) {
-}
-
-typedef void (*keyval_to_param_t)(Profile &, const string& name, string &value);
-static map<string, keyval_to_param_t> reader_functions = {
-	{"sersic",     &keyval_to_sersic},
-	{"moffat",     &keyval_to_moffat},
-	{"ferrer",     &keyval_to_ferrer},
-	{"ferrers",    &keyval_to_ferrer},
-	{"king",       &keyval_to_king},
-	{"coresersic", &keyval_to_coresersic},
-	{"brokenexp",  &keyval_to_brokenexp},
-	{"sky",        &keyval_to_sky},
-	{"psf",        &keyval_to_psf},
-	{"null",       &keyval_to_null}
-};
-
-void desc_to_profile(
-	Model &model,
-	const string &name,
-	string description)
+void parse_profile(Model &model, const std::string &description)
 {
-
-	shared_ptr<Profile> p = model.add_profile(name);
-	if (reader_functions.find(name) == reader_functions.end()) {
-		ostringstream os;
-		os << "Profile " << name << " is not supported by this tool";
-		throw invalid_cmdline(os.str());
+	auto desc = trim(description);
+	if (desc.empty()) {
+		throw invalid_cmdline("Missing parameter name after -p");
 	}
-	keyval_to_param_t keyval_to_param = reader_functions[name];
-
-	if( description.size() == 0 ) {
-		return;
-	}
-
-	for(auto &token: split(description, ":")) {
-
-		auto name_and_value = split(token, "=");
-		if( name_and_value.size() != 2 ) {
-			ostringstream os;
-			os <<  "Parameter " << token << " of profile " << name << " doesn't obey the form name=value";
-			throw invalid_cmdline(os.str());
-		}
-
-		const string &key = name_and_value[0];
-		string &val = name_and_value[1];
-		read_bool(*p, key, val, "convolve");
-		keyval_to_param(*p, key, val);
-		if( !name_and_value[1].empty() ) {
-			cerr << "Ignoring unknown " << name << " profile parameter: " << name_and_value[0] << endl;
-		}
-
-	}
-}
-
-void parse_profile(Model &model, const string &description) {
 
 	/* The description might be only a name */
-	string name;
-	string subdesc;
-	string::size_type colon = description.find(':');
-	if( colon != string::npos ) {
-		name = description.substr(0, colon);
-		subdesc = description.substr(colon + 1);
+	auto parts = split(desc, ":");
+	auto p = model.add_profile(parts[0]);
+	std::vector<std::string> parameter_specs(std::make_move_iterator(parts.begin() + 1),
+	                                         std::make_move_iterator(parts.end()));
+	for(auto &parameter_spec: parameter_specs) {
+		p->parameter(parameter_spec);
 	}
-	else {
-		name = description;
-	}
-
-	desc_to_profile(model, name, subdesc);
 }
 
 Image parse_psf(string optarg, Model &m)
