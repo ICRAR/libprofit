@@ -326,9 +326,6 @@ install(FILES
         profit/profit.h
         profit/utils.h
         DESTINATION include/profit)
-install(FILES
-        profit/cl/cl2.hpp
-        DESTINATION include/profit/cl)
 
 #
 # Unit tests
