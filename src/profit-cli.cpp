@@ -32,11 +32,10 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-#include <map>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <sstream>
+#include <utility>
 
 #include "profit/profit.h"
 #include "profit/fits_utils.h"
