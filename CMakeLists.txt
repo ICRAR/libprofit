@@ -252,6 +252,19 @@ configure_file(profit/config.h.in profit/config.h @ONLY)
 #
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
+#
+# MSVC builds need the 3rdparty/getopt submodule to be checked out,
+# and added to the list of include directories (so getopt.h is found)
+#
+if (MSVC)
+	set(PROFIT_GETOPT_DIR "${CMAKE_SOURCE_DIR}/3rdparty/getopt")
+	if (NOT EXISTS "${PROFIT_GETOPT_DIR}")
+		message(FATAL_ERROR
+		        "git submodule '3rdparty/getopt' is not checked out but is needed for Windows builds")
+	endif()
+	include_directories("${PROFIT_GETOPT_DIR}")
+endif()
+
 # Compiler-specific tweaks
 if (MSVC)
 	# Do not warn about unsecure standard library calls
@@ -289,11 +302,9 @@ set(PROFIT_TARGETS profit)
 #
 # The executable
 #
-if (NOT MSVC)
-	add_executable(profit-cli src/fits_utils.cpp src/profit-cli.cpp)
-	target_link_libraries(profit-cli profit)
-	set(PROFIT_TARGETS ${PROFIT_TARGETS} profit-cli)
-endif()
+add_executable(profit-cli src/fits_utils.cpp src/profit-cli.cpp)
+target_link_libraries(profit-cli profit)
+set(PROFIT_TARGETS ${PROFIT_TARGETS} profit-cli)
 
 #
 # Installing lib + binary + headers
