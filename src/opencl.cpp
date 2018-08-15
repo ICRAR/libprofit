@@ -301,12 +301,21 @@ void KernelCache::_init_sources() {
 	all_sources = std::make_pair(sources, crc32(sources));
 }
 
+static
+std::string &valid_fname(std::string &&name)
+{
+	std::string::size_type pos = 0;
+	while ((pos = name.find_first_of("/;: ", pos)) != name.npos) {
+		name.replace(pos++, 1, "_");
+	}
+	return name;
+}
 
 std::string KernelCache::get_entry_name_for(const cl::Device &device)
 {
 	cl::Platform plat(device.getInfo<CL_DEVICE_PLATFORM>());
-	auto plat_part = plat.getInfo<CL_PLATFORM_NAME>() + std::to_string(get_opencl_version(plat));
-	auto dev_part = device.getInfo<CL_DEVICE_NAME>() + std::to_string(get_opencl_version(device));
+	auto plat_part = valid_fname(plat.getInfo<CL_PLATFORM_NAME>()) + "_" + std::to_string(get_opencl_version(plat));
+	auto dev_part = valid_fname(device.getInfo<CL_DEVICE_NAME>()) + "_" + std::to_string(get_opencl_version(device));
 	auto the_dir = create_dirs(get_profit_home(), {std::string("opencl_cache"), plat_part});
 	return the_dir + "/" + dev_part;
 }
