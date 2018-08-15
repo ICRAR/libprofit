@@ -25,7 +25,7 @@ R"===(
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-inline static float _f_broken_exponential(float r, float h1, float h2, float rb, float a) {
+inline float _f_broken_exponential(float r, float h1, float h2, float rb, float a) {
 
 	/*
 	 * See brokenexponential.cpp for an explanation about this.

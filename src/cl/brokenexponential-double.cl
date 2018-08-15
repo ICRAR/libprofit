@@ -25,7 +25,7 @@ R"===(
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-inline static double _d_broken_exponential(double r, double h1, double h2, double rb, double a) {
+inline double _d_broken_exponential(double r, double h1, double h2, double rb, double a) {
 
 	/*
 	 * See brokenexponential.cpp for an explanation about this
