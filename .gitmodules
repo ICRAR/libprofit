@@ -1,0 +1,3 @@
+[submodule "3rdparty/getopt"]
+	path = 3rdparty/getopt
+	url = https://github.com/skandhurkat/Getopt-for-Visual-Studio
