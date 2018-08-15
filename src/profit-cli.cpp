@@ -23,6 +23,13 @@
  * You should have received a copy of the GNU General Public License
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+// prevent min/max macros defined in windows.h to be defined in the first place
+#ifdef _WIN32
+# define NOMINMAX
+# include <windows.h>
+#endif // _WIN32
+
 #include <getopt.h>
 
 #include <algorithm>
@@ -214,10 +221,9 @@ void usage(std::basic_ostream<T> &os, char *prog_name) {
 
 static
 void print_stats_line(const std::string &prefix, const std::string &stat_name, double val) {
-	const auto static name_width = 50u;
 	int nchars = prefix.size() + stat_name.size();
-	int nspaces = name_width - nchars;
-	std::string spaces(std::max(0, nspaces), ' ');
+	int nspaces = std::max(0, 50 - nchars);
+	std::string spaces(nspaces, ' ');
 	std::cout << prefix << stat_name << spaces << " : " << std::setw(10)
 	          << std::setprecision(3) << std::fixed << val << " [ms]" << std::endl;
 }
@@ -446,7 +452,7 @@ int parse_and_run(int argc, char *argv[]) {
 				return 0;
 
 			case 'C':
-				if (not has_opencl()) {
+				if (!has_opencl()) {
 					throw invalid_cmdline("libprofit was compiled without OpenCL support, but support was requested. See -V for details");
 				}
 				use_opencl = true;
