@@ -19,3 +19,4 @@ libprofit
    new_profile.rst
    bindings.rst
    api.rst
+   changelog
