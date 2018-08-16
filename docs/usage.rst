@@ -56,11 +56,12 @@ The basic usage pattern then is as follows:
 
 #. Customize your profile.
    To set the different parameters on your profile call
-   :member:`Profile::parameter` with the parameter name and value::
+   :func:`Profile::parameter` with the parameter name and value::
 
 	 sersic_profile.parameter("xcen", 34.67);
 	 sersic_profile.parameter("ycen", 9.23);
 	 sersic_profile.parameter("axrat", 0.345);
+	 sersic_profile.parameter("nser=3.56");
 	 // ...
 
    A complete list of parameters can be found on and :doc:`profiles` and

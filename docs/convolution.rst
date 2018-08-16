@@ -17,14 +17,14 @@ Supported convolution methods
 -----------------------------
 
 Convolvers are objects that carry out convolution
-(via their :member:`Convolver::convolve` method).
+(via their :func:`Convolver::convolve` method).
 Depending on the size of the problem,
 and on the libraries available on the system,
 different convolver types will be available to be used:
 
 * :enumerator:`BRUTE_OLD` is the simplest convolver.
   It implements a simple, brute-force 2D convolution algorithm.
-* :class:`BRUTE` is a brute-force convolver
+* :enumerator:`BRUTE` is a brute-force convolver
   that performs better that :enumerator:`BRUTE_OLD`, but still
   implements simple, brute-force 2D convolution. It is the default
   convolver used by a :class:`Model` that hasn't been assigned one,
@@ -64,10 +64,10 @@ Using a convolver
 -----------------
 
 Once created,
-users can call the :member:`Convolver::convolve` method
+users can call the :func:`Convolver::convolve` method
 directly on the resulting convolver,
 (or assign it to a :class:`Model` instance for it to use it).
-The :member:`Convolver::convolve` methods needs at least three parameters:
+The :func:`Convolver::convolve` methods needs at least three parameters:
 an image, a kernel and a mask.
 Convolvers will convolve the image with the kernel
 only for the pixels in which the mask is set,
@@ -97,7 +97,7 @@ into this internal, non-cropped result
 of the convolution process.
 To do this,
 an additional ``crop`` parameter
-in the :member:`Convolver::convolve` method
+in the :func:`Convolver::convolve` method
 determines whether the convolver should return
 the original, and potentially bigger, image.
 When a non-cropped image is returned,
@@ -114,24 +114,17 @@ of the original source image given to the convolver.
 Model convolution
 -----------------
 
-During model evaluation (i.e., a call to :member:`Model::evaluate`)
+During model evaluation (i.e., a call to :func:`Model::evaluate`)
 users might want to be able to retrieve the non-cropped result
 of the internal convolution that takes place
 during model evaluation
 (as explained in :ref:`convolution.image_cropping`).
 
-To do this, users must first set
-the :member:`Model::crop` flag to ``false``.
-When calling calling :member:`Model::evaluate`,
-used must then take into consideration both elements
-of the result that comes back from this call.
-The first element will be the image
-(in this case, possibly non-cropped).
-The second element will be the offset
-at which the cropping would have started.
-
-
-To do this, users must set the :member:`Model::crop` flag
-to ``false`` before calling :member:`Model::evaluate`,
-which returns a pair containing the non-cropped image
-and the offset to be applied to that image.
+To do this, users must first
+call :func:`Model::set_crop` with a ``false`` argument.
+When calling :func:`Model::evaluate`,
+users must then also give a :class:`Point` argument
+to retrieve the offset at which
+cropping should be done
+to remove the image padding
+added by the convolution process.
