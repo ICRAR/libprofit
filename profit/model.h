@@ -43,9 +43,6 @@
 namespace profit
 {
 
-/* Forward declaration */
-struct ProfileStats;
-
 /**
  * A pair of double values that specify a the scale of a pixel in a particular image
  * with respect to that image's coordinate space.
