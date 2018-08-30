@@ -1,4 +1,3 @@
-R"===(
 /**
  * Single-precision Broken Exponential profile OpenCL kernel implementation for libprofit
  *
@@ -134,5 +133,3 @@ kernel void brokenexp_subsample_float(
 	}
 
 }
-
-)==="

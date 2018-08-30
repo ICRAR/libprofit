@@ -37,6 +37,24 @@
 #include "profit/opencl_impl.h"
 #include "profit/utils.h"
 
+// The individual kernel sources, generated from the coresponding .cl files
+#include "profit/cl/common-float.h"
+#include "profit/cl/common-double.h"
+#include "profit/cl/sersic-float.h"
+#include "profit/cl/sersic-double.h"
+#include "profit/cl/moffat-float.h"
+#include "profit/cl/moffat-double.h"
+#include "profit/cl/ferrer-float.h"
+#include "profit/cl/ferrer-double.h"
+#include "profit/cl/king-float.h"
+#include "profit/cl/king-double.h"
+#include "profit/cl/brokenexponential-float.h"
+#include "profit/cl/brokenexponential-double.h"
+#include "profit/cl/coresersic-float.h"
+#include "profit/cl/coresersic-double.h"
+#include "profit/cl/convolve-float.h"
+#include "profit/cl/convolve-double.h"
+
 namespace profit {
 
 OpenCL_command_times::OpenCL_command_times() :
@@ -238,66 +256,12 @@ void KernelCache::init_sources() {
 
 void KernelCache::_init_sources() {
 
-	std::string common_float, common_double, sersic_float, sersic_double,
-	            moffat_float, moffat_double, ferrer_float, ferrer_double,
-	            king_float, king_double, brokenexp_float, brokenexp_double,
-	            coresersic_float, coresersic_double, convolve_float, convolve_double;
-
-	common_float =
-#include "cl/common-float.cl"
-	;
-	common_double =
-#include "cl/common-double.cl"
-	;
-	sersic_float =
-#include "cl/sersic-float.cl"
-	;
-	sersic_double =
-#include "cl/sersic-double.cl"
-	;
-	moffat_float =
-#include "cl/moffat-float.cl"
-	;
-	moffat_double =
-#include "cl/moffat-double.cl"
-	;
-	ferrer_float =
-#include "cl/ferrer-float.cl"
-	;
-	ferrer_double =
-#include "cl/ferrer-double.cl"
-	;
-	king_float =
-#include "cl/king-float.cl"
-	;
-	king_double =
-#include "cl/king-double.cl"
-	;
-	brokenexp_float =
-#include "cl/brokenexponential-float.cl"
-	;
-	brokenexp_double =
-#include "cl/brokenexponential-double.cl"
-	;
-	coresersic_float =
-#include "cl/coresersic-float.cl"
-	;
-	coresersic_double =
-#include "cl/coresersic-double.cl"
-	;
-	convolve_float =
-#include "cl/convolve-float.cl"
-	;
-	convolve_double =
-#include "cl/convolve-double.cl"
-	;
-
 	auto sources = common_float + sersic_float + moffat_float + ferrer_float +
-	               king_float + brokenexp_float + coresersic_float + convolve_float;
+	               king_float + brokenexponential_float + coresersic_float + convolve_float;
 	float_only_sources = std::make_pair(sources, crc32(sources));
 
 	sources += common_double + sersic_double + moffat_double + ferrer_double +
-	           king_double + brokenexp_double + coresersic_double + convolve_double;
+	           king_double + brokenexponential_double + coresersic_double + convolve_double;
 	all_sources = std::make_pair(sources, crc32(sources));
 }
 

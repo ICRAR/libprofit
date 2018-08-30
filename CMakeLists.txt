@@ -250,7 +250,7 @@ configure_file(profit/config.h.in profit/config.h @ONLY)
 #
 # Common definitions for the shared lib and the binary
 #
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 #
 # MSVC builds need the 3rdparty/getopt submodule to be checked out,
@@ -270,6 +270,29 @@ if (MSVC)
 	# Do not warn about unsecure standard library calls
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
+
+#
+# Generate header files with the OpenCL kernel sources out of each individual
+# .cl file
+#
+set(OPENCL_KERNEL_HEADERS "")
+foreach(_cl_kernel brokenexponential common convolve coresersic ferrer king moffat sersic)
+	foreach(_type float double)
+		set(KRN_NAME "${_cl_kernel}-${_type}")
+		set(KRN_VNAME "${_cl_kernel}_${_type}")
+		set(KRN_FNAME "src/cl/${KRN_NAME}.cl")
+		set(KRN_FULL_FNAME "${CMAKE_CURRENT_SOURCE_DIR}/src/cl/${KRN_NAME}.cl")
+		set(KRN_HEADER_FNAME "${CMAKE_CURRENT_BINARY_DIR}/profit/cl/${KRN_NAME}.h")
+		add_custom_command(OUTPUT ${KRN_HEADER_FNAME}
+			COMMAND ${CMAKE_COMMAND}
+			ARGS -DKRN_NAME=${KRN_NAME} -DKRN_VNAME=${KRN_VNAME} -DKRN_FNAME=${KRN_FNAME}
+		         -DKRN_FULL_FNAME=${KRN_FULL_FNAME} -DKRN_HEADER_FNAME=${KRN_HEADER_FNAME}
+		         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateOpenCLHeader.cmake
+		    DEPENDS ${KRN_FULL_FNAME}
+		)
+		list(APPEND OPENCL_KERNEL_HEADERS ${KRN_HEADER_FNAME})
+	endforeach()
+endforeach()
 
 #
 # The shared library sources
@@ -295,7 +318,7 @@ set(PROFIT_SRC
    src/sky.cpp
    src/utils.cpp
 )
-add_library(profit SHARED ${PROFIT_SRC})
+add_library(profit SHARED ${PROFIT_SRC} ${OPENCL_KERNEL_HEADERS})
 target_link_libraries(profit ${profit_LIBS})
 set(PROFIT_TARGETS profit)
 
