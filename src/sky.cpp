@@ -33,9 +33,9 @@
 
 namespace profit {
 
-void SkyProfile::validate() {
+void SkyProfile::validate()
+{
 	/* no-op for the time being, probably check value in range, etc */
-	return;
 }
 
 

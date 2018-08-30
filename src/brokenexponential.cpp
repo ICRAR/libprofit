@@ -123,7 +123,7 @@ double BrokenExponentialProfile::get_lumtot(double r_box) {
 	 * to get the total luminosity
 	 */
 	double magtot = integrate_qagi(
-		[](double r, void *ctx) -> double {
+		[](double r, void *ctx) {
 			BrokenExponentialProfile *p = static_cast<BrokenExponentialProfile *>(ctx);
 			return p->integrate_at(r);
 		},
@@ -168,10 +168,10 @@ void BrokenExponentialProfile::add_kernel_parameters_double(unsigned int index, 
 
 template <typename FT>
 void BrokenExponentialProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
-	kernel.setArg(index++, static_cast<FT>(h1));
-	kernel.setArg(index++, static_cast<FT>(h2));
-	kernel.setArg(index++, static_cast<FT>(rb));
-	kernel.setArg(index++, static_cast<FT>(a));
+	kernel.setArg((index++), FT(h1));
+	kernel.setArg((index++), FT(h2));
+	kernel.setArg((index++), FT(rb));
+	kernel.setArg((index++), FT(a));
 }
 
 #endif /* PROFIT_OPENCL */

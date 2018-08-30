@@ -62,9 +62,6 @@ void PsfProfile::evaluate(Image &image, const Mask &mask, const PixelScale &pixe
 	using std::max;
 	using std::pow;
 
-	int psf_pix_x, psf_pix_y;
-	unsigned int pix_x, pix_y;
-	double x, y, psf_x, psf_y;
 	double total = 0;
 	double scale = pow(10, -0.4*(this->mag - magzero));
 
@@ -93,13 +90,13 @@ void PsfProfile::evaluate(Image &image, const Mask &mask, const PixelScale &pixe
 	unsigned int x1 = bind(end_x/scale_x, width - 1);
 	unsigned int y1 = bind(end_y/scale_y, height - 1);
 
-	for(pix_y=y0; pix_y <= y1; pix_y++) {
+	for(unsigned int pix_y = y0; pix_y <= y1; pix_y++) {
 
-		y = pix_y * scale_y;
+		double y = pix_y * scale_y;
 
-		for(pix_x=x0; pix_x <= x1; pix_x++) {
+		for(unsigned int pix_x = x0; pix_x <= x1; pix_x++) {
 
-			x = pix_x * scale_x;
+			double x = pix_x * scale_x;
 
 			/*
 			 * Image pixel (pix_x,pix_y) covers [x:x+scale_x; y:y+scale_y]
@@ -112,13 +109,13 @@ void PsfProfile::evaluate(Image &image, const Mask &mask, const PixelScale &pixe
 
 			/* Accumulate the proportional values from the PSF */
 			double val = 0;
-			for(psf_pix_y = psf_pix_y0; psf_pix_y <= psf_pix_y1; psf_pix_y++) {
+			for(int psf_pix_y = psf_pix_y0; psf_pix_y <= psf_pix_y1; psf_pix_y++) {
 
-				psf_y = psf_pix_y * psf_scale_y + origin_y;
+				double psf_y = psf_pix_y * psf_scale_y + origin_y;
 
-				for(psf_pix_x = psf_pix_x0; psf_pix_x <= psf_pix_x1; psf_pix_x++) {
+				for(int psf_pix_x = psf_pix_x0; psf_pix_x <= psf_pix_x1; psf_pix_x++) {
 
-					psf_x = psf_pix_x * psf_scale_x + origin_x;
+					double psf_x = psf_pix_x * psf_scale_x + origin_x;
 
 					/*
 					 * PSF pixel (psf_pix_x,psf_pix_y) covers [psf_x:psf_x+psf_scale_x; psf_y:psf_y+psf_scale_y]

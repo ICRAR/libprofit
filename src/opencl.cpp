@@ -142,7 +142,7 @@ static cl_ver_t get_opencl_version(const std::string &version)
 
 	unsigned long major = stoul(opencl_version.substr(0, dot_idx));
 	unsigned long minor = stoul(opencl_version.substr(dot_idx+1, opencl_version.npos));
-	return major*100u + minor*10u;
+	return major*100U + minor*10U;
 }
 
 static cl_ver_t get_opencl_version(const cl::Platform &platform) {
@@ -220,7 +220,7 @@ std::map<int, OpenCL_plat_info> get_opencl_info() {
 	}
 }
 
-class invalid_cache_entry : std::exception {
+class invalid_cache_entry : public std::exception {
 };
 
 class KernelCache {
@@ -306,7 +306,7 @@ cl::Program KernelCache::build(const cl::Context &context, const cl::Device &dev
 cl::Program KernelCache::from_cache(const cl::Context &context, const std::string &cache_entry_name, const SourceInformation &source_info)
 {
 
-	if (not file_exists(cache_entry_name)) {
+	if (!file_exists(cache_entry_name)) {
 		throw invalid_cache_entry();
 	}
 
@@ -389,7 +389,7 @@ cl::Program KernelCache::get_program(const cl::Context &context, const cl::Devic
 		sources_for_device = all_sources;
 	}
 
-	// Act as a cache! Load compiled program from file if it exists;
+	// Act as a cache! Load compiled program from file if it exists,
 	// otherwise build it from source
 	auto cache_entry = get_entry_name_for(device);
 	try {

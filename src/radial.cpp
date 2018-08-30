@@ -61,9 +61,9 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 	double ybin = (y1-y0) / resolution;
 	double half_xbin = xbin/2.;
 	double half_ybin = ybin/2.;
-	double total = 0, subval, testval;
-	double x , y, x_prof, y_prof;
-	unsigned int i, j;
+	double total = 0;
+	double x_prof;
+	double y_prof;
 
 	bool recurse = resolution > 1 && recur_level < max_recursions;
 
@@ -79,21 +79,21 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 
 	/* The middle X/Y value is used for each pixel */
 	std::vector<std::tuple<double, double>> subsample_points;
-	x = x0;
+	double x = x0;
 
 	std::vector<unsigned int> idxs(resolution * resolution);
 	if( recurse ) {
-		for(i=0; i < resolution; i++) {
+		for (unsigned int i = 0; i < resolution; i++) {
 			x += half_xbin;
-			y = y0;
-			for(j=0; j < resolution; j++) {
+			double y = y0;
+			for (unsigned int j = 0; j < resolution; j++) {
 				y += half_ybin;
 
 				this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
-				subval = this->evaluate_at(x_prof, y_prof);
+				double subval = this->evaluate_at(x_prof, y_prof);
 
 				double delta_y_prof = (-xbin*this->_sin_ang + ybin*this->_cos_ang)/this->axrat;
-				testval = this->evaluate_at(abs(x_prof), abs(y_prof) + abs(delta_y_prof));
+				double testval = this->evaluate_at(abs(x_prof), abs(y_prof) + abs(delta_y_prof));
 				if( abs(testval/subval - 1.0) > this->acc ) {
 					subsample_points.push_back(std::make_tuple(x, y));
 				}
@@ -107,10 +107,10 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 		}
 	}
 	else {
-		for(i=0; i < resolution; i++) {
+		for (unsigned int i = 0; i < resolution; i++) {
 			x += half_xbin;
-			y = y0;
-			for(j=0; j < resolution; j++) {
+			double y = y0;
+			for (unsigned int j = 0; j < resolution; j++) {
 				y += half_ybin;
 				this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
 				total += this->evaluate_at(x_prof, y_prof);
@@ -433,8 +433,6 @@ std::chrono::nanoseconds::rep to_nsecs(const std::chrono::system_clock::duration
 template <typename FT>
 void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelScale &scale, OpenCLEnvImplPtr &env) {
 
-#define AS_FT(x) static_cast<FT>(x)
-
 	using std::chrono::system_clock;
 	typedef point_t<FT> point_t;
 	typedef ss_info_t<FT> ss_info_t;
@@ -442,7 +440,8 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 
 	unsigned int imsize = image.size();
 
-	OpenCL_times cl_times0, ss_cl_times;
+	OpenCL_times cl_times0;
+	OpenCL_times ss_cl_times;
 	RadialProfileStats* stats = static_cast<RadialProfileStats *>(this->stats.get());
 
 	/* Points in time we want to measure */
@@ -455,17 +454,19 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 	cl::Buffer image_buffer = env->get_buffer<FT>(CL_MEM_WRITE_ONLY, imsize);
 	cl::Buffer subsampling_points_buffer = env->get_buffer<point_t>(CL_MEM_WRITE_ONLY, imsize);
 	cl::Kernel kernel = env->get_kernel(kname);
-	kernel.setArg(arg++, image_buffer);
-	kernel.setArg(arg++, subsampling_points_buffer);
-	kernel.setArg(arg++, image.getWidth());
-	kernel.setArg(arg++, image.getHeight());
-	kernel.setArg(arg++, (int)rough);
-	kernel.setArg(arg++, AS_FT(scale.first));
-	kernel.setArg(arg++, AS_FT(scale.second));
+	kernel.setArg((arg++), image_buffer);
+	kernel.setArg((arg++), subsampling_points_buffer);
+	kernel.setArg((arg++), image.getWidth());
+	kernel.setArg((arg++), image.getHeight());
+	kernel.setArg((arg++), (int)rough);
+	kernel.setArg((arg++), FT(scale.first));
+	kernel.setArg((arg++), FT(scale.second));
 	add_common_kernel_parameters<FT>(arg, kernel);
 	t_kprep = system_clock::now();
 
-	cl::Event fill_im_evt, fill_ss_points_evt, read_evt;
+	cl::Event fill_im_evt;
+	cl::Event fill_ss_points_evt;
+	cl::Event read_evt;
 
 	// OpenCL 1.2 allows to do this; otherwise the work has to be done in the kernel
 	// (which we do)
@@ -535,10 +536,11 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 		if( point.x == -1 ) {
 			continue;
 		}
-		unsigned int resolution, max_recursions;
+		unsigned int resolution;
+		unsigned int max_recursions;
 		subsampling_params(point.x, point.y, resolution, max_recursions);
 		top_recursions = std::max(top_recursions, max_recursions);
-		last_ss_info.push_back({point, AS_FT(scale.first), AS_FT(scale.second), resolution, max_recursions});
+		last_ss_info.push_back({point, FT(scale.first), FT(scale.second), resolution, max_recursions});
 	}
 
 	auto ss_kname = name + "_subsample_" + float_traits<FT>::name;
@@ -592,8 +594,8 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 			cl::Buffer ss_kinfo_buf = env->get_buffer<ss_kinfo_t>(CL_MEM_READ_WRITE, subsamples);
 
 			arg = 0;
-			subsample_kernel.setArg(arg++, ss_kinfo_buf);
-			subsample_kernel.setArg(arg++, AS_FT(acc));
+			subsample_kernel.setArg((arg++), ss_kinfo_buf);
+			subsample_kernel.setArg((arg++), FT(acc));
 			add_common_kernel_parameters<FT>(arg, subsample_kernel);
 
 			t_kprep = system_clock::now();
@@ -693,15 +695,15 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 
 template <typename FT>
 void RadialProfile::add_common_kernel_parameters(unsigned int arg, cl::Kernel &kernel) const {
-	kernel.setArg(arg++, static_cast<FT>(xcen));
-	kernel.setArg(arg++, static_cast<FT>(ycen));
-	kernel.setArg(arg++, static_cast<FT>(_cos_ang));
-	kernel.setArg(arg++, static_cast<FT>(_sin_ang));
-	kernel.setArg(arg++, static_cast<FT>(axrat));
-	kernel.setArg(arg++, static_cast<FT>(rscale));
-	kernel.setArg(arg++, static_cast<FT>(rscale_switch));
-	kernel.setArg(arg++, static_cast<FT>(rscale_max));
-	kernel.setArg(arg++, static_cast<FT>(box));
+	kernel.setArg((arg++), FT(xcen));
+	kernel.setArg((arg++), FT(ycen));
+	kernel.setArg((arg++), FT(_cos_ang));
+	kernel.setArg((arg++), FT(_sin_ang));
+	kernel.setArg((arg++), FT(axrat));
+	kernel.setArg((arg++), FT(rscale));
+	kernel.setArg((arg++), FT(rscale_switch));
+	kernel.setArg((arg++), FT(rscale_max));
+	kernel.setArg((arg++), FT(box));
 	if( float_traits<FT>::is_float ) {
 		add_kernel_parameters_float(arg, kernel);
 	}
@@ -757,11 +759,11 @@ std::map<int,int> RadialProfile::get_integrations() {
 
 #ifdef PROFIT_OPENCL
 void RadialProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {
-	return;
+	// subclasses may add more kernel parameters
 }
 
 void RadialProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const {
-	return;
+	// subclasses may add more kernel parameters
 }
 #endif /* PROFIT_OPENCL */
 

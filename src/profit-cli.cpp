@@ -49,9 +49,9 @@
 
 namespace profit {
 
-class invalid_cmdline : std::exception {
+class invalid_cmdline : public std::exception {
 public:
-	invalid_cmdline(const std::string& what) : m_what(what) {}
+	explicit invalid_cmdline(const std::string& what) : m_what(what) {}
 	invalid_cmdline(const invalid_cmdline &e) : m_what(e.m_what) {}
 	~invalid_cmdline() throw() {}
 	const char *what() const throw() { return m_what.c_str(); }
@@ -116,7 +116,7 @@ Image parse_psf(std::string optarg, Model &m)
 		throw invalid_cmdline(os.str());
 	}
 
-	auto stod = [] (const std::string &s) -> double { return std::stod(s); };
+	auto stod = [] (const std::string &s) { return std::stod(s); };
 	std::transform(values.begin(), values.end(), psf.begin(), stod);
 	return psf;
 }
@@ -229,7 +229,7 @@ void print_stats_line(const std::string &prefix, const std::string &stat_name, d
 }
 
 struct clver {
-	clver(unsigned int ver) : ver(ver) {}
+	explicit clver(unsigned int ver) : ver(ver) {}
 	unsigned int ver;
 };
 
@@ -389,9 +389,13 @@ int parse_and_run(int argc, char *argv[]) {
 	using chrono::system_clock;
 
 	int opt;
-	unsigned int width = 100, height = 100, iterations = 1;
-	double scale_x = 1, scale_y = 1;
-	unsigned int i, j;
+	unsigned int width = 100;
+	unsigned int height = 100;
+	unsigned int iterations = 1;
+	double scale_x = 1;
+	double scale_y = 1;
+	unsigned int i;
+	unsigned int j;
 	std::string fits_output;
 	output_t output = none;
 	Model m;
@@ -401,8 +405,10 @@ int parse_and_run(int argc, char *argv[]) {
 	ConvolverCreationPreferences convolver_prefs;
 	bool show_stats = false;
 
-	bool use_opencl = false, use_double = false;
-	unsigned int clplat_idx = 0, cldev_idx = 0;
+	bool use_opencl = false;
+	bool use_double = false;
+	unsigned int clplat_idx = 0;
+	unsigned int cldev_idx = 0;
 	std::vector<std::string> tokens;
 
 	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tf:i:T:uS:C:ce:rn:F";

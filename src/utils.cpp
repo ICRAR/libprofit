@@ -54,47 +54,44 @@
  * We use either GSL or R to provide the low-level
  * beta, gamma and pgamma and qgamma functions needed by some profiles.
  * If neither is given the compilation should fail
+ *
+ * R and Rmath play a tricky game where functions with "fully qualified
+ * names" (e.g., Rf_qgamma) are present only when compiling code with
+ * undef(MATHLIB_STANDALONE) || undef(R_NO_REMAP_RMATH).
+ * We currently use the same names in some of our functions. On the other
+ * hand we compile this code both using the stand-alone Rmath library and
+ * as part of an R extension. This means that:
+ *
+ * * When compiling as standalone we can't access the Rf_* names and
+ * * When compiling as an R extension our function names are replaced during
+ *   pre-processing with Rf_* names, and our namespace ends up containing
+ *   functions like profit::Rf_qgamma.
+ *
+ * The code below solves these two problems by avoiding name clashes and
+ * letting us use the Rf_* names in our code seamessly. In the future we may
+ * want to change our function names and be safer
  */
 #if defined(PROFIT_USES_GSL)
-	#include <gsl/gsl_errno.h>
-	#include <gsl/gsl_cdf.h>
-	#include <gsl/gsl_sf_gamma.h>
-	#include <gsl/gsl_integration.h>
+#  include <gsl/gsl_errno.h>
+#  include <gsl/gsl_cdf.h>
+#  include <gsl/gsl_sf_gamma.h>
+#  include <gsl/gsl_integration.h>
 #elif defined(PROFIT_USES_R)
-	#include <Rmath.h>
-	#include <R_ext/Applic.h>
-
-	/*
-	 * R and Rmath play a tricky game where functions with "fully qualified
-	 * names" (e.g., Rf_qgamma) are present only when compiling code with
-	 * undef(MATHLIB_STANDALONE) || undef(R_NO_REMAP_RMATH).
-	 * We currently use the same names in some of our functions. On the other
-	 * hand we compile this code both using the stand-alone Rmath library and
-	 * as part of an R extension. This means that:
-	 *
-	 * * When compiling as standalone we can't access the Rf_* names and
-	 * * When compiling as an R extension our function names are replaced during
-	 *   pre-processing with Rf_* names, and our namespace ends up containing
-	 *   functions like profit::Rf_qgamma.
-	 *
-	 * The code below solves these two problems by avoiding name clashes and
-	 * letting us use the Rf_* names in our code seamessly. In the future we may
-	 * want to change our function names and be safer
-	 */
-	#if defined(MATHLIB_STANDALONE)
-	#define Rf_qgamma   qgamma
-	#define Rf_pgamma   pgamma
-	#define Rf_gammafn  gammafn
-	#define Rf_beta     beta
-	#else
-	#undef qgamma
-	#undef pgamma
-	#undef gammafn
-	#undef beta
-	#endif
-
+#  include <Rmath.h>
+#  include <R_ext/Applic.h>
+#  if defined(MATHLIB_STANDALONE)
+#    define Rf_qgamma   qgamma
+#    define Rf_pgamma   pgamma
+#    define Rf_gammafn  gammafn
+#    define Rf_beta     beta
+#  else
+#    undef qgamma
+#    undef pgamma
+#    undef gammafn
+#    undef beta
+#  endif
 #else
-	#error("No high-level library (GSL or R) provided")
+#  error("No high-level library (GSL or R) provided")
 #endif
 
 
@@ -469,7 +466,7 @@ void recursive_remove(const std::string &path)
 
 std::string get_profit_home()
 {
-	auto profit_home = std::getenv("PROFIT_HOME");
+	auto *profit_home = std::getenv("PROFIT_HOME");
 	if (profit_home) {
 		if (!dir_exists(profit_home)) {
 			create_dir(profit_home);
@@ -485,7 +482,7 @@ std::string get_profit_home()
 	constexpr const char *profit_basedir = ".profit";
 #endif // _WIN32
 
-	auto user_home = std::getenv(home_var);
+	auto *user_home = std::getenv(home_var);
 	if (!user_home) {
 		throw std::runtime_error("User doesn't have a home :(");
 	}

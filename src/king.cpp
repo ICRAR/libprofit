@@ -94,7 +94,7 @@ double KingProfile::get_lumtot(double r_box) {
 	 * We numerically integrate r from 0 to rt
 	 * to get the total luminosity
 	 */
-	double magtot = integrate_qags([](double r, void *ctx) -> double {
+	double magtot = integrate_qags([](double r, void *ctx) {
 		auto kp = static_cast<KingProfile *>(ctx);
 		return kp->integrate_at(r);
 	}, 0, this->rt, this);
@@ -137,9 +137,9 @@ void KingProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel &k
 
 template <typename FT>
 void KingProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
-	kernel.setArg(index++, static_cast<FT>(rc));
-	kernel.setArg(index++, static_cast<FT>(rt));
-	kernel.setArg(index++, static_cast<FT>(a));
+	kernel.setArg((index++), FT(rc));
+	kernel.setArg((index++), FT(rt));
+	kernel.setArg((index++), FT(a));
 }
 
 #endif /* PROFIT_OPENCL */

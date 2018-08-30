@@ -192,7 +192,7 @@ Image Model::evaluate(Point &offset_out) {
 	}
 
 	// Now perform convolution on these images
-	// The convolution process might produce a larger image;
+	// The convolution process might produce a larger image, and
 	// thus we keep track of this bigger size, and the offset
 	// of the original image with respect to the new, larger one
 	Dimensions conv_dims = image.getDimensions();

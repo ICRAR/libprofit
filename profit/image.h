@@ -353,7 +353,7 @@ public:
 			for(unsigned int i = 0; i < dimensions.x; i++) {
 				crop[i + j * dimensions.x] = _data[(i + start.x) + (j + start.y) * getWidth()];
 			}
-		};
+		}
 		return crop;
 	}
 

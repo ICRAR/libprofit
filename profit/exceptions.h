@@ -43,7 +43,7 @@ class PROFIT_API invalid_parameter : public std::exception
 {
 
 public:
-	invalid_parameter(const std::string &what);
+	explicit invalid_parameter(const std::string &what);
 	~invalid_parameter() throw();
 	const char *what() const throw();
 
@@ -59,7 +59,7 @@ private:
 class PROFIT_API unknown_parameter : public invalid_parameter
 {
 public:
-	unknown_parameter(const std::string &what);
+	explicit unknown_parameter(const std::string &what);
 	~unknown_parameter() throw();
 };
 
@@ -70,7 +70,7 @@ class PROFIT_API opencl_error : public std::exception
 {
 
 public:
-	opencl_error(const std::string &what);
+	explicit opencl_error(const std::string &what);
 	~opencl_error() throw();
 	const char *what() const throw();
 
@@ -87,7 +87,7 @@ class PROFIT_API fft_error : public std::exception
 {
 
 public:
-	fft_error(const std::string &what);
+	explicit fft_error(const std::string &what);
 	~fft_error() throw();
 	const char *what() const throw();
 

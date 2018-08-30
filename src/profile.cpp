@@ -161,13 +161,13 @@ void Profile::parameter(const std::string &param_spec)
 		throw invalid_parameter(os.str());
 	}
 
-	auto &name = trim(parts[0]);
+	auto &pname = trim(parts[0]);
 	auto &val = trim(parts[1]);
 
 	bool found = (
-		set_parameter(bool_parameters, name, get_name(), val, [](const std::string &s) { return std::stoul(s, nullptr, 10); }) ||
-		set_parameter(uint_parameters, name, get_name(), val, [](const std::string &s) { return std::stoul(s, nullptr, 10); }) ||
-		set_parameter(double_parameters, name, get_name(), val, [](const std::string &s) { return std::stod(s); })
+		set_parameter(bool_parameters, pname, get_name(), val, [](const std::string &s) { return std::stoul(s, nullptr, 10); }) ||
+		set_parameter(uint_parameters, pname, get_name(), val, [](const std::string &s) { return std::stoul(s, nullptr, 10); }) ||
+		set_parameter(double_parameters, pname, get_name(), val, [](const std::string &s) { return std::stod(s); })
 	);
 
 	if (!found) {

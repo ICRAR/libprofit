@@ -269,7 +269,6 @@ private:
 #endif /* PROFIT_DEBUG */
 
 #ifdef PROFIT_OPENCL
-private:
 
 	/**
 	 * Indicates whether this profile supports OpenCL evaluation or not

@@ -91,13 +91,13 @@ namespace profit {
 	};
 
 	template <>
-	struct float_traits<float> : public type_info<float> {
+	struct float_traits<float> : type_info<float> {
 		const static bool is_float = true;
 		const static bool is_double = false;
 	};
 
 	template <>
-	struct float_traits<double> : public type_info<double> {
+	struct float_traits<double> : type_info<double> {
 		const static bool is_float = false;
 		const static bool is_double = true;
 	};

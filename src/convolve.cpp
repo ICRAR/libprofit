@@ -421,11 +421,6 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 	Event src_wevt = env->queue_write(src_buf, src_data.data());
 	Event krn_wevt = env->queue_write(krn_buf, krn_data.data());
 
-	// We need this much local memory on each local group
-	auto local_size = sizeof(T);
-	local_size *= (16 + 2 * (krn.getWidth() / 2));
-	local_size *= (16 + 2 * (krn.getHeight() / 2));
-
 	// Prepare the kernel
 	auto kname = std::string("convolve_") + float_traits<T>::name;
 	Kernel clKernel = env->get_kernel(kname);

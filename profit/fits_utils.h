@@ -35,7 +35,7 @@ class invalid_file : public std::exception {
 private:
 	std::string _what;
 public:
-	invalid_file(const std::string &what) : _what(what) {}
+	explicit invalid_file(const std::string &what) : _what(what) {}
 	~invalid_file() noexcept {};
 	const char *what() const noexcept {
 		return _what.c_str();

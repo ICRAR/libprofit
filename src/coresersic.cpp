@@ -156,12 +156,12 @@ void CoreSersicProfile::add_kernel_parameters_double(unsigned int index, cl::Ker
 
 template <typename FT>
 void CoreSersicProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
-	kernel.setArg(index++, static_cast<FT>(re));
-	kernel.setArg(index++, static_cast<FT>(rb));
-	kernel.setArg(index++, static_cast<FT>(nser));
-	kernel.setArg(index++, static_cast<FT>(a));
-	kernel.setArg(index++, static_cast<FT>(b));
-	kernel.setArg(index++, static_cast<FT>(_bn));
+	kernel.setArg((index++), FT(re));
+	kernel.setArg((index++), FT(rb));
+	kernel.setArg((index++), FT(nser));
+	kernel.setArg((index++), FT(a));
+	kernel.setArg((index++), FT(b));
+	kernel.setArg((index++), FT(_bn));
 }
 
 #endif /* PROFIT_OPENCL */

@@ -141,8 +141,8 @@ void FerrerProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel 
 
 template <typename FT>
 void FerrerProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
-	kernel.setArg(index++, static_cast<FT>(a));
-	kernel.setArg(index++, static_cast<FT>(b));
+	kernel.setArg((index++), FT(a));
+	kernel.setArg((index++), FT(b));
 }
 
 #endif /* PROFIT_OPENCL */

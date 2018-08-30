@@ -369,8 +369,8 @@ void SersicProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel 
 
 template <typename FT>
 void SersicProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
-	kernel.setArg(index++, (FT)nser);
-	kernel.setArg(index++, (FT)_bn);
+	kernel.setArg((index++), FT(nser));
+	kernel.setArg((index++), FT(_bn));
 }
 
 #endif /* PROFIT_OPENCL */

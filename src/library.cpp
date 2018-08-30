@@ -93,7 +93,7 @@ std::string finish_diagnose()
 bool init()
 {
 	// Initialize FFTW library, including its OpenMP support
-	// It is important to configure the OpenMP support before reading the wisdom;
+	// It is important to configure the OpenMP support before reading the wisdom,
 	// otherwise the plans will fail to import
 #ifdef PROFIT_FFTW_OPENMP
 	int res = fftw_init_threads();
@@ -117,13 +117,11 @@ bool init()
 	}
 
 #if !(defined(__WIN32__) || defined(WIN32) || defined(_WINDOWS))
-	if (file_exists("/etc/fftw/wisdom")) {
-		if (fftw_import_system_wisdom() == 0) {
-			std::ostringstream os;
-			os << _init_diagnose << '\n';
-			os << "Importing fftw system wisdom failed (returned 0)";
-			_init_diagnose = os.str();
-		}
+	if (file_exists("/etc/fftw/wisdom") && fftw_import_system_wisdom() == 0) {
+		std::ostringstream os;
+		os << _init_diagnose << '\n';
+		os << "Importing fftw system wisdom failed (returned 0)";
+		_init_diagnose = os.str();
 	}
 #endif // !WIN32
 #endif // PROFIT_FFTW

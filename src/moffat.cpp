@@ -78,7 +78,6 @@ double MoffatProfile::fluxfrac(double fraction) const {
 }
 
 double MoffatProfile::get_lumtot(double r_box) {
-	double con = this->con;
 	return std::pow(this->rscale, 2) * M_PI * axrat/(con-1)/r_box;
 }
 
@@ -122,7 +121,7 @@ void MoffatProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel 
 
 template <typename FT>
 void MoffatProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
-	kernel.setArg(index++, static_cast<FT>(con));
+	kernel.setArg((index++), FT(con));
 }
 
 #endif /* PROFIT_OPENCL */
