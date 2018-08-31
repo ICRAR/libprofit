@@ -61,7 +61,7 @@ private:
 };
 
 static
-void parse_profile(Model &model, const std::string &description)
+void parse_profile(std::ostream &os, Model &model, const std::string &description)
 {
 	auto desc = trim(description);
 	if (desc.empty()) {
@@ -74,7 +74,12 @@ void parse_profile(Model &model, const std::string &description)
 	std::vector<std::string> parameter_specs(std::make_move_iterator(parts.begin() + 1),
 	                                         std::make_move_iterator(parts.end()));
 	for(auto &parameter_spec: parameter_specs) {
-		p->parameter(parameter_spec);
+		try {
+			p->parameter(parameter_spec);
+		} catch (const unknown_parameter &e) {
+			os << "Parameter specificion cannot be understood by profile ";
+			os << p->get_name() << ": " << parameter_spec;
+		}
 	}
 }
 
@@ -448,7 +453,7 @@ int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr
 				break;
 
 			case 'p':
-				parse_profile(m, optarg);
+				parse_profile(cerr, m, optarg);
 				break;
 
 			case 'c':
