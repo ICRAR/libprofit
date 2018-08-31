@@ -257,7 +257,7 @@ double integrate_qags(integration_func_t f, double a, double b, void *params) {
 
 #ifdef _WIN32
 static inline
-bool path_exists(const std::string &path, const DWORD expected_attr)
+bool path_exists(const std::string &path, bool dir_expected)
 {
 	auto attrs = GetFileAttributes(path.c_str());
 	if (attrs == INVALID_FILE_ATTRIBUTES) {
@@ -274,7 +274,8 @@ bool path_exists(const std::string &path, const DWORD expected_attr)
 		throw std::runtime_error(os.str());
 	}
 
-	return attrs & expected_attr;
+	bool is_dir = attrs & FILE_ATTRIBUTE_DIRECTORY;
+	return is_dir == dir_expected;
 }
 #else
 static inline
@@ -313,7 +314,7 @@ bool inode_exists(const std::string &fname, mode_t expected_type, const char *ty
 bool dir_exists(const std::string &fname)
 {
 #ifdef _WIN32
-	return path_exists(fname, FILE_ATTRIBUTE_DIRECTORY);
+	return path_exists(fname, true);
 #else
 	return inode_exists(fname, S_IFDIR, "directory");
 #endif // _WIN32
@@ -322,7 +323,7 @@ bool dir_exists(const std::string &fname)
 bool file_exists(const std::string &fname)
 {
 #ifdef _WIN32
-	return path_exists(fname, FILE_ATTRIBUTE_NORMAL);
+	return path_exists(fname, false);
 #else
 	return inode_exists(fname, S_IFREG, "regular file");
 #endif // _WIN32
