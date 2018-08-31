@@ -31,6 +31,12 @@ cd build
 
 LIBPROFIT_CMAKE_OPTIONS="-DCMAKE_CXX_COMPILER=$COMPILER -DLIBPROFIT_TEST=ON"
 
+# coverage builds go in Debug mode
+if [ "$COMPILER" = "g++-6" ]
+then
+	LIBPROFIT_CMAKE_OPTIONS="$LIBPROFIT_CMAKE_OPTIONS -DCMAKE_BUILD_TYPE=Debug"
+fi
+
 # Poor builds disable everything
 if [ "${POOR_BUILD}" = "yes" ]
 then
