@@ -122,32 +122,31 @@ Image parse_psf(std::string optarg, Model &m)
 }
 
 static
-void show_version() {
-	using std::cout;
+void show_version(std::ostream &os) {
 	using std::endl;
-	cout << "libprofit version " << version() << endl;
-	cout << "OpenCL support: ";
+	os << "libprofit version " << version() << endl;
+	os << "OpenCL support: ";
 	if (has_opencl()) {
-		cout << "Yes (up to " << opencl_version_major() << "." << opencl_version_minor() << ")" << endl;
+		os << "Yes (up to " << opencl_version_major() << "." << opencl_version_minor() << ")" << endl;
 	}
 	else {
-		cout << "No" << endl;
+		os << "No" << endl;
 	}
-	cout << "OpenMP support: " << (has_openmp() ? "Yes" : "No") << endl;
-	cout << "FFTW support: ";
+	os << "OpenMP support: " << (has_openmp() ? "Yes" : "No") << endl;
+	os << "FFTW support: ";
 	if (has_fftw()) {
-		cout << "Yes ";
+		os << "Yes ";
 		if (has_fftw_with_openmp()) {
-			cout << "(with OpenMP)";
+			os << "(with OpenMP)";
 		}
 		else {
-			cout << "(without OpenMP)";
+			os << "(without OpenMP)";
 		}
 	}
 	else {
-		cout << "No";
+		os << "No";
 	}
-	cout << endl;
+	os << endl;
 }
 
 static const char *help_msg = R"===(
@@ -220,12 +219,12 @@ void usage(std::basic_ostream<T> &os, char *prog_name) {
 }
 
 static
-void print_stats_line(const std::string &prefix, const std::string &stat_name, double val) {
+void print_stats_line(std::ostream &os, const std::string &prefix, const std::string &stat_name, double val) {
 	int nchars = prefix.size() + stat_name.size();
 	int nspaces = std::max(0, 50 - nchars);
 	std::string spaces(nspaces, ' ');
-	std::cout << prefix << stat_name << spaces << " : " << std::setw(10)
-	          << std::setprecision(3) << std::fixed << val << " [ms]" << std::endl;
+	os << prefix << stat_name << spaces << " : " << std::setw(10)
+	   << std::setprecision(3) << std::fixed << val << " [ms]" << std::endl;
 }
 
 struct clver {
@@ -244,79 +243,78 @@ std::basic_ostream<T> &operator<<(std::basic_ostream<T> &os, const clver &ver)
 }
 
 static
-void print_opencl_info() {
+void print_opencl_info(std::ostream &out) {
 
-	using std::cout;
 	using std::endl;
 
 	const auto info = get_opencl_info();
 
 	if( info.size() > 0 ) {
-		cout << "OpenCL information" << endl;
-		cout << "==================" << endl << endl;
+		out << "OpenCL information" << endl;
+		out << "==================" << endl << endl;
 		for(auto platform_info: info) {
 			auto plat_id = std::get<0>(platform_info);
 			auto plat_info = std::get<1>(platform_info);
-			cout << "Platform [" << plat_id << "]" << endl;
-			cout << "  Name           : " << plat_info.name << endl;
-			cout << "  OpenCL version : " << clver(plat_info.supported_opencl_version) << endl;
+			out << "Platform [" << plat_id << "]" << endl;
+			out << "  Name           : " << plat_info.name << endl;
+			out << "  OpenCL version : " << clver(plat_info.supported_opencl_version) << endl;
 			for(auto device_info: plat_info.dev_info) {
-				cout << "  Device [" << std::get<0>(device_info) << "]" << endl;
-				cout << "    Name           : " << std::get<1>(device_info).name << endl;
-				cout << "    OpenCL version : " << clver(std::get<1>(device_info).cl_version) << endl;
-				cout << "    Double         : " << (std::get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
+				out << "  Device [" << std::get<0>(device_info) << "]" << endl;
+				out << "    Name           : " << std::get<1>(device_info).name << endl;
+				out << "    OpenCL version : " << clver(std::get<1>(device_info).cl_version) << endl;
+				out << "    Double         : " << (std::get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
 			}
-			cout << endl;
+			out << endl;
 		}
 	}
 	else {
-		cout << "No OpenCL installation found" << endl;
+		out << "No OpenCL installation found" << endl;
 	}
 }
 
 static
-void print_cl_stats(const std::string &prefix0, bool opencl_120, const OpenCL_times &stats) {
+void print_cl_stats(std::ostream &os, const std::string &prefix0, bool opencl_120, const OpenCL_times &stats) {
 
 	auto prefix1 = prefix0 + "  ";
 
-	std::ostringstream os;
-	os << "OpenCL operations (" << stats.nwork_items << " work items)";
-	print_stats_line(prefix0, os.str(), stats.total / 1e6 );
-	print_stats_line(prefix1, "Kernel preparation", stats.kernel_prep / 1e6 );
+	std::ostringstream cl_ops_os;
+	cl_ops_os << "OpenCL operations (" << stats.nwork_items << " work items)";
+	print_stats_line(os, prefix0, cl_ops_os.str(), stats.total / 1e6 );
+	print_stats_line(os, prefix1, "Kernel preparation", stats.kernel_prep / 1e6 );
 	if( opencl_120 ) {
-		print_stats_line(prefix1, "Fill submission", stats.filling_times.submit / 1e6 );
-		print_stats_line(prefix1, "Fill execution", stats.filling_times.exec / 1e6 );
+		print_stats_line(os, prefix1, "Fill submission", stats.filling_times.submit / 1e6 );
+		print_stats_line(os, prefix1, "Fill execution", stats.filling_times.exec / 1e6 );
 	}
-	print_stats_line(prefix1, "Write submission", stats.writing_times.submit / 1e6 );
-	print_stats_line(prefix1, "Write execution", stats.writing_times.exec / 1e6 );
-	print_stats_line(prefix1, "Kernel submission", stats.kernel_times.submit / 1e6 );
-	print_stats_line(prefix1, "Kernel execution", stats.kernel_times.exec / 1e6 );
-	print_stats_line(prefix1, "Read submission", stats.reading_times.submit / 1e6 );
-	print_stats_line(prefix1, "Read execution", stats.reading_times.exec / 1e6 );
+	print_stats_line(os, prefix1, "Write submission", stats.writing_times.submit / 1e6 );
+	print_stats_line(os, prefix1, "Write execution", stats.writing_times.exec / 1e6 );
+	print_stats_line(os, prefix1, "Kernel submission", stats.kernel_times.submit / 1e6 );
+	print_stats_line(os, prefix1, "Kernel execution", stats.kernel_times.exec / 1e6 );
+	print_stats_line(os, prefix1, "Read submission", stats.reading_times.submit / 1e6 );
+	print_stats_line(os, prefix1, "Read execution", stats.reading_times.exec / 1e6 );
 }
 
 static
-void print_stats(const Model &m) {
+void print_stats(std::ostream &os, const Model &m) {
 
 #ifdef PROFIT_DEBUG
 	for(const auto &profile_integrations: m.get_profile_integrations()) {
 		int total = 0;
 		if( std::get<1>(profile_integrations).size() > 0 ) {
-			std::cout << "Integrations per recursion level for profile " << std::get<0>(profile_integrations) << std::endl;
+			os << "Integrations per recursion level for profile " << std::get<0>(profile_integrations) << std::endl;
 			for(const auto level_integrations: std::get<1>(profile_integrations)) {
 				auto integrations = std::get<1>(level_integrations);
 				total += integrations;
-				std::cout << " Level " << std::get<0>(level_integrations) << ": " << integrations << " integrations" << std::endl;
+				os << " Level " << std::get<0>(level_integrations) << ": " << integrations << " integrations" << std::endl;
 			}
-			std::cout << " Total: " << total << " integrations" << std::endl;
+			os << " Total: " << total << " integrations" << std::endl;
 		}
 		else {
-			std::cout << "Profile " << std::get<0>(profile_integrations) << " didn't run into any recursion" << std::endl;
+			os << "Profile " << std::get<0>(profile_integrations) << " didn't run into any recursion" << std::endl;
 		}
 	}
 #endif /* PROFIT_DEBUG */
 
-	std::cout << std::endl;
+	os << std::endl;
 	auto const &stats = m.get_stats();
 
 	auto prefix0 = "";
@@ -330,29 +328,29 @@ void print_stats(const Model &m) {
 			continue;
 		}
 
-		std::cout << "Stats for profile " << profile_name << std::endl;
+		os << "Stats for profile " << profile_name << std::endl;
 
 		auto prefix1 = "  ";
 		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
 		auto opencl_env = m.get_opencl_env();
 		if( rprofile_stats && opencl_env ) {
 			bool opencl_120 = opencl_env->get_version() >= 120;
-			print_cl_stats(prefix0, opencl_120, rprofile_stats->cl_times);
-			print_stats_line(prefix0, "Pre-loop", rprofile_stats->subsampling.pre_subsampling / 1e6 );
-			print_stats_line(prefix0, "Subsampling loop", rprofile_stats->subsampling.total / 1e6 );
-			print_stats_line(prefix1, "New subsamples calculation", rprofile_stats->subsampling.new_subsampling / 1e6 );
-			print_stats_line(prefix1, "Initial transform", rprofile_stats->subsampling.inital_transform / 1e6 );
-			print_cl_stats(prefix1, opencl_120, rprofile_stats->subsampling.cl_times);
-			print_stats_line(prefix1, "Final transform", rprofile_stats->subsampling.final_transform / 1e6 );
-			print_stats_line(prefix0, "Final image", rprofile_stats->final_image / 1e6 );
+			print_cl_stats(os, prefix0, opencl_120, rprofile_stats->cl_times);
+			print_stats_line(os, prefix0, "Pre-loop", rprofile_stats->subsampling.pre_subsampling / 1e6 );
+			print_stats_line(os, prefix0, "Subsampling loop", rprofile_stats->subsampling.total / 1e6 );
+			print_stats_line(os, prefix1, "New subsamples calculation", rprofile_stats->subsampling.new_subsampling / 1e6 );
+			print_stats_line(os, prefix1, "Initial transform", rprofile_stats->subsampling.inital_transform / 1e6 );
+			print_cl_stats(os, prefix1, opencl_120, rprofile_stats->subsampling.cl_times);
+			print_stats_line(os, prefix1, "Final transform", rprofile_stats->subsampling.final_transform / 1e6 );
+			print_stats_line(os, prefix0, "Final image", rprofile_stats->final_image / 1e6 );
 		}
 
-		print_stats_line(prefix0, "Total", profile_stats->total / 1e6 );
+		print_stats_line(os, prefix0, "Total", profile_stats->total / 1e6 );
 	}
 }
 
 static
-Image run(unsigned int iterations, Model &m, Point &offset) {
+Image run(std::ostream &os, unsigned int iterations, Model &m, Point &offset) {
 
 	using std::chrono::system_clock;
 
@@ -367,11 +365,11 @@ Image run(unsigned int iterations, Model &m, Point &offset) {
 
 	double dur_secs = (double)duration/1000;
 	double dur_per_iter = (double)duration/iterations;
-	std::cout << std::fixed << std::setprecision(3);
-	std::cout << "Ran " << iterations << " iterations in ";
-	std::cout << std::setprecision(3) << std::fixed << dur_secs << " [s] ";
-	std::cout << "(" << std::setprecision(3) << std::fixed << dur_per_iter << " [ms] per iteration)";
-	std::cout << std::endl;
+	os << std::fixed << std::setprecision(3);
+	os << "Ran " << iterations << " iterations in ";
+	os << std::setprecision(3) << std::fixed << dur_secs << " [s] ";
+	os << "(" << std::setprecision(3) << std::fixed << dur_per_iter << " [ms] per iteration)";
+	os << std::endl;
 
 	return result;
 }
@@ -383,7 +381,7 @@ typedef enum _output_type {
 } output_t;
 
 static
-int parse_and_run(int argc, char *argv[]) {
+int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr) {
 
 	namespace chrono = std::chrono;
 	using chrono::system_clock;
@@ -418,11 +416,11 @@ int parse_and_run(int argc, char *argv[]) {
 
 			case 'h':
 			case '?':
-				usage(std::cout, argv[0]);
+				usage(cout, argv[0]);
 				return 0;
 
 			case 'V':
-				show_version();
+				show_version(cout);
 				return 0;
 
 			case 'R':
@@ -454,7 +452,7 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			case 'c':
-				print_opencl_info();
+				print_opencl_info(cout);
 				return 0;
 
 			case 'C':
@@ -537,7 +535,7 @@ int parse_and_run(int argc, char *argv[]) {
 				break;
 
 			default:
-				usage(std::cerr, argv[0]);
+				usage(cerr, argv[0]);
 				return 1;
 
 		}
@@ -545,7 +543,7 @@ int parse_and_run(int argc, char *argv[]) {
 
 	/* No profiles given */
 	if( !m.has_profiles() ) {
-		usage(std::cerr, argv[0]);
+		usage(cerr, argv[0]);
 		return 1;
 	}
 
@@ -563,11 +561,11 @@ int parse_and_run(int argc, char *argv[]) {
 		m.set_opencl_env(opencl_env);
 		convolver_prefs.opencl_env = opencl_env;
 		auto opencl_duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
-		std::cout << "OpenCL environment (platform=" <<
-		            opencl_env->get_platform_name() << ", device=" <<
-		            opencl_env->get_device_name() << ", version=" <<
-		            clver(opencl_env->get_version()) <<
-		            ") created in " << opencl_duration << " [ms]" << std::endl;
+		cout << "OpenCL environment (platform=" <<
+		        opencl_env->get_platform_name() << ", device=" <<
+		        opencl_env->get_device_name() << ", version=" <<
+		        clver(opencl_env->get_version()) <<
+		        ") created in " << opencl_duration << " [ms]" << std::endl;
 	}
 
 	// Create the convolver
@@ -576,12 +574,12 @@ int parse_and_run(int argc, char *argv[]) {
 	auto end = system_clock::now();
 
 	auto duration = chrono::duration_cast<chrono::milliseconds>(end-start).count();
-	std::cout << std::fixed << std::setprecision(3);
-	std::cout << "Created convolver in " << duration << " [ms]" << std::endl;
+	cout << std::fixed << std::setprecision(3);
+	cout << "Created convolver in " << duration << " [ms]" << std::endl;
 
 	// Now run the model as many times as requested
 	Point offset;
-	auto image = run(iterations, m, offset);
+	auto image = run(cout, iterations, m, offset);
 
 	switch(output) {
 
@@ -591,9 +589,9 @@ int parse_and_run(int argc, char *argv[]) {
 		case text:
 			for(j=0; j!=image.getHeight(); j++) {
 				for(i=0; i!=image.getWidth(); i++) {
-					std::cout << image[j*image.getWidth() + i] << " ";
+					cout << image[j*image.getWidth() + i] << " ";
 				}
-				std::cout << std::endl;
+				cout << std::endl;
 			}
 			break;
 
@@ -602,11 +600,11 @@ int parse_and_run(int argc, char *argv[]) {
 			break;
 
 		default:
-			std::cerr << "Output not currently supported: " << output << std::endl;
+			cerr << "Output not currently supported: " << output << std::endl;
 	}
 
 	if( show_stats ) {
-		print_stats(m);
+		print_stats(cout, m);
 	}
 
 	return 0;
@@ -618,44 +616,47 @@ extern "C" {
 
 int main(int argc, char *argv[]) {
 
+	std::ostream &cout = std::cout;
+	std::ostream &cerr = std::cerr;
+
 	bool success = profit::init();
 	auto init_diagnose = profit::init_diagnose();
 	if (!success) {
-		std::cerr << "Error initializing libprofit: " << init_diagnose << std::endl;
+		cerr << "Error initializing libprofit: " << init_diagnose << std::endl;
 		return 1;
 	}
 	else if (!init_diagnose.empty()){
-		std::cerr << "Warning while initializing libprofit: " << init_diagnose << std::endl;
+		cerr << "Warning while initializing libprofit: " << init_diagnose << std::endl;
 	}
 
 	int ret;
 	try {
-		ret = profit::parse_and_run(argc, argv);
+		ret = profit::parse_and_run(argc, argv, cout, cerr);
 	}
 	catch (const profit::invalid_cmdline &e) {
-		std::cerr << "Error on command line: " << e.what() << std::endl;
+		cerr << "Error on command line: " << e.what() << std::endl;
 		ret = 1;
 	}
 	catch (const profit::invalid_parameter &e) {
-		std::cerr << "Error while calculating model: " << e.what() << std::endl;
+		cerr << "Error while calculating model: " << e.what() << std::endl;
 		ret = 1;
 	}
 	catch (const profit::opencl_error &e) {
-		std::cerr << "Error in OpenCL operation: " << e.what() << std::endl;
+		cerr << "Error in OpenCL operation: " << e.what() << std::endl;
 		ret = 1;
 	}
 	catch (const profit::fft_error &e) {
-		std::cerr << "Error in FFT operation: " << e.what() << std::endl;
+		cerr << "Error in FFT operation: " << e.what() << std::endl;
 		ret = 1;
 	}
 	catch (const std::exception &e) {
-		std::cerr << "Unexpected error: " << e.what() << std::endl;
+		cerr << "Unexpected error: " << e.what() << std::endl;
 		ret = 1;
 	}
 	profit::finish();
 	auto finish_diagnose = profit::finish_diagnose();
 	if (!finish_diagnose.empty()) {
-		std::cerr << "Warning while finishing libprofit: " << finish_diagnose << std::endl;
+		cerr << "Warning while finishing libprofit: " << finish_diagnose << std::endl;
 	}
 
 	return ret;
