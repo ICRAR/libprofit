@@ -87,7 +87,7 @@ protected:
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec) override;
 	double get_pixel_scale(const PixelScale &scale) override;
 
-	double get_lumtot(double r_box) override;
+	double get_lumtot() override;
 	double get_rscale() override;
 	double adjust_acc(double acc) override;
 	double adjust_rscale_switch() override;

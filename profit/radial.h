@@ -133,10 +133,9 @@ protected:
 	 */
 
 	/**
-	 * Returns the total luminosity of this profile for the given ``r_box``
-	 * factor.
+	 * Returns the total luminosity of this profile.
 	 */
-	virtual double get_lumtot(double r_box) = 0;
+	virtual double get_lumtot() = 0;
 
 	/**
 	 * Returns the value used as ``rscale`` by the radial profile.

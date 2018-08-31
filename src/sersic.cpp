@@ -279,12 +279,12 @@ double SersicProfile::adjust_acc(double acc) {
 	return std::max(0.1, acc) / this->axrat;
 }
 
-double SersicProfile::get_lumtot(double r_box) {
+double SersicProfile::get_lumtot() {
 	using std::exp;
 	using std::pow;
 	double g_factor = gammafn(2*this->nser);
 	return pow(this->re, 2) * 2 * M_PI * this->nser * g_factor *
-	       this->axrat/r_box * exp(this->_bn)/pow(this->_bn, 2*this->nser);
+	       exp(this->_bn)/pow(this->_bn, 2*this->nser);
 }
 
 void SersicProfile::initial_calculations() {

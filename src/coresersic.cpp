@@ -89,7 +89,7 @@ double CoreSersicProfile::integrate_at(double r) const {
 	       exp(-_bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
 }
 
-double CoreSersicProfile::get_lumtot(double r_box) {
+double CoreSersicProfile::get_lumtot() {
 
 	/*
 	 * We numerically integrate r from 0 to infinity
@@ -100,7 +100,7 @@ double CoreSersicProfile::get_lumtot(double r_box) {
 		return p->integrate_at(r);
 	};
 	double magtot = integrate_qagi(int_f, 0, this);
-	return 2 * M_PI * axrat * magtot/r_box;
+	return 2 * M_PI * magtot;
 }
 
 void CoreSersicProfile::initial_calculations() {

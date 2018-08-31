@@ -148,7 +148,7 @@ void RadialProfile::initial_calculations() {
 	 */
 	double box = this->box + 2;
 	double r_box = M_PI * box / (2*beta(1/box, 1/box));
-	double lumtot = this->get_lumtot(r_box);
+	double lumtot = this->get_lumtot() * axrat / r_box;
 	this->_ie = std::pow(10, -0.4*(this->mag - magzero))/lumtot;
 
 	/*

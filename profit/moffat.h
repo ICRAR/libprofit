@@ -69,7 +69,7 @@ protected:
 	 * Inherited from RadialProfile
 	 * ----------------------------
 	 */
-	double get_lumtot(double r_box) override;
+	double get_lumtot() override;
 	double get_rscale() override;
 	double adjust_acc(double acc) override;
 	double adjust_rscale_switch() override;

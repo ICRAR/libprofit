@@ -112,7 +112,7 @@ double BrokenExponentialProfile::integrate_at(double r) const {
 	return r * _broken_exponential(r, h1, h2, rb, a);
 }
 
-double BrokenExponentialProfile::get_lumtot(double r_box) {
+double BrokenExponentialProfile::get_lumtot() {
 	/*
 	 * We numerically integrate r from 0 to infinity
 	 * to get the total luminosity
@@ -123,7 +123,7 @@ double BrokenExponentialProfile::get_lumtot(double r_box) {
 			return p->integrate_at(r);
 		},
 		0, this);
-	return 2*M_PI * axrat * magtot/r_box;
+	return 2 * M_PI * magtot;
 }
 
 double BrokenExponentialProfile::adjust_rscale_switch() {

@@ -74,8 +74,8 @@ double MoffatProfile::fluxfrac(double fraction) const {
 	return rscale * std::sqrt(std::pow(1 - fraction, 1/ (1 - con)) - 1);
 }
 
-double MoffatProfile::get_lumtot(double r_box) {
-	return std::pow(this->rscale, 2) * M_PI * axrat/(con-1)/r_box;
+double MoffatProfile::get_lumtot() {
+	return std::pow(this->rscale, 2) * M_PI / (con - 1);
 }
 
 double MoffatProfile::get_rscale() {

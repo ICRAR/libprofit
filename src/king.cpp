@@ -84,7 +84,7 @@ double KingProfile::integrate_at(double r) const {
 	return 0;
 }
 
-double KingProfile::get_lumtot(double r_box) {
+double KingProfile::get_lumtot() {
 	/*
 	 * We numerically integrate r from 0 to rt
 	 * to get the total luminosity
@@ -93,7 +93,7 @@ double KingProfile::get_lumtot(double r_box) {
 		auto kp = static_cast<KingProfile *>(ctx);
 		return kp->integrate_at(r);
 	}, 0, this->rt, this);
-	return 2*M_PI * axrat * magtot/r_box;
+	return 2 * M_PI * magtot;
 }
 
 double KingProfile::adjust_rscale_switch() {

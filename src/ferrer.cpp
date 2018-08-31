@@ -75,7 +75,7 @@ void FerrerProfile::validate() {
 
 }
 
-double FerrerProfile::get_lumtot(double r_box) {
+double FerrerProfile::get_lumtot() {
 
 	using std::pow;
 
@@ -97,7 +97,7 @@ double FerrerProfile::get_lumtot(double r_box) {
 	 * but still converges using beta.
 	 */
 	double g_factor = a * beta(a, 1 + 2/(2-b));
-	return pow(rout, 2) * M_PI * g_factor * axrat/r_box;
+	return pow(rout, 2) * M_PI * g_factor;
 }
 
 double FerrerProfile::adjust_rscale_switch() {
