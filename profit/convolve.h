@@ -65,6 +65,8 @@ enum ConvolverType {
 class PROFIT_API Convolver {
 
 public:
+	static Point NO_OFFSET;
+
 	virtual ~Convolver();
 
 	/**
@@ -102,8 +104,6 @@ protected:
 	Image mask_and_crop(Image &img, const Mask &mask, bool crop,
 	                    const Dimensions orig_dims, const Dimensions &ext_dims,
 	                    const Point &ext_offset, Point &offset_out);
-
-	static Point NO_OFFSET;
 };
 
 ///
