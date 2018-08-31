@@ -113,10 +113,6 @@ double KingProfile::get_rscale() {
 	return this->rt;
 }
 
-double KingProfile::adjust_acc() {
-	return this->acc;
-}
-
 KingProfile::KingProfile(const Model &model, const std::string &name) :
 	RadialProfile(model, name),
 	rc(1), rt(3), a(2)

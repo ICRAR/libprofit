@@ -143,10 +143,6 @@ double BrokenExponentialProfile::get_rscale() {
 	return this->h1*4;
 }
 
-double BrokenExponentialProfile::adjust_acc() {
-	return this->acc;
-}
-
 BrokenExponentialProfile::BrokenExponentialProfile(const Model &model, const std::string &name) :
 	RadialProfile(model, name),
 	h1(1), h2(1), rb(1), a(1)

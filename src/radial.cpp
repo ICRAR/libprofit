@@ -181,7 +181,7 @@ void RadialProfile::initial_calculations() {
 		}
 
 		/* Adjust the accuracy we'll use for sub-pixel integration */
-		this->acc = this->adjust_acc();
+		acc = adjust_acc(acc);
 
 	}
 
@@ -219,6 +219,11 @@ void RadialProfile::validate() {
 double RadialProfile::get_pixel_scale(const PixelScale &scale) {
 	double pixel_area = scale.first * scale.second;
 	return pixel_area * this->_ie;
+}
+
+double RadialProfile::adjust_acc(double acc)
+{
+	return acc;
 }
 
 void RadialProfile::subsampling_params(double x, double y,

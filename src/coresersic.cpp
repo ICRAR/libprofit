@@ -130,10 +130,6 @@ double CoreSersicProfile::get_rscale() {
 	return this->re;
 }
 
-double CoreSersicProfile::adjust_acc() {
-	return this->acc;
-}
-
 CoreSersicProfile::CoreSersicProfile(const Model &model, const std::string &name) :
 	RadialProfile(model, name),
 	re(1), rb(1), nser(4), a(1), b(1)

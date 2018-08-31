@@ -114,10 +114,6 @@ double FerrerProfile::get_rscale() {
 	return this->rout;
 }
 
-double FerrerProfile::adjust_acc() {
-	return this->acc;
-}
-
 FerrerProfile::FerrerProfile(const Model &model, const std::string &name) :
 	RadialProfile(model, name),
 	rout(3), a(1), b(1)

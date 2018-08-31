@@ -274,8 +274,8 @@ double SersicProfile::adjust_rscale_max() {
 	return std::ceil(std::max(fluxfrac(0.9999), 2.) / re);
 }
 
-double SersicProfile::adjust_acc() {
-	double acc = this->acc / std::sqrt(nser);
+double SersicProfile::adjust_acc(double acc) {
+	acc /= std::sqrt(nser);
 	return std::max(0.1, acc) / this->axrat;
 }
 

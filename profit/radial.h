@@ -131,8 +131,10 @@ protected:
 	 * Returns an automatically adjusted value for the subsampling accuracy,
 	 * which will replace the default or user-given value if users decide to
 	 * let the code self-adjust.
+	 * The default implementation leaves the accuracy untouched, but subclasses
+	 * can override this method.
 	 */
-	virtual double adjust_acc() = 0;
+	virtual double adjust_acc(double acc);
 
 	/**
 	 * Returns an automatically adjusted value for the rscale_switch flag,
