@@ -228,6 +228,8 @@ protected:
 
 	std::shared_ptr<ProfileStats> stats;
 
+private:
+
 	/** @name Profile Parameters */
 	// @{
 	/**
@@ -236,7 +238,6 @@ protected:
 	bool convolve;
 	// @}
 
-private:
 	parameter_holder<bool> bool_parameters;
 	parameter_holder<unsigned int> uint_parameters;
 	parameter_holder<double> double_parameters;

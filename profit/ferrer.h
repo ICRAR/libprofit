@@ -69,6 +69,8 @@ protected:
 	double adjust_rscale_max() override;
 	double evaluate_at(double x, double y) const override;
 
+private:
+
 	/*
 	 * -------------------------
 	 * Profile parameters follow
@@ -95,6 +97,7 @@ protected:
 
 #ifdef PROFIT_OPENCL
 
+protected:
 	virtual void add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const override;
 	virtual void add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const override;
 

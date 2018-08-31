@@ -59,7 +59,7 @@ public:
 	void adjust_for_finesampling(unsigned int finesampling) override;
 	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) override;
 
-protected:
+private:
 
 	/*
 	 * -------------------------

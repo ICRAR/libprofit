@@ -76,6 +76,8 @@ protected:
 	double adjust_rscale_max() override;
 	double evaluate_at(double x, double y) const override;
 
+private:
+
 	/*
 	 * -------------------------
 	 * Profile parameters follow
@@ -96,8 +98,7 @@ protected:
 	double con;
 	// @}
 
-private:
-  double fluxfrac(double fraction) const;
+	double fluxfrac(double fraction) const;
 
 #ifdef PROFIT_OPENCL
 

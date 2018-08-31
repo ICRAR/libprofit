@@ -72,6 +72,8 @@ protected:
 	double adjust_rscale_max() override;
 	double evaluate_at(double x, double y) const override;
 
+private:
+
 	/*
 	 * -------------------------
 	 * Profile parameters follow
@@ -95,8 +97,6 @@ protected:
 	 */
 	double a;
 	// @}
-
-private:
 
 	double integrate_at(double r) const;
 

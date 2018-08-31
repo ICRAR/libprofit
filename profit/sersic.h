@@ -94,6 +94,7 @@ protected:
 	double adjust_rscale_max() override;
 	double evaluate_at(double x, double y) const override;
 
+private:
 
 	/*
 	 * -------------------------
@@ -122,8 +123,6 @@ protected:
 	/* these are internally calculated when the profile is evaluated */
 	double _bn;
 	double _rescale_factor;
-
-private:
 
 	double (*m_eval_function)(double x, double y, double box, double re, double nser, double bn);
 

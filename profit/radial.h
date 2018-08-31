@@ -53,6 +53,10 @@ namespace profit
  */
 class RadialProfile : public Profile {
 
+	friend class FerrerProfile;
+	friend class MoffatProfile;
+	friend class SersicProfile;
+
 public:
 
 	/**
@@ -165,6 +169,7 @@ protected:
 	 */
 	virtual double adjust_rscale_max() = 0;
 
+private:
 	/*
 	 * -------------------------
 	 * Profile parameters follow
@@ -266,8 +271,6 @@ protected:
 	double _cos_ang;
 	double _sin_ang;
 	double magzero;
-
-private:
 
 	void evaluate_cpu(Image &image, const Mask &mask, const PixelScale &scale);
 
