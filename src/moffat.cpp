@@ -49,13 +49,10 @@ namespace profit
  * Reducing:
  *  r_factor = ((x/rscale)^{2+b} + (y/rscale)^{2+b})^{1/(2+b)}
  */
-double MoffatProfile::evaluate_at(double x, double y) const {
-
+double MoffatProfile::evaluate_at(double x, double y) const
+{
 	using std::pow;
-	using std::abs;
-
-	double box = 2 + this->box;
-	double r = pow( pow(abs(x), box) + pow(abs(y), box), 1./(box));
+	double r = boxy_r(x, y);
 	double r_factor = r/rscale;
 	return pow(1 + r_factor*r_factor, -con);
 }

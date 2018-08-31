@@ -49,11 +49,9 @@ namespace profit
  */
 double FerrerProfile::evaluate_at(double x, double y) const {
 
-	using std::abs;
 	using std::pow;
 
-	double box = this->box + 2.;
-	double r = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
+	double r = boxy_r(x, y);
 	double r_factor = r/rscale;
 	if( r_factor < 1 ) {
 		return pow(1 - pow(r_factor, 2 - b), a);

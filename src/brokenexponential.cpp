@@ -88,14 +88,9 @@ double _broken_exponential(double r, double h1, double h2, double rb, double a) 
  *       r = (x^{2+B} + y^{2+B})^{1/(2+B)}
  *       B = box parameter
  */
-double BrokenExponentialProfile::evaluate_at(double x, double y) const {
-
-	using std::abs;
-	using std::pow;
-
-	double box = this->box + 2.;
-	double r = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
-	return _broken_exponential(r, h1, h2, rb, a);
+double BrokenExponentialProfile::evaluate_at(double x, double y) const
+{
+	return _broken_exponential(boxy_r(x, y), h1, h2, rb, a);
 }
 
 void BrokenExponentialProfile::validate() {

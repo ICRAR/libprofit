@@ -78,6 +78,22 @@ public:
 protected:
 
 	/**
+	 * Calculates a *boxy radius* using the boxiness parameter `box` of this
+	 * profile.
+	 *
+	 * @param x `x` coordinate
+	 * @param y `y` coordinate
+	 * @return The *boxy* radius `r` for the coordinate (`x`, `y`).
+	 */
+	double boxy_r(double x, double y) const
+	{
+		using std::pow;
+		using std::abs;
+		double box_plus_2 = box + 2.;
+		return pow(pow(abs(x), box_plus_2) + pow(abs(y), box_plus_2), 1./box_plus_2);
+	}
+
+	/**
 	 * Calculates the profile value at profile coordinates ``x``/``y``.
 	 * @param x The X profile coordinate to evaluate
 	 * @param y The Y profile coordinate to evaluate
