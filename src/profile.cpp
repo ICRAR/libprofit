@@ -172,7 +172,7 @@ void Profile::parameter(const std::string &param_spec)
 
 	if (!found) {
 		std::ostringstream os;
-		os << "Profile " << get_name() << " doesn't support parameter " << name;
+		os << "Profile " << get_name() << " doesn't support parameter " << pname;
 		os << ", or parameter has invalid value: " << val;
 		throw unknown_parameter(os.str());
 	}
