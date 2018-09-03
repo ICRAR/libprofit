@@ -253,7 +253,7 @@ std::string &valid_fname(std::string &&name)
 {
 	std::string::size_type pos = 0;
 	while ((pos = name.find_first_of("/;: ", pos)) != name.npos) {
-		name.replace(pos++, 1, "_");
+		name.replace((pos++), 1, "_");
 	}
 	return name;
 }

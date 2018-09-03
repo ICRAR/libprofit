@@ -160,8 +160,10 @@ double __gsl_integrate_qag(integration_func_t f, void *params,
 	gsl_function F;
 	F.function = f;
 	F.params = params;
-	double epsabs = 1e-4, epsrel = 1e-4;
-	double result, abserr;
+	double epsabs = 1e-4;
+	double epsrel = 1e-4;
+	double result;
+	double abserr;
 
 	if( to_infinity ) {
 		gsl_integration_qagiu(&F, a, epsabs, epsrel, limit, w, &result, &abserr);

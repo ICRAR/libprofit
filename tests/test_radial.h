@@ -116,7 +116,7 @@ public:
 		}
 
 		/* No mask */
-		m.set_mask({});
+		m.set_mask(Mask {});
 		image = m.evaluate();
 		for(auto pixel: image) {
 			TS_ASSERT_DIFFERS(0, pixel);

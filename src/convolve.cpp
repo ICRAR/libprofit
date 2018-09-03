@@ -253,24 +253,18 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 					double tmp4 = src[srcPtr2 + k * 4 + 3] * krn[krnPtr - k * 4 - 3];
 					buf += (tmp1 + tmp3) + (tmp2 + tmp4);
 				}
-				switch (k_n % 4) {
-					case 3:
-						buf += src[srcPtr2 + k_n - 3] * krn[krnPtr - k_n + 3] + \
-						       src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
-						       src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
-						break;
-
-					case 2:
-						buf += src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
-						       src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
-						break;
-
-					case 1:
-						buf += src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
-						break;
-
-					case 0:
-						break;
+				auto rem = k_n % 4;
+				if (rem == 3) {
+					buf += src[srcPtr2 + k_n - 3] * krn[krnPtr - k_n + 3] + \
+						   src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
+						   src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
+				}
+				else if (rem == 2) {
+					buf += src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
+						   src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
+				}
+				else if (rem == 1) {
+					buf += src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
 				}
 
 				pixel += buf;

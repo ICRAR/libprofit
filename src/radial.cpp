@@ -359,7 +359,8 @@ struct point_t {
  * on a specific point
  */
 template <typename FT>
-struct ss_info_t {
+class ss_info_t {
+public:
 	ss_info_t() {};
 	ss_info_t(point_t<FT> point, FT xbin, FT ybin, unsigned int resolution, unsigned int max_recursion) :
 		point(point), xbin(xbin), ybin(ybin), resolution(resolution), max_recursion(max_recursion) {};
@@ -375,7 +376,8 @@ struct ss_info_t {
  * This is used as input and output of the subsampling kernel.
  */
 template <typename FT>
-struct ss_kinfo_t {
+class ss_kinfo_t {
+public:
 	ss_kinfo_t() {};
 	point_t<FT> point;
 	FT xbin;
@@ -551,7 +553,8 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 	auto ss_kname = name + "_subsample_" + float_traits<FT>::name;
 	cl::Kernel subsample_kernel = env->get_kernel(ss_kname);
 
-	struct im_result_t {
+	class im_result_t {
+	public:
 		im_result_t() {};
 		point_t point;
 		FT value;

@@ -49,6 +49,11 @@ Profile::~Profile()
 	// no-op
 }
 
+void Profile::adjust_for_finesampling(unsigned int finesampling)
+{
+	// no-op
+}
+
 bool Profile::do_convolve() const {
 	return convolve;
 }

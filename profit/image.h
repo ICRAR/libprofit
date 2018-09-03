@@ -36,7 +36,9 @@
 namespace profit {
 
 /// An (x, y) pair in a 2-dimensional discrete surface
-struct PROFIT_API _2dcoordinate {
+class PROFIT_API _2dcoordinate {
+
+public:
 
 	_2dcoordinate() : x(0), y(0) {}
 	_2dcoordinate(unsigned int x, unsigned int y) : x(x), y(y) {}
@@ -153,7 +155,7 @@ class surface_base {
 
 public:
 
-	surface_base(Dimensions dimensions = Dimensions()) :
+	explicit surface_base(Dimensions dimensions = Dimensions()) :
 		dimensions(dimensions)
 	{
 		// no-op
@@ -191,7 +193,7 @@ public:
 	}
 
 	/// Surfaces are true if they have a dimension
-	operator bool() const {
+	explicit operator bool() const {
 		return dimensions.x > 0 && dimensions.y > 0;
 	}
 
@@ -317,7 +319,7 @@ public:
 	 * Creates a new surface that is an extension of this object. The new
 	 * dimensions must be greater or equal to the current dimensions.
 	 * The current contents of this surface are placed at @p start, relative to
-	 * the new surface's dimension;
+	 * the new surface's dimension.
 	 *
 	 * @param dimensions The dimensions of the new extended surface.
 	 * @param start The starting point of the original surface relative to the new one
@@ -446,7 +448,7 @@ public:
 
 	// Constructors that look like those from _surface
 	Mask(unsigned int width, unsigned int height);
-	Mask(Dimensions dimensions = Dimensions());
+	explicit Mask(Dimensions dimensions = Dimensions());
 	Mask(const std::vector<bool> &data, unsigned int width, unsigned int height);
 	Mask(const std::vector<bool> &data, Dimensions dimensions);
 	Mask(std::vector<bool> &&data, unsigned int width, unsigned int height);
@@ -482,7 +484,7 @@ public:
 
 	// Constructors that look like those from _surface
 	Image(unsigned int width, unsigned int height);
-	Image(Dimensions dimensions = Dimensions());
+	explicit Image(Dimensions dimensions = Dimensions());
 	Image(const std::vector<double> &data, unsigned int width, unsigned int height);
 	Image(const std::vector<double> &data, Dimensions dimensions);
 	Image(std::vector<double> &&data, unsigned int width, unsigned int height);
