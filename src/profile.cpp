@@ -131,6 +131,7 @@ bool set_parameter(
 		parameters.at(name).get() = bval;
 		return true;
 	} catch (const std::invalid_argument &e) {
+		UNUSED(e);
 		constexpr auto type_name = type_info<T>::name;
 		std::ostringstream os;
 		os << "Parameter " << name << " in profile " << profile_name;
