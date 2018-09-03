@@ -445,8 +445,8 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 
 	unsigned int imsize = image.size();
 
-	OpenCL_times cl_times0;
-	OpenCL_times ss_cl_times;
+	OpenCL_times cl_times0 {};
+	OpenCL_times ss_cl_times {};
 	RadialProfileStats* stats = static_cast<RadialProfileStats *>(this->stats.get());
 
 	/* Points in time we want to measure */

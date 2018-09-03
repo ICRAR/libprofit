@@ -98,6 +98,34 @@ public:
 	OpenCLEnvPtr opencl_env;
 };
 
+class TestOpenCLTimes : public CxxTest::TestSuite {
+
+public:
+
+	void test_opencl_command_times_value_initialization()
+	{
+		OpenCL_command_times t {};
+		TS_ASSERT_EQUALS(t.exec, 0);
+		TS_ASSERT_EQUALS(t.submit, 0);
+	}
+
+	void test_opencl_times_value_initialization()
+	{
+		OpenCL_times t{};
+		TS_ASSERT_EQUALS(t.filling_times.exec, 0);
+		TS_ASSERT_EQUALS(t.filling_times.submit, 0);
+		TS_ASSERT_EQUALS(t.kernel_prep, 0);
+		TS_ASSERT_EQUALS(t.kernel_times.exec, 0);
+		TS_ASSERT_EQUALS(t.kernel_times.submit, 0);
+		TS_ASSERT_EQUALS(t.nwork_items, 0);
+		TS_ASSERT_EQUALS(t.reading_times.exec, 0);
+		TS_ASSERT_EQUALS(t.reading_times.submit, 0);
+		TS_ASSERT_EQUALS(t.total, 0);
+		TS_ASSERT_EQUALS(t.writing_times.exec, 0);
+		TS_ASSERT_EQUALS(t.writing_times.submit, 0);
+	}
+};
+
 class TestOpenCL : public CxxTest::TestSuite {
 
 private:

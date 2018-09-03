@@ -57,12 +57,6 @@
 
 namespace profit {
 
-OpenCL_command_times::OpenCL_command_times() :
-	submit(0), exec(0)
-{
-	// no-op
-}
-
 OpenCL_command_times &OpenCL_command_times::operator+=(const OpenCL_command_times &other) {
 	submit += other.submit;
 	exec += other.exec;
@@ -70,17 +64,9 @@ OpenCL_command_times &OpenCL_command_times::operator+=(const OpenCL_command_time
 }
 
 const OpenCL_command_times OpenCL_command_times::operator+(const OpenCL_command_times &other) const {
-	OpenCL_command_times t1;
+	OpenCL_command_times t1 {};
 	t1 += other;
 	return t1;
-}
-
-OpenCL_times::OpenCL_times() :
-	kernel_prep(0), nwork_items(0),
-	writing_times(), reading_times(), filling_times(), kernel_times(),
-	total(0)
-{
-	// no-op
 }
 
 // Simple implementation of public methods for non-OpenCL builds
@@ -119,10 +105,7 @@ nsecs_t _cl_exec_time(const cl::Event &evt) {
 }
 
 OpenCL_command_times cl_cmd_times(const cl::Event &evt) {
-	OpenCL_command_times times;
-	times.submit = _cl_submit_time(evt);
-	times.exec = _cl_exec_time(evt);
-	return times;
+	return {_cl_submit_time(evt), _cl_exec_time(evt)};
 }
 
 static cl_ver_t get_opencl_version(const std::string &version)
