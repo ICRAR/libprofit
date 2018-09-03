@@ -34,7 +34,7 @@ fi
 cd ${TRAVIS_BUILD_DIR}
 
 # Get coverage results and upload to coveralls
-coveralls --gcov `which gcov-6` -b build --gcov-options '\-lp' --verbose -r . -i ./src -i ./profit -e src/profit-cli.cpp -E '.*fits_utils.*'
+coveralls --gcov `which gcov-6` -b build --gcov-options '\-lp' -r . -i ./src -i ./profit -e src/profit-cli.cpp -E '.*fits_utils.*'
 
 # Re-generate the coverage results (manually this time),
 # check the code quality, and upload all results to sonarqube
