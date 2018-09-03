@@ -43,6 +43,7 @@ namespace profit
 /* Forward declaration */
 class Model;
 
+/// Statistics for profile evaluations
 class PROFIT_API ProfileStats {
 public:
 	// We need at least one virtual function so we create a polymorphic hierarchy
@@ -54,6 +55,7 @@ public:
 	nsecs_t total;
 };
 
+/// Subsampling statistics for radial profile evaluations
 struct PROFIT_API radial_subsampling_stats {
 	nsecs_t pre_subsampling;
 	nsecs_t new_subsampling;
@@ -63,6 +65,7 @@ struct PROFIT_API radial_subsampling_stats {
 	nsecs_t total;
 };
 
+/// Statistics for radial profile evaluations
 struct PROFIT_API RadialProfileStats : ProfileStats {
 	OpenCL_times cl_times;
 	radial_subsampling_stats subsampling;
