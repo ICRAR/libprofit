@@ -64,7 +64,7 @@ OpenCL_command_times &OpenCL_command_times::operator+=(const OpenCL_command_time
 }
 
 const OpenCL_command_times OpenCL_command_times::operator+(const OpenCL_command_times &other) const {
-	OpenCL_command_times t1 {};
+	OpenCL_command_times t1 = *this;
 	t1 += other;
 	return t1;
 }

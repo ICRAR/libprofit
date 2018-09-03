@@ -109,6 +109,14 @@ public:
 		TS_ASSERT_EQUALS(t.submit, 0);
 	}
 
+	void test_opencl_command_times_plus()
+	{
+		OpenCL_command_times t {1, 2};
+		OpenCL_command_times t2 {3, 4};
+		TS_ASSERT_EQUALS((t + t2).submit, 4);
+		TS_ASSERT_EQUALS((t + t2).exec, 6);
+	}
+
 	void test_opencl_times_value_initialization()
 	{
 		OpenCL_times t{};
