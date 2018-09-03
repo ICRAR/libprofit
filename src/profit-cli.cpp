@@ -77,8 +77,7 @@ void parse_profile(std::ostream &os, Model &model, const std::string &descriptio
 		try {
 			p->parameter(parameter_spec);
 		} catch (const unknown_parameter &e) {
-			os << "Parameter specificion cannot be understood by profile ";
-			os << p->get_name() << ": " << parameter_spec;
+			os << e.what();
 		}
 	}
 }
