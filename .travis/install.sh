@@ -29,7 +29,7 @@ cd ${TRAVIS_BUILD_DIR}
 mkdir build
 cd build
 
-MAKE_ALL="make all"
+MAKE_ALL="make all -j2"
 LIBPROFIT_CMAKE_OPTIONS="-DCMAKE_CXX_COMPILER=$COMPILER -DLIBPROFIT_TEST=ON"
 
 # coverage builds go in Debug mode and are wrapped in sonar-qube's build wrapper
