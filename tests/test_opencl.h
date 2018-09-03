@@ -48,9 +48,9 @@ public:
 		// User is forcing an environment, use that one
 		if (const char *cl_spec = std::getenv("LIBPROFIT_OPENCL_TESTSPEC")) {
 			std::vector<std::string> tokens = split(cl_spec, ",");
-			plat_idx = std::stod(tokens[0]);
-			dev_idx = std::stod(tokens[1]);
-			use_double = static_cast<bool>(std::stod(tokens[2]));
+			plat_idx = std::stoi(tokens[0]);
+			dev_idx = std::stoi(tokens[1]);
+			use_double = static_cast<bool>(std::stoi(tokens[2]));
 			goto chosen;
 		}
 
