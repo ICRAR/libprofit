@@ -232,7 +232,6 @@ void print_stats_line(std::ostream &os, const std::string &prefix, const std::st
 }
 
 struct clver {
-	explicit clver(unsigned int ver) : ver(ver) {}
 	unsigned int ver;
 };
 
@@ -261,11 +260,11 @@ void print_opencl_info(std::ostream &out) {
 			auto plat_info = std::get<1>(platform_info);
 			out << "Platform [" << plat_id << "]" << endl;
 			out << "  Name           : " << plat_info.name << endl;
-			out << "  OpenCL version : " << clver(plat_info.supported_opencl_version) << endl;
+			out << "  OpenCL version : " << clver{plat_info.supported_opencl_version} << endl;
 			for(auto device_info: plat_info.dev_info) {
 				out << "  Device [" << std::get<0>(device_info) << "]" << endl;
 				out << "    Name           : " << std::get<1>(device_info).name << endl;
-				out << "    OpenCL version : " << clver(std::get<1>(device_info).cl_version) << endl;
+				out << "    OpenCL version : " << clver {std::get<1>(device_info).cl_version} << endl;
 				out << "    Double         : " << (std::get<1>(device_info).double_support ? "Supported" : "Not supported") << endl;
 			}
 			out << endl;
@@ -568,7 +567,7 @@ int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr
 		cout << "OpenCL environment (platform=" <<
 		        opencl_env->get_platform_name() << ", device=" <<
 		        opencl_env->get_device_name() << ", version=" <<
-		        clver(opencl_env->get_version()) <<
+		        clver{opencl_env->get_version()} <<
 		        ") created in " << opencl_duration << " [ms]" << std::endl;
 	}
 
