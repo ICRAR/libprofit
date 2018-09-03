@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Travis CI install script
+# Travis CI after-success script
 #
 # ICRAR - International Centre for Radio Astronomy Research
 # (c) UWA - The University of Western Australia, 2017
@@ -25,25 +25,27 @@
 # MA 02111-1307  USA
 #
 
+# We only execute further actions if running a coverage build
+if [ "$COMPILER" != "g++-6" ]
+then
+	return
+fi
+
 cd ${TRAVIS_BUILD_DIR}
-mkdir build
-cd build
 
-MAKE_ALL="make all"
-LIBPROFIT_CMAKE_OPTIONS="-DCMAKE_CXX_COMPILER=$COMPILER -DLIBPROFIT_TEST=ON"
+# Get coverage results and upload to coveralls
+coveralls --gcov `which gcov-6` -b build --gcov-options '\-lp' --verbose -r . -i ./src -i ./profit -e src/profit-cli.cpp -E '.*fits_utils.*'
 
-# coverage builds go in Debug mode and are wrapped in sonar-qube's build wrapper
-if [ "$COMPILER" = "g++-6" ]
-then
-	LIBPROFIT_CMAKE_OPTIONS="$LIBPROFIT_CMAKE_OPTIONS -DCMAKE_BUILD_TYPE=Debug"
-	MAKE_ALL="build-wrapper-linux-x86-64 --out-dir ../bw-output $MAKE_ALL"
-fi
-
-# Poor builds disable everything
-if [ "${POOR_BUILD}" = "yes" ]
-then
-	LIBPROFIT_CMAKE_OPTIONS="$LIBPROFIT_CMAKE_OPTIONS -DLIBPROFIT_NO_OPENCL=ON -DLIBPROFIT_NO_OPENMP=ON -DLIBPROFIT_NO_FFTW=ON"
-fi
-
-# Go, go, go!
-cmake .. ${LIBPROFIT_CMAKE_OPTIONS}
+# Re-generate the coverage results (manually this time),
+# check the code quality, and upload all results to sonarqube
+mkdir gcov-reports
+cd gcov-reports
+gcov-6 -lp ../build/CMakeFiles/profit.dir/src/*.gcno ../build/CMakeFiles/profit-cli.dir/src/*.gcno
+cd ..
+sonar-scanner \
+    -Dsonar.sources=src,profit \
+    -Dsonar.projectKey=libprofit \
+    -Dsonar.organization=rtobar-github \
+    -Dsonar.cfamily.build-wrapper-output=bw-output \
+    -Dsonar.exclusions=profit/cl/cl2.hpp \
+    -Dsonar.cfamily.gcov.reportsPath=gcov-reports

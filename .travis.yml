@@ -26,6 +26,7 @@
 
 language: cpp
 sudo: false
+dist: trusty
 
 # We try with both GNU and LLVM
 # When running with gcc-6 we also collect coverage information
@@ -62,7 +63,13 @@ matrix:
       packages: [g++-5, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
     env: COMPILER=g++-5
   - compiler: gcc
+    cache:
+     directories:
+      - '$HOME/.sonar/cache'
     addons:
+     sonarcloud:
+      token:
+       secure: "T/nf5mmePSxJsP72aX97mL6HnclDZ4UGLlPfRFslcg+AMGFyfCt4IJY0QymF6QQ/bcqDw53strzKdvn56uHkoBo2TLLX/+Qd06bJuMHWzTIKUQT2aPoF7l7eztLPi0RqO+xd8wxZtthGgKMIrYDomSWIBSpbuPDxyYFGQE/cuQjzTUi1eP0YlRr6L61TjHO6sD5JmjakueU1nDwTWdorZr8Q08X4W1o8P++OayNJwjh8FUW7GiZ5jhLZIVw5QxLlycFVDCElspSqU0DKg7jcL+uaRfoOSao4nUBUcL372dup40iqj2jBkyBl3moJjUqM5D3KXUJmh75Cz1iArevR4z3921iMqTRjOinplUmp4v4nDMax5rEM1YAXKMiUder5WHO7HvYLRojqukBWigeWiBPO9cIXUG9RQOohrjBrofb2gNd3swDV+FscVTppnqqgfqgFKG3j6T0j7rni/1UT/Ri3Mlk5G7QTcPXokxvQQvkn5QQ3j5L/bwDLf6hW48G2sEOdP31fakhARrLauJNj6P47geW5jHndKf3t92eNmfq4Y9ZI1aNZo2FIP2udz/KhMfozbiLp9J/ZBjyOEMtavlKWFdeRumDssK0EEBXTLSmXzhG5cE/yc50O08peF6ucFzGq9HNMIr0ORzkSu8OKhj3zrPRJehxpTTnBcft9DkA="
      apt:
       sources: ubuntu-toolchain-r-test
       packages: [g++-6, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
@@ -91,7 +98,9 @@ install:
 
 script:
  - cd ${TRAVIS_BUILD_DIR}/build
+ - $MAKE_ALL
  - PROFIT_HOME=testing-home make CTEST_OUTPUT_ON_FAILURE=1 test
 
 after_success:
- - if [ "$COMPILER" = "g++-6" ]; then cd ${TRAVIS_BUILD_DIR}; coveralls --gcov `which gcov-6` -b build --gcov-options '\-lp' --verbose -r . -i ./src -i ./profit -e src/profit-cli.cpp -E '.*fits_utils.*'; fi
+ - cd ${TRAVIS_BUILD_DIR}
+ - source .travis/after_success.sh
