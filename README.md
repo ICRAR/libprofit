@@ -4,6 +4,7 @@
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/mr42dlpq9vaeqnln?svg=true)](https://ci.appveyor.com/project/rtobar/libprofit)
 [![Coverage Status](https://coveralls.io/repos/github/ICRAR/libprofit/badge.svg?branch=master)](https://coveralls.io/github/ICRAR/libprofit?branch=master)
 [![Docs](https://readthedocs.org/projects/libprofit/badge/?version=latest)](https://libprofit.readthedocs.io/en/latest/)
+[![SonarQube Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=libprofit&metric=alert_status)](https://sonarcloud.io/dashboard?id=libprofit)
 
 libprofit is a low-level C++ library that produces images based on different luminosity profiles.
 
