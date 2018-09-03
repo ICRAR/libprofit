@@ -48,6 +48,7 @@
 
 #include "profit/common.h"
 #include "profit/config.h"
+#include "profit/exceptions.h"
 #include "profit/utils.h"
 
 /*
@@ -487,7 +488,7 @@ std::string get_profit_home()
 
 	auto *user_home = std::getenv(home_var);
 	if (!user_home) {
-		throw std::runtime_error("User doesn't have a home :(");
+		throw exception("User doesn't have a home :(");
 	}
 
 	return create_dirs(user_home, {std::string(profit_basedir)});
