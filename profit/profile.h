@@ -43,23 +43,29 @@ namespace profit
 /* Forward declaration */
 class Model;
 
-struct PROFIT_API ProfileStats {
-	ProfileStats();
-	virtual ~ProfileStats();
+class PROFIT_API ProfileStats {
+public:
+	// We need at least one virtual function so we create a polymorphic hierarchy
+	// rooted at this class. Otherwise we cannot distinguish at runtime between
+	// this and inherited classes via dynamic_cast, which we do in profit-cli.
+	// An alternative would be to add a tag or enumeration here and have
+	// inheriting subclasses use different values (a la C)
+	virtual ~ProfileStats() {};
+	nsecs_t total;
+};
+
+struct PROFIT_API radial_subsampling_stats {
+	nsecs_t pre_subsampling;
+	nsecs_t new_subsampling;
+	nsecs_t inital_transform;
+	OpenCL_times cl_times;
+	nsecs_t final_transform;
 	nsecs_t total;
 };
 
 struct PROFIT_API RadialProfileStats : ProfileStats {
-	RadialProfileStats();
 	OpenCL_times cl_times;
-	struct radial_subsampling_stats {
-		nsecs_t pre_subsampling;
-		nsecs_t new_subsampling;
-		nsecs_t inital_transform;
-		OpenCL_times cl_times;
-		nsecs_t final_transform;
-		nsecs_t total;
-	} subsampling;
+	radial_subsampling_stats subsampling;
 	nsecs_t final_image;
 };
 

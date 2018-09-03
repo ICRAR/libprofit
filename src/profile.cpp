@@ -35,28 +35,6 @@
 
 namespace profit {
 
-ProfileStats::ProfileStats() :
-	total(0)
-{
-	// no-op
-}
-
-ProfileStats::~ProfileStats()
-{
-	// no-op
-}
-
-RadialProfileStats::RadialProfileStats() :
-	ProfileStats()
-#ifdef PROFIT_OPENCL
-	,cl_times(),
-	subsampling{0, 0, 0, OpenCL_times(), 0, 0},
-	final_image(0)
-#endif /* PROFIT_OPENCL */
-{
-	// no-op
-}
-
 Profile::Profile(const Model &model, const std::string &name) :
 	model(model),
 	name(name),
