@@ -32,19 +32,28 @@
 
 namespace profit {
 
-invalid_parameter::invalid_parameter(const std::string &what_arg) :
-	exception(),
+exception::exception(const std::string &what_arg) :
 	m_what(what_arg)
+{
+	// no-op
+}
+
+exception::~exception() throw () {
+	// no-op
+}
+
+const char *exception::what() const throw() {
+	return m_what.c_str();
+}
+
+invalid_parameter::invalid_parameter(const std::string &what_arg) :
+	exception(what_arg)
 {
 	// no-op
 }
 
 invalid_parameter::~invalid_parameter() throw () {
 	// no-op
-}
-
-const char *invalid_parameter::what() const throw() {
-	return m_what.c_str();
 }
 
 unknown_parameter::unknown_parameter(const std::string &what_arg) :
@@ -58,8 +67,7 @@ unknown_parameter::~unknown_parameter() throw () {
 }
 
 opencl_error::opencl_error(const std::string &what_arg) :
-	exception(),
-	m_what(what_arg)
+	exception(what_arg)
 {
 	// no-op
 }
@@ -68,24 +76,14 @@ opencl_error::~opencl_error() throw () {
 	// no-op
 }
 
-const char *opencl_error::what() const throw() {
-	return m_what.c_str();
-}
-
-
 fft_error::fft_error(const std::string &what_arg) :
-	exception(),
-	m_what(what_arg)
+	exception(what_arg)
 {
 	// no-op
 }
 
 fft_error::~fft_error() throw () {
 	// no-op
-}
-
-const char *fft_error::what() const throw() {
-	return m_what.c_str();
 }
 
 } /* namespace profit */
