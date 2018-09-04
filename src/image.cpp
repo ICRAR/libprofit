@@ -157,6 +157,66 @@ Image Image::upsample(unsigned int factor, UpsamplingMode mode) const
 	return upsampled;
 }
 
+static inline
+void _downsample_sample(const Dimensions &down_dims, unsigned int factor, const Image &im, Image &downsampled)
+{
+	// We loop over the dimensions of the downsampled image and copy the
+	// value of the first pixel of this image that corresponds
+	for (unsigned int row_d = 0; row_d != down_dims.y; row_d++) {
+		auto row = row_d * factor;
+		for (unsigned int col_d = 0; col_d != down_dims.x; col_d++) {
+			auto col = col_d * factor;
+			downsampled[col_d + row_d * down_dims.x] = im[{col, row}];
+		}
+	}
+}
+
+static inline
+void _downsample_sum(const Dimensions &down_dims, unsigned int factor, const Image &im, Image &downsampled)
+{
+	const auto dims = im.getDimensions();
+
+	// Pixels of this image are summed into the corresponding target pixels
+	for (unsigned int row = 0; row != dims.y; row++) {
+		auto row_d = row / factor;
+		for (unsigned int col = 0; col != dims.x; col++) {
+			auto col_d = col / factor;
+			downsampled[col_d + row_d * down_dims.x] += im[{col, row}];
+		}
+	}
+}
+
+static inline
+void _downsample_avg(const Dimensions &down_dims, unsigned int factor, const Image &im, Image &downsampled)
+{
+	const auto dims = im.getDimensions();
+
+	// Pixels of this image are averaged into the corresponding target pixels
+	for (unsigned int row_d = 0; row_d != down_dims.y; row_d++) {
+
+		auto row_0 = row_d * factor;
+		auto row_last = std::min(row_0 + factor, dims.y);
+
+		for (unsigned int col_d = 0; col_d != down_dims.x; col_d++) {
+
+			auto col_0 = col_d * factor;
+			auto col_last = std::min(col_0 + factor, dims.x);
+
+			// Accumulate the total flux from all the pixels that correspond
+			// to this downsampled pixel and divide by the count
+			double total = 0;
+			unsigned int count = 0;
+			for (unsigned int row = row_0; row != row_last; row++) {
+				for (unsigned int col = col_0; col != col_last; col++) {
+					total += im[{col, row}];
+					count++;
+				}
+			}
+			downsampled[col_d + row_d * down_dims.x] = total / count;
+
+		}
+	}
+}
 Image Image::downsample(unsigned int factor, DownsamplingMode mode) const
 {
 	using std::ceil;
@@ -175,54 +235,14 @@ Image Image::downsample(unsigned int factor, DownsamplingMode mode) const
 
 	// The following implementations might not be ideal, but our images are not
 	// that big usually.
-
 	if (mode == SAMPLE) {
-		// We loop over the dimensions of the downsampled image and copy the
-		// value of the first pixel of this image that corresponds
-		for (unsigned int row_d = 0; row_d != down_dims.y; row_d++) {
-			auto row = row_d * factor;
-			for (unsigned int col_d = 0; col_d != down_dims.x; col_d++) {
-				auto col = col_d * factor;
-				downsampled[col_d + row_d * down_dims.x] = this->operator[]({col, row});
-			}
-		}
+		_downsample_sample(down_dims, factor, *this, downsampled);
 	}
 	else if (mode == SUM) {
-		// Pixels of this image are summed into the corresponding target pixels
-		for (unsigned int row = 0; row != dims.y; row++) {
-			auto row_d = row / factor;
-			for (unsigned int col = 0; col != dims.x; col++) {
-				auto col_d = col / factor;
-				downsampled[col_d + row_d * down_dims.x] += this->operator[]({col, row});
-			}
-		}
+		_downsample_sum(down_dims, factor, *this, downsampled);
 	}
 	else { // mode == AVERAGE
-		// Pixels of this image are averaged into the corresponding target pixels
-		for (unsigned int row_d = 0; row_d != down_dims.y; row_d++) {
-
-			auto row_0 = row_d * factor;
-			auto row_last = std::min(row_0 + factor, dims.y);
-
-			for (unsigned int col_d = 0; col_d != down_dims.x; col_d++) {
-
-				auto col_0 = col_d * factor;
-				auto col_last = std::min(col_0 + factor, dims.x);
-
-				// Accumulate the total flux from all the pixels that correspond
-				// to this downsampled pixel and divide by the count
-				double total = 0;
-				unsigned int count = 0;
-				for (unsigned int row = row_0; row != row_last; row++) {
-					for (unsigned int col = col_0; col != col_last; col++) {
-						total += this->operator[]({col, row});
-						count++;
-					}
-				}
-				downsampled[col_d + row_d * down_dims.x] = total / count;
-
-			}
-		}
+		_downsample_avg(down_dims, factor, *this, downsampled);
 	}
 
 	return downsampled;
