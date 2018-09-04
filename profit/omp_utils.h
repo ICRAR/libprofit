@@ -1,0 +1,61 @@
+/**
+ * OpenMP utilities for libprofit
+ *
+ * ICRAR - International Centre for Radio Astronomy Research
+ * (c) UWA - The University of Western Australia, 2018
+ * Copyright by UWA (in the framework of the ICRAR)
+ * All rights reserved
+ *
+ * Contributed by Rodrigo Tobar
+ *
+ * This file is part of libprofit.
+ *
+ * libprofit is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libprofit is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef PROFIT_OMP_UTILS_H_
+#define PROFIT_OMP_UTILS_H_
+
+#include "profit/config.h"
+
+namespace profit {
+
+/**
+ * Runs @p f over each point ``(i, j)`` of a grid of width @p width and height
+ * @p height using @p threads OpenMP threads. If no OpenMP support is found, @f
+ * is called sequentially in row-first order (that is, ``i`` values changing
+ * more rapidly than ``j`` values).
+ *
+ * @param threads The number of OpenMP threads to use
+ * @param width The width of the grid of points
+ * @param height The height of the grid of points
+ * @param f The function to evaluate on each point. It should receive ``i`` and
+ * ``j`` as arguments
+ */
+template <typename Callable>
+void omp_2d_for(int threads, int width, int height, Callable &&f)
+{
+#ifdef PROFIT_OPENMP
+#pragma omp parallel for collapse(2) schedule(dynamic, 10) if(threads > 1) num_threads(threads)
+#endif // PROFIT_OPENMP
+	for (unsigned int j = 0; j < height; j++) {
+		for (unsigned int i = 0; i < width; i++) {
+			f(i, j);
+		}
+	}
+}
+
+}  // namespace profit
+
+#endif /* PROFIT_OMP_UTILS_H_ */
