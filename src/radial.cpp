@@ -294,46 +294,45 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask, const PixelScal
 	double flux_scale = this->get_pixel_scale(scale);
 
 	/*
-	 * If compiled with OpenMP support, and if the user requests so,
-	 * we parallelize the following two "for" loops
+	 * Evaluate the profile at each pixel independently
 	 */
 	omp_2d_for(model.omp_threads, width, height, [&](unsigned int i, unsigned int j) {
 
-			/* We were instructed to ignore this pixel */
-			if( mask && !mask[i + j * width] ) {
-				return;
-			}
+		/* We were instructed to ignore this pixel */
+		if( mask && !mask[i + j * width] ) {
+			return;
+		}
 
-			double x_prof, y_prof, r_prof;
-			double y = half_ybin + j * scale.second;
-			double x = half_xbin + i * scale.first;
-			this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
+		double x_prof, y_prof, r_prof;
+		double y = half_ybin + j * scale.second;
+		double x = half_xbin + i * scale.first;
+		this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
 
-			/*
-			 * Check whether we need further refinement.
-			 * TODO: the radius calculation doesn't take into account boxing
-			 */
-			r_prof = std::sqrt(x_prof*x_prof + y_prof*y_prof);
-			double pixel_val;
-			if( this->rscale_max > 0 && r_prof/this->rscale > this->rscale_max ) {
-				pixel_val = 0.;
-			}
-			else if( this->rough || r_prof/this->rscale > this->rscale_switch ) {
-				pixel_val = this->evaluate_at(x_prof, y_prof);
-			}
-			else {
+		/*
+		 * Check whether we need further refinement.
+		 * TODO: the radius calculation doesn't take into account boxing
+		 */
+		r_prof = std::sqrt(x_prof*x_prof + y_prof*y_prof);
+		double pixel_val;
+		if( this->rscale_max > 0 && r_prof/this->rscale > this->rscale_max ) {
+			pixel_val = 0.;
+		}
+		else if( this->rough || r_prof/this->rscale > this->rscale_switch ) {
+			pixel_val = this->evaluate_at(x_prof, y_prof);
+		}
+		else {
 
-				unsigned int resolution;
-				unsigned int max_recursions;
-				this->subsampling_params(x, y, resolution, max_recursions);
+			unsigned int resolution;
+			unsigned int max_recursions;
+			this->subsampling_params(x, y, resolution, max_recursions);
 
-				/* Subsample and integrate */
-				pixel_val =  this->subsample_pixel(x - half_xbin, x + half_xbin,
-				                                   y - half_ybin, y + half_ybin,
-				                                   0, max_recursions, resolution);
-			}
+			/* Subsample and integrate */
+			pixel_val =  this->subsample_pixel(x - half_xbin, x + half_xbin,
+											   y - half_ybin, y + half_ybin,
+											   0, max_recursions, resolution);
+		}
 
-			image[i + j * width] = flux_scale * pixel_val;
+		image[i + j * width] = flux_scale * pixel_val;
 	});
 
 }

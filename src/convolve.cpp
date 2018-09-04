@@ -88,38 +88,38 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 	/* Loop around the output image first... */
 	omp_2d_for(omp_threads, src_width, src_height, [&](unsigned int i, unsigned int j) {
 
-			auto im_idx = i + j * src_width;
+		auto im_idx = i + j * src_width;
 
-			/* Don't convolve this pixel */
-			if( mask && !mask[im_idx]) {
-				convolution[im_idx] = 0;
-				return;
-			}
+		/* Don't convolve this pixel */
+		if( mask && !mask[im_idx]) {
+			convolution[im_idx] = 0;
+			return;
+		}
 
-			double pixel = 0;
-			auto krnPtr = krn_end - 1;
-			auto srcPtr2 = src.begin() + im_idx - krn_half_width - krn_half_height*src_width;
+		double pixel = 0;
+		auto krnPtr = krn_end - 1;
+		auto srcPtr2 = src.begin() + im_idx - krn_half_width - krn_half_height*src_width;
 
-			/* ... now loop around the kernel */
-			for (unsigned int l = 0; l < krn_height; l++) {
+		/* ... now loop around the kernel */
+		for (unsigned int l = 0; l < krn_height; l++) {
 
-				int src_j = (int)j + (int)l - (int)krn_half_height;
-				for (unsigned int k = 0; k < krn_width; k++) {
+			int src_j = (int)j + (int)l - (int)krn_half_height;
+			for (unsigned int k = 0; k < krn_width; k++) {
 
-					int src_i = (int)i + (int)k - (int)krn_half_width;
+				int src_i = (int)i + (int)k - (int)krn_half_width;
 
-					if( src_i >= 0 && (unsigned int)src_i < src_width &&
-					    src_j >= 0 && (unsigned int)src_j < src_height ) {
-						pixel +=  *srcPtr2 * *krnPtr;
-					}
-
-					srcPtr2++;
-					krnPtr--;
+				if( src_i >= 0 && (unsigned int)src_i < src_width &&
+					src_j >= 0 && (unsigned int)src_j < src_height ) {
+					pixel +=  *srcPtr2 * *krnPtr;
 				}
-				srcPtr2 += src_width - krn_width;
-			}
 
-			convolution[im_idx] = pixel;
+				srcPtr2++;
+				krnPtr--;
+			}
+			srcPtr2 += src_width - krn_width;
+		}
+
+		convolution[im_idx] = pixel;
 	});
 
 	return convolution;
@@ -149,128 +149,128 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 	 */
 	omp_2d_for(omp_threads, src_width, src_height, [&](unsigned int i, unsigned int j) {
 
-			auto im_idx = i + j * src_width;
+		auto im_idx = i + j * src_width;
 
-			/* Don't convolve this pixel */
-			if (mask && !mask[im_idx]) {
-				convolution[im_idx] = 0;
-				return;
+		/* Don't convolve this pixel */
+		if (mask && !mask[im_idx]) {
+			convolution[im_idx] = 0;
+			return;
+		}
+
+		double pixel = 0;
+
+		size_t krnPtr = krn.size() - 1;
+		size_t srcPtr2 = im_idx;
+		bool suboffset = false;
+
+		unsigned int l_min = 0;
+		unsigned int l_max = krn_height;
+		unsigned int l_incr = 0;
+
+		if (j < krn_half_height) {
+			l_min = krn_half_height - j;
+			srcPtr2 += l_min * src_width;
+			krnPtr -= l_min * krn_width;
+		}
+		else if ((j + krn_half_height) >= src_height) {
+			// TODO: maybe shouldn't be an else if we support krn > img size?
+			l_max = src_height + krn_half_height - j;
+			l_incr = krn_height - l_max;
+		}
+
+		for (size_t l = l_min; l < l_max; l++) {
+
+			unsigned int k_min = 0;
+			unsigned int k_max = krn_width;
+			unsigned int k_incr = 0;
+
+			if (i < krn_half_width) {
+				k_min = krn_half_width - i;
+				srcPtr2 += k_min;
+				krnPtr -= k_min;
+			}
+			else if ((i + krn_half_width) >= src_width)
+			{
+				// TODO: maybe shouldn't be an else-if if we support krn > img size?
+				k_max = src_width + krn_half_width - i;
+				k_incr = krn_width - k_max;
 			}
 
-			double pixel = 0;
-
-			size_t krnPtr = krn.size() - 1;
-			size_t srcPtr2 = im_idx;
-			bool suboffset = false;
-
-			unsigned int l_min = 0;
-			unsigned int l_max = krn_height;
-			unsigned int l_incr = 0;
-
-			if (j < krn_half_height) {
-				l_min = krn_half_height - j;
-				srcPtr2 += l_min * src_width;
-				krnPtr -= l_min * krn_width;
+			if (!suboffset && srcPtr2 >= src_krn_offset)
+			{
+				srcPtr2 -= src_krn_offset;
+				suboffset = true;
 			}
-			else if ((j + krn_half_height) >= src_height) {
-				// TODO: maybe shouldn't be an else if we support krn > img size?
-				l_max = src_height + krn_half_height - j;
-				l_incr = krn_height - l_max;
+			const size_t k_n = k_max - k_min;
+
+			// Sum multiplications first, then add up to pixel.
+			// This means we explicitly tell the compiler that:
+			//
+			//  a + b + c + d == (a + b + c) + d
+			//
+			// By default floating point arithmetic is not associative,
+			// and therefore the compiler will not create the temporary
+			// "buf" variable, unless compiling with -ffast-math et al.
+			// Doing this buffering allows compilers to use an extra
+			// register, which in turn yields better instruction pipelining.
+			double buf = 0;
+
+			// On top of the associativity described above,
+			// we also manually unroll the for loop into four separate
+			// multiply-add operations. allows compilers to optimize even
+			// further, because there is more explicit associativity and
+			// thus better pipelining
+			//
+			// Also, note that clang needs an explicit -ffp-contract=fast
+			// to generate fused multiply-add instructions (which gcc does
+			// for default). This is not only important here, but also in
+			// the original version of our convolution method.
+			//
+			// TODO: The generated SSE/AVX instructions are still not
+			//       vectorized (e.g., vfmaddsd instead of vfmaddpd). This
+			//       is because the compiler cannot guarantee the alignment
+			//       of the arrays. The difficulty on doing that lies on the
+			//       the fact that both arrays move separately, so it's
+			//       difficult to make that bring that kind of assurance
+			//       (other than copying data to an aligned buffer).
+			//       An additional benefit from generating vectorized
+			//       instructions is that the compiler can fully use the
+			//       YMM registers (and not only half of the XMM registers,
+			//       as it is doing now) leading to yet better performance.
+			for (size_t k = 0; k < k_n / 4; k++) {
+				double tmp1 = src[srcPtr2 + k * 4]     * krn[krnPtr - k * 4];
+				double tmp2 = src[srcPtr2 + k * 4 + 1] * krn[krnPtr - k * 4 - 1];
+				double tmp3 = src[srcPtr2 + k * 4 + 2] * krn[krnPtr - k * 4 - 2];
+				double tmp4 = src[srcPtr2 + k * 4 + 3] * krn[krnPtr - k * 4 - 3];
+				buf += (tmp1 + tmp3) + (tmp2 + tmp4);
 			}
-
-			for (size_t l = l_min; l < l_max; l++) {
-
-				unsigned int k_min = 0;
-				unsigned int k_max = krn_width;
-				unsigned int k_incr = 0;
-
-				if (i < krn_half_width) {
-					k_min = krn_half_width - i;
-					srcPtr2 += k_min;
-					krnPtr -= k_min;
-				}
-				else if ((i + krn_half_width) >= src_width)
-				{
-					// TODO: maybe shouldn't be an else-if if we support krn > img size?
-					k_max = src_width + krn_half_width - i;
-					k_incr = krn_width - k_max;
-				}
-
-				if (!suboffset && srcPtr2 >= src_krn_offset)
-				{
-					srcPtr2 -= src_krn_offset;
-					suboffset = true;
-				}
-				const size_t k_n = k_max - k_min;
-
-				// Sum multiplications first, then add up to pixel.
-				// This means we explicitly tell the compiler that:
-				//
-				//  a + b + c + d == (a + b + c) + d
-				//
-				// By default floating point arithmetic is not associative,
-				// and therefore the compiler will not create the temporary
-				// "buf" variable, unless compiling with -ffast-math et al.
-				// Doing this buffering allows compilers to use an extra
-				// register, which in turn yields better instruction pipelining.
-				double buf = 0;
-
-				// On top of the associativity described above,
-				// we also manually unroll the for loop into four separate
-				// multiply-add operations. allows compilers to optimize even
-				// further, because there is more explicit associativity and
-				// thus better pipelining
-				//
-				// Also, note that clang needs an explicit -ffp-contract=fast
-				// to generate fused multiply-add instructions (which gcc does
-				// for default). This is not only important here, but also in
-				// the original version of our convolution method.
-				//
-				// TODO: The generated SSE/AVX instructions are still not
-				//       vectorized (e.g., vfmaddsd instead of vfmaddpd). This
-				//       is because the compiler cannot guarantee the alignment
-				//       of the arrays. The difficulty on doing that lies on the
-				//       the fact that both arrays move separately, so it's
-				//       difficult to make that bring that kind of assurance
-				//       (other than copying data to an aligned buffer).
-				//       An additional benefit from generating vectorized
-				//       instructions is that the compiler can fully use the
-				//       YMM registers (and not only half of the XMM registers,
-				//       as it is doing now) leading to yet better performance.
-				for (size_t k = 0; k < k_n / 4; k++) {
-					double tmp1 = src[srcPtr2 + k * 4]     * krn[krnPtr - k * 4];
-					double tmp2 = src[srcPtr2 + k * 4 + 1] * krn[krnPtr - k * 4 - 1];
-					double tmp3 = src[srcPtr2 + k * 4 + 2] * krn[krnPtr - k * 4 - 2];
-					double tmp4 = src[srcPtr2 + k * 4 + 3] * krn[krnPtr - k * 4 - 3];
-					buf += (tmp1 + tmp3) + (tmp2 + tmp4);
-				}
-				auto rem = k_n % 4;
-				if (rem == 3) {
-					buf += src[srcPtr2 + k_n - 3] * krn[krnPtr - k_n + 3] + \
-						   src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
-						   src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
-				}
-				else if (rem == 2) {
-					buf += src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
-						   src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
-				}
-				else if (rem == 1) {
-					buf += src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
-				}
-
-				pixel += buf;
-				srcPtr2 += k_n;
-				krnPtr -= k_n;
-
-				srcPtr2 += k_incr;
-				krnPtr -= k_incr;
-				srcPtr2 += src_skip;
+			auto rem = k_n % 4;
+			if (rem == 3) {
+				buf += src[srcPtr2 + k_n - 3] * krn[krnPtr - k_n + 3] + \
+					   src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
+					   src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
+			}
+			else if (rem == 2) {
+				buf += src[srcPtr2 + k_n - 2] * krn[krnPtr - k_n + 2] + \
+					   src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
+			}
+			else if (rem == 1) {
+				buf += src[srcPtr2 + k_n - 1] * krn[krnPtr - k_n + 1];
 			}
 
-			srcPtr2 += l_incr * krn_width;
-			krnPtr -= l_incr * krn_width;
+			pixel += buf;
+			srcPtr2 += k_n;
+			krnPtr -= k_n;
 
-			convolution[im_idx] = pixel;
+			srcPtr2 += k_incr;
+			krnPtr -= k_incr;
+			srcPtr2 += src_skip;
+		}
+
+		srcPtr2 += l_incr * krn_width;
+		krnPtr -= l_incr * krn_width;
+
+		convolution[im_idx] = pixel;
 	});
 
 	return convolution;
