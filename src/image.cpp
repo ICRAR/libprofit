@@ -166,7 +166,7 @@ void _downsample_sample(const Dimensions &down_dims, unsigned int factor, const 
 		auto row = row_d * factor;
 		for (unsigned int col_d = 0; col_d != down_dims.x; col_d++) {
 			auto col = col_d * factor;
-			downsampled[col_d + row_d * down_dims.x] = im[{col, row}];
+			downsampled[col_d + row_d * down_dims.x] = im[Point{col, row}];
 		}
 	}
 }
@@ -181,7 +181,7 @@ void _downsample_sum(const Dimensions &down_dims, unsigned int factor, const Ima
 		auto row_d = row / factor;
 		for (unsigned int col = 0; col != dims.x; col++) {
 			auto col_d = col / factor;
-			downsampled[col_d + row_d * down_dims.x] += im[{col, row}];
+			downsampled[col_d + row_d * down_dims.x] += im[Point{col, row}];
 		}
 	}
 }
@@ -208,7 +208,7 @@ void _downsample_avg(const Dimensions &down_dims, unsigned int factor, const Ima
 			unsigned int count = 0;
 			for (unsigned int row = row_0; row != row_last; row++) {
 				for (unsigned int col = col_0; col != col_last; col++) {
-					total += im[{col, row}];
+					total += im[Point{col, row}];
 					count++;
 				}
 			}
