@@ -41,36 +41,45 @@ std::vector<const char *> all_radial = {
 
 class TestRadial : public CxxTest::TestSuite {
 
+private:
+
+	void assert_creation_and_openmp_equality(Model &m)
+	{
+		// we don't assert anything yet, only check that the profile can be
+		// constructed successfully with its default values
+		auto im1 = m.evaluate();
+
+		// if we have openmp support we check we generate exactly the same
+		// image when using multiple threads
+		if (has_openmp()) {
+			m.set_omp_threads(2);
+			auto im2 = m.evaluate();
+			TS_ASSERT_EQUALS(im1, im2);
+		}
+	}
+
 public:
 
 	void test_create_default(void) {
 		for(auto pname: all_radial) {
-
 			// 100x100 model, with profile centered at (50,50)
 			Model m {100, 100};
 			auto radialp = m.add_profile(pname);
 			radialp->parameter("xcen", 50.);
 			radialp->parameter("ycen", 50.);
-
-			// we don't assert anything yet, only check that the profile can be
-			// constructed successfully with its default values
-			m.evaluate();
+			assert_creation_and_openmp_equality(m);
 		}
 	}
 
 	void test_create_boxy(void) {
 		for(auto pname: all_radial) {
-
 			// 100x100 model, with profile centered at (50,50), box=0.5
 			Model m {100, 100};
 			auto radialp = m.add_profile(pname);
 			radialp->parameter("xcen", 50.);
 			radialp->parameter("ycen", 50.);
 			radialp->parameter("box", 0.1);
-
-			// we don't assert anything yet, only check that the profile can be
-			// constructed successfully with its default values
-			m.evaluate();
+			assert_creation_and_openmp_equality(m);
 		}
 	}
 
@@ -87,6 +96,8 @@ public:
 		sp->parameter("rscale_max", 10.);
 		sp->parameter("mag", 0.);
 		sp->parameter("adjust", false);
+
+		assert_creation_and_openmp_equality(m);
 
 		/* Some on, some off */
 		Mask mask {{false, true, true,
