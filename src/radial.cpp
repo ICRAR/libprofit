@@ -34,6 +34,7 @@
 
 #include "profit/common.h"
 #include "profit/exceptions.h"
+#include "profit/omp_utils.h"
 #include "profit/opencl.h"
 #include "profit/model.h"
 #include "profit/radial.h"
@@ -296,16 +297,11 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask, const PixelScal
 	 * If compiled with OpenMP support, and if the user requests so,
 	 * we parallelize the following two "for" loops
 	 */
-#ifdef PROFIT_OPENMP
-	bool use_omp = model.omp_threads > 1;
-	#pragma omp parallel for collapse(2) schedule(dynamic, 10) if(use_omp) num_threads(model.omp_threads)
-#endif /* PROFIT_OPENMP */
-	for(unsigned int j=0; j < height; j++) {
-		for(unsigned int i=0; i < width; i++) {
+	omp_2d_for(model.omp_threads, width, height, [&](unsigned int i, unsigned int j) {
 
 			/* We were instructed to ignore this pixel */
 			if( mask && !mask[i + j * width] ) {
-				continue;
+				return;
 			}
 
 			double x_prof, y_prof, r_prof;
@@ -338,8 +334,7 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask, const PixelScal
 			}
 
 			image[i + j * width] = flux_scale * pixel_val;
-		}
-	}
+	});
 
 }
 

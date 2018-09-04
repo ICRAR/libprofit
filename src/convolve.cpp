@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "profit/convolver_impl.h"
+#include "profit/omp_utils.h"
 #include "profit/exceptions.h"
 #include "profit/utils.h"
 
@@ -85,19 +86,14 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 
 	/* Convolve! */
 	/* Loop around the output image first... */
-#ifdef PROFIT_OPENMP
-	bool use_omp = omp_threads > 1;
-	#pragma omp parallel for collapse(2) schedule(dynamic, 10) if(use_omp) num_threads(omp_threads)
-#endif // PROFIT_OPENMP
-	for (unsigned int j = 0; j < src_height; j++) {
-		for (unsigned int i = 0; i < src_width; i++) {
+	omp_2d_for(omp_threads, src_width, src_height, [&](unsigned int i, unsigned int j) {
 
 			auto im_idx = i + j * src_width;
 
 			/* Don't convolve this pixel */
 			if( mask && !mask[im_idx]) {
 				convolution[im_idx] = 0;
-				continue;
+				return;
 			}
 
 			double pixel = 0;
@@ -124,8 +120,7 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 			}
 
 			convolution[im_idx] = pixel;
-		}
-	}
+	});
 
 	return convolution;
 }
@@ -149,21 +144,17 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 	const size_t src_krn_offset = krn_half_width + krn_half_height*src_width;
 	const auto src_skip = src_width - krn_width;
 
-	/* Convolve! */
-	/* Loop around the output image first... */
-#ifdef PROFIT_OPENMP
-	bool use_omp = omp_threads > 1;
-	#pragma omp parallel for collapse(2) schedule(dynamic, 10) if(use_omp) num_threads(omp_threads)
-#endif // PROFIT_OPENMP
-	for (unsigned int j = 0; j < src_height; j++) {
-		for (unsigned int i = 0; i < src_width; i++) {
+	/* Convolve!
+	 * We use OpenMP to calculate the convolution of each pixel independently
+	 */
+	omp_2d_for(omp_threads, src_width, src_height, [&](unsigned int i, unsigned int j) {
 
 			auto im_idx = i + j * src_width;
 
 			/* Don't convolve this pixel */
 			if (mask && !mask[im_idx]) {
 				convolution[im_idx] = 0;
-				continue;
+				return;
 			}
 
 			double pixel = 0;
@@ -280,8 +271,7 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 			krnPtr -= l_incr * krn_width;
 
 			convolution[im_idx] = pixel;
-		}
-	}
+	});
 
 	return convolution;
 
