@@ -43,16 +43,17 @@ The basic usage pattern then is as follows:
 
 	 profit::init();
 
-#. First obtain a model instance::
+#. First obtain a model instance that will generate profile images
+   for a given width and height::
 
-	 profit::Model model;
+	 profit::Model model(width, height);
 
 #. Create a profile. For a list of supported names see :doc:`profiles`;
    if you want to support a new profile see :doc:`new_profile`.
    If an unknown name is given an :class:`invalid_parameter` exception will be
    thrown::
 
-	 profit::Profile &sersic_profile = model.add_profile("sersic");
+	 profit::ProfilePtr sersic_profile = model.add_profile("sersic");
 
 #. Customize your profile.
    To set the different parameters on your profile call
@@ -72,16 +73,18 @@ The basic usage pattern then is as follows:
 
 #. Evaluate the model simply run::
 
-	 profit::ImageAndOffset result = model.evaluate();
+	 profit::Image result = model.evaluate();
 
-#. The result of an evaluation consists on a pair
-   containing the resulting image,
-   and an offset, if cropping needs to be applied later on
-   (see :ref:`convolution.model` for details on this).
-   Users can extract these pieces of information like this::
+#. If the resulting image needs to be cropped
+   (see :ref:`convolution.image_cropping` for full details)
+   an additional argument needs to be passed
+   to :func:`Model::evaluate`
+   to receive the offset at which cropping needs to be,
+   like this::
 
-	 profit::Image image = result.first;
-	 profit::Point offset = result.second;
+	 profit::Point offset;
+	 profit::Image result = model.evaluate(offset);
+	 profit::Image cropped_image = result.crop({width, height}, offset);
 
 #. If there are have been errors
    while generating the image
@@ -91,7 +94,7 @@ The basic usage pattern then is as follows:
 
 	 try {
 	     auto result = model.evaluate();
-	 } catch (invalid_parameter &e) {
+	 } catch (profit::invalid_parameter &e) {
 	     cerr << "Oops! There was an error evaluating the model: " << e.what() << endl;
 	 }
 
