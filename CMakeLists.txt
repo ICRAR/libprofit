@@ -153,7 +153,7 @@ macro(find_openmp)
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
-#if _OPENMP >= 200805
+#if _OPENMP >= 200203
 	return 0;
 #else
 	fail to compile please
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
 		if (COMPILE_RESULT)
 			set(PROFIT_OPENMP ON)
 		else()
-			message("-- OpenMP found, but is <= 3.0. Compiling without OpenMP support")
+			message("-- OpenMP found, but is not >= 2.0. Compiling without OpenMP support")
 		endif()
 	endif()
 

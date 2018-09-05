@@ -27,8 +27,6 @@
 #ifndef PROFIT_OMP_UTILS_H_
 #define PROFIT_OMP_UTILS_H_
 
-#include "profit/config.h"
-
 namespace profit {
 
 /**
@@ -46,14 +44,27 @@ namespace profit {
 template <typename Callable>
 void omp_2d_for(int threads, int width, int height, Callable &&f)
 {
-#ifdef PROFIT_OPENMP
+#if _OPENMP >= 200805 // OpenMP 3.0
 #pragma omp parallel for collapse(2) schedule(dynamic, 10) if(threads > 1) num_threads(threads)
-#endif // PROFIT_OPENMP
 	for (unsigned int j = 0; j < height; j++) {
 		for (unsigned int i = 0; i < width; i++) {
 			f(i, j);
 		}
 	}
+#elif _OPENMP >= 200203 // OpenMP 2.0. No "collapse", signed int loop variable
+#pragma omp parallel for schedule(dynamic, 10) if(threads > 1) num_threads(threads)
+	for (int x = 0; x < width * height; x++) {
+		unsigned int i = x % width;
+		unsigned int j = x / width;
+		f(i, j);
+	}
+#else
+	for (unsigned int j = 0; j < height; j++) {
+		for (unsigned int i = 0; i < width; i++) {
+			f(i, j);
+		}
+	}
+#endif // _OPENMP
 }
 
 }  // namespace profit
