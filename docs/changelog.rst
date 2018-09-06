@@ -13,6 +13,7 @@ Changelog
 * New utility methods: :func:`trim`, :func:`split` and :func:`setenv`.
 * Fixed compilation of ``brokenexponential`` OpenCL kernel in platforms where it
   was failing to compile
+* Lowering OpenMP requirement to 2.0 (was 3.0)
 * OpenCL kernel cache working for some platforms/devices that was not
   previously working
 
