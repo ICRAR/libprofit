@@ -29,8 +29,18 @@ cd ${TRAVIS_BUILD_DIR}
 mkdir build
 cd build
 
+# Build by default against the native CPU (to enable testing of SSE2/AVX paths).
+# The exception is g++4.6, which seems unable to correctly determine the
+# architecture of the CPU, and therefore generates instructions that later on
+# fail to be recognize by binutil's "as" (regardless of our usage of SIMD
+# extensions)
+if [ "$COMPILER" != "g++-4.6" ]
+then
+	CXXFLAGS="$CXXFLAGS -march=native"
+fi
+
 MAKE_ALL="make all -j2"
-LIBPROFIT_CMAKE_OPTIONS="-DCMAKE_CXX_COMPILER=$COMPILER -DLIBPROFIT_TEST=ON"
+LIBPROFIT_CMAKE_OPTIONS="-DCMAKE_CXX_COMPILER=$COMPILER -DLIBPROFIT_TEST=ON -DCMAKE_CXX_FLAGS='$CXXFLAGS'"
 
 # coverage builds go in Debug mode and are wrapped in sonar-qube's build wrapper
 if [ "$COMPILER" = "g++-6" ]
@@ -46,4 +56,4 @@ then
 fi
 
 # Go, go, go!
-cmake .. ${LIBPROFIT_CMAKE_OPTIONS}
+eval cmake .. ${LIBPROFIT_CMAKE_OPTIONS}
