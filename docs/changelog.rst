@@ -11,6 +11,9 @@ Changelog
 * New :func:`Profile::parameter` method to specify
   parameters and values with a single ``name=value`` string.
 * New utility methods: :func:`trim`, :func:`split` and :func:`setenv`.
+* Using SSE2/AVX SIMD extensions to implement brute-force convolution
+  if the CPU supports it, with pure C++ implementation as a fallback.
+  Can be disabled with ``-DLIBPROFIT_NO_SIMD=ON``.
 * Fixed compilation of ``brokenexponential`` OpenCL kernel in platforms where it
   was failing to compile
 * Compiling in release mode (i.e., ``-O3 -DNDEBUG`` in gcc/clang) by default

@@ -59,5 +59,6 @@ Other ``cmake`` options that can be given in the command-line include:
 * ``LIBPROFIT_NO_OPENCL``: disable OpenCL support
 * ``LIBPROFIT_NO_OPENMP``: disable OpenMP support
 * ``LIBPROFIT_NO_FFTW``: disable FFTW support
+* ``LIBPROFIT_NO_SIMD``: disable SIMD extensions usage
 
 Please refer to the ``cmake`` documentation for further options.
