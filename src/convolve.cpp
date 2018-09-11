@@ -31,9 +31,9 @@
 #include <vector>
 
 #include "profit/convolver_impl.h"
-#include "profit/omp_utils.h"
 #include "profit/dot_product.h"
 #include "profit/exceptions.h"
+#include "profit/omp_utils.h"
 #include "profit/utils.h"
 
 
