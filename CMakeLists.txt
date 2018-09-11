@@ -65,6 +65,7 @@ option(LIBPROFIT_DEBUG     "Include some debugging code in libprofit" OFF)
 option(LIBPROFIT_NO_OPENCL "Don't attempt to include OpenCL support in libprofit" OFF)
 option(LIBPROFIT_NO_OPENMP "Don't attempt to include OpenMP support in libprofit" OFF)
 option(LIBPROFIT_NO_FFTW   "Don't attempt to include FFTW support in libprofit" OFF)
+option(LIBPROFIT_NO_SIMD   "Don't attempt to use SIMD (SSE2/AVX) extensions in libprofit" OFF)
 
 #
 # Macros to check for the presence of:
@@ -194,6 +195,35 @@ macro(find_fftw)
 	endif()
 endmacro(find_fftw)
 
+macro(find_simd_extensions)
+	set(_SSE2 "SSE2;emmintrin.h;__m128d;_mm_setzero_pd;_mm_add_pd")
+	set(_AVX "AVX;immintrin.h;__m256d;_mm256_setzero_pd;_mm256_add_pd")
+	set(WORK_DIR ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/IntrinsicsCheck)
+	foreach(_instruction_details "${_SSE2}" "${_AVX}")
+		list(GET _instruction_details 0 _name)
+		list(GET _instruction_details 1 _include)
+		list(GET _instruction_details 2 _type)
+		list(GET _instruction_details 3 _zero)
+		list(GET _instruction_details 4 _add)
+
+		set(_src "
+#include <${_include}>
+int main(int argc, char *argv[]) {
+	volatile ${_type} x = ${_zero}();
+	volatile ${_type} y = ${_add}(x, x);
+}")
+		set(SRC_FILE ${WORK_DIR}/${_name}.cpp)
+		file(WRITE ${SRC_FILE} "${_src}")
+		try_compile(PROFIT_HAS_${_name} ${CMAKE_BINARY_DIR} ${SRC_FILE})
+
+		if (PROFIT_HAS_${_name})
+			message(STATUS "Found ${_name} support")
+		else()
+			message(STATUS "No ${_name} support found")
+		endif()
+	endforeach()
+endmacro()
+
 #
 # Depending on the user's preference we check GSL or R/Rmath first
 # We default to use GSL
@@ -244,6 +274,13 @@ endif()
 #
 if( LIBPROFIT_DEBUG )
 	set(PROFIT_DEBUG ON)
+endif()
+
+#
+# Check whether we can use the following CPU extensions
+#
+if (NOT LIBPROFIT_NO_SIMD)
+	find_simd_extensions()
 endif()
 
 #
