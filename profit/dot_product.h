@@ -398,20 +398,21 @@ __m256d _dot_intrinsic<AVX, 8>(const double *src, const double *krn, __m256d acc
 template <intrinsic Intrinsic, unsigned int Batch_Size>
 class _dot_remainder_instrinsic_calculator;
 
+// We implement this using classes because C++ function templates cannot be
+// partially specialized while classes can
 template <intrinsic Intrinsic, unsigned int Batch_Size>
 static inline
 typename intrinsic_traits<Intrinsic>::accum_type
-_dot_remainder_intrinsic(const double *src, const double *krn, std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
+_dot_remainder_intrinsic(const double *src, const double *krn, const std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
 {
 	return _dot_remainder_instrinsic_calculator<Intrinsic, Batch_Size>::_(src, krn, n, buf);
 }
-
 
 template <intrinsic Intrinsic>
 class _dot_remainder_instrinsic_calculator<Intrinsic, 2> {
 public:
 	typedef typename intrinsic_traits<Intrinsic>::accum_type accum_type;
-	static accum_type _(const double *src, const double *krn, std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
+	static accum_type _(const double *src, const double *krn, const std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
 	{
 		if (n == 1) {
 			buf = _dot_intrinsic<Intrinsic, 1>(src, krn, buf);
@@ -424,7 +425,7 @@ template <intrinsic Intrinsic>
 class _dot_remainder_instrinsic_calculator<Intrinsic, 4> {
 public:
 	typedef typename intrinsic_traits<Intrinsic>::accum_type accum_type;
-	static accum_type _(const double *src, const double *krn, std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
+	static accum_type _(const double *src, const double *krn, const std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
 	{
 		if (n == 3) {
 			buf = _dot_intrinsic<Intrinsic, 2>(src, krn, buf);
@@ -441,12 +442,12 @@ template <intrinsic Intrinsic>
 class _dot_remainder_instrinsic_calculator<Intrinsic, 8> {
 public:
 	typedef typename intrinsic_traits<Intrinsic>::accum_type accum_type;
-	static accum_type _(const double *src, const double *krn, std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
+	static accum_type _(const double *src, const double *krn, const std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
 	{
 		if (n == 7) {
 			buf = _dot_intrinsic<Intrinsic, 4>(src, krn, buf);
 			buf = _dot_intrinsic<Intrinsic, 2>(src + 4, krn + 4, buf);
-			buf = _dot_intrinsic<Intrinsic, 1>(src + 6, krn + + 6, buf);
+			buf = _dot_intrinsic<Intrinsic, 1>(src + 6, krn + 6, buf);
 		}
 		else if (n == 6) {
 			buf = _dot_intrinsic<Intrinsic, 4>(src, krn, buf);
