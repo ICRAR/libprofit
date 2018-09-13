@@ -160,8 +160,8 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 			return;
 		}
 
-		size_t krnPtr = 0;
-		size_t srcPtr2 = im_idx  - src_krn_offset;
+		size_t src_offset = im_idx - src_krn_offset;
+		size_t krn_offset = 0;
 
 		// Depending on where the output pixel is we might need to use
 		// smaller portions of the source image and kernel to convolve
@@ -184,16 +184,16 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 			k_max = src_width + krn_half_width - i;
 		}
 
-		srcPtr2 += k_min + l_min * src_width;
-		krnPtr += k_min + l_min * krn_width;
+		src_offset += k_min + l_min * src_width;
+		krn_offset += k_min + l_min * krn_width;
 
 		// Loop throught each of the rows of the src/krn surfaces
 		// and compute the dot product of each of them, then sum up
 		double pixel = 0;
 		for (size_t l = 0; l < l_max - l_min; l++) {
-			pixel += dot_product(src.data() + srcPtr2, ikrn.data() + krnPtr, k_max - k_min);
-			srcPtr2 += src_width;
-			krnPtr += krn_width;
+			pixel += dot_product(src.data() + src_offset, ikrn.data() + krn_offset, k_max - k_min);
+			src_offset += src_width;
+			krn_offset += krn_width;
 		}
 
 		convolution[im_idx] = pixel;
