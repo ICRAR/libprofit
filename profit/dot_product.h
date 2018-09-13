@@ -259,7 +259,6 @@ _dot_intrinsic(const double *src, const double *krn, typename intrinsic_traits<I
 #ifdef PROFIT_HAS_SSE2
 template <>
 struct intrinsic_traits<intrinsic::SSE2> {
-	constexpr static unsigned short alignment = 16;
 	typedef __m128d accum_type;
 };
 
@@ -337,7 +336,6 @@ __m128d _dot_intrinsic<SSE2, 8>(const double *src, const double *krn, __m128d ac
 #ifdef PROFIT_HAS_AVX
 template <>
 struct intrinsic_traits<intrinsic::AVX> {
-	constexpr static unsigned short alignment = 32;
 	typedef __m256d accum_type;
 };
 
@@ -396,39 +394,6 @@ __m256d _dot_intrinsic<AVX, 8>(const double *src, const double *krn, __m256d acc
 	return _mm256_add_pd(_mm256_add_pd(mul_1, mul_2), accum);
 }
 #endif // PROFIT_HAS_AVX
-
-template <unsigned short N>
-static inline
-void copy_data(double *dst, const double *src);
-
-template <>
-void copy_data<8>(double *dst, const double *src)
-{
-	dst[0] = src[0];
-	dst[1] = src[1];
-	dst[2] = src[2];
-	dst[3] = src[3];
-	dst[4] = src[4];
-	dst[5] = src[5];
-	dst[6] = src[6];
-	dst[7] = src[7];
-}
-
-template <>
-void copy_data<4>(double *dst, const double *src)
-{
-	dst[0] = src[0];
-	dst[1] = src[1];
-	dst[2] = src[2];
-	dst[3] = src[3];
-}
-
-template <>
-void copy_data<2>(double *dst, const double *src)
-{
-	dst[0] = src[0];
-	dst[1] = src[1];
-}
 
 template <intrinsic Intrinsic, unsigned int Batch_Size>
 class _dot_remainder_instrinsic_calculator;
