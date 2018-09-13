@@ -146,7 +146,6 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 	Image convolution(src_dims);
 
 	const size_t src_krn_offset = krn_half_width + krn_half_height*src_width;
-	const auto src_skip = src_width - krn_width;
 
 	/* Convolve!
 	 * We use OpenMP to calculate the convolution of each pixel independently
@@ -161,75 +160,41 @@ Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &kr
 			return;
 		}
 
-		double pixel = 0;
-
 		size_t krnPtr = 0;
-		size_t srcPtr2 = im_idx;
-		bool suboffset = false;
+		size_t srcPtr2 = im_idx  - src_krn_offset;
 
+		// Depending on where the output pixel is we might need to use
+		// smaller portions of the source image and kernel to convolve
 		unsigned int l_min = 0;
 		unsigned int l_max = krn_height;
-		unsigned int l_incr = 0;
+		unsigned int k_min = 0;
+		unsigned int k_max = krn_width;
 
 		if (j < krn_half_height) {
 			l_min = krn_half_height - j;
-			srcPtr2 += l_min * src_width;
-			krnPtr += l_min * krn_width;
 		}
 		else if ((j + krn_half_height) >= src_height) {
-			// TODO: maybe shouldn't be an else if we support krn > img size?
 			l_max = src_height + krn_half_height - j;
-			l_incr = krn_height - l_max;
+		}
+		if (i < krn_half_width) {
+			k_min = krn_half_width - i;
+		}
+		else if ((i + krn_half_width) >= src_width)
+		{
+			k_max = src_width + krn_half_width - i;
 		}
 
-		for (size_t l = l_min; l < l_max; l++) {
+		srcPtr2 += k_min + l_min * src_width;
+		krnPtr += k_min + l_min * krn_width;
 
-			unsigned int k_min = 0;
-			unsigned int k_max = krn_width;
-			unsigned int k_incr = 0;
-
-			if (i < krn_half_width) {
-				k_min = krn_half_width - i;
-				srcPtr2 += k_min;
-				krnPtr += k_min;
-			}
-			else if ((i + krn_half_width) >= src_width)
-			{
-				// TODO: maybe shouldn't be an else-if if we support krn > img size?
-				k_max = src_width + krn_half_width - i;
-				k_incr = krn_width - k_max;
-			}
-
-			if (!suboffset && srcPtr2 >= src_krn_offset)
-			{
-				srcPtr2 -= src_krn_offset;
-				suboffset = true;
-			}
-			const size_t k_n = k_max - k_min;
-
-			// Sum multiplications first, then add up to pixel.
-			// This means we explicitly tell the compiler that:
-			//
-			//  a + b + c + d == (a + b + c) + d
-			//
-			// By default floating point arithmetic is not associative,
-			// and therefore the compiler will not create the temporary
-			// "buf" variable, unless compiling with -ffast-math et al.
-			// Doing this buffering allows compilers to use an extra
-			// register, which in turn yields better instruction pipelining.
-			double buf = dot_product(src.data() + srcPtr2, ikrn.data() + krnPtr, k_n);
-
-			pixel += buf;
-			srcPtr2 += k_n;
-			krnPtr += k_n;
-
-			srcPtr2 += k_incr;
-			krnPtr += k_incr;
-			srcPtr2 += src_skip;
+		// Loop throught each of the rows of the src/krn surfaces
+		// and compute the dot product of each of them, then sum up
+		double pixel = 0;
+		for (size_t l = 0; l < l_max - l_min; l++) {
+			pixel += dot_product(src.data() + srcPtr2, ikrn.data() + krnPtr, k_max - k_min);
+			srcPtr2 += src_width;
+			krnPtr += krn_width;
 		}
-
-		srcPtr2 += l_incr * krn_width;
-		krnPtr += l_incr * krn_width;
 
 		convolution[im_idx] = pixel;
 	});
