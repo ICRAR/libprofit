@@ -71,10 +71,11 @@ std::string get_fftw_wisdom_filename()
 {
 	auto fftw_cache_dir = create_dirs(get_profit_home(), {std::string("fftw_cache")});
 #ifdef PROFIT_FFTW_OPENMP
-	return fftw_cache_dir + "/threaded-wisdom";
+	auto fftw_wisdom_fname = fftw_cache_dir + "/threaded-wisdom";
 #else
-	return fftw_cache_dir + "/unthreaded-wisdom";
+	auto fftw_wisdom_fname = fftw_cache_dir + "/unthreaded-wisdom";
 #endif
+	return fftw_wisdom_fname + "_" + fftw_version;
 }
 
 static std::string _init_diagnose;
