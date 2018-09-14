@@ -66,6 +66,7 @@ std::string version_suffix()
 	return PROFIT_VERSION_SUFFIX;
 }
 
+#ifdef PROFIT_FFTW
 static inline
 std::string get_fftw_wisdom_filename()
 {
@@ -77,6 +78,7 @@ std::string get_fftw_wisdom_filename()
 #endif
 	return fftw_wisdom_fname + "_" + fftw_version;
 }
+#endif // PROFIT_FFTW
 
 static std::string _init_diagnose;
 static std::string _finish_diagnose;
