@@ -20,6 +20,8 @@ Changelog
 * Lowering OpenMP requirement to 2.0 (was 3.0).
 * OpenCL kernel cache working for some platforms/devices that was not
   previously working.
+* Many internal code cleanups and design changes
+  to make code easier to read and maintain.
 
 .. rubric:: 1.7.4
 
