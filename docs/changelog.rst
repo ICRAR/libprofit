@@ -5,7 +5,7 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
-.. rubric:: Development version
+.. rubric:: 1.8.0
 
 * :program:`profit-cli` compiling in Windows.
 * New :func:`Profile::parameter` method to specify
