@@ -62,12 +62,17 @@ private:
  *
  * The internal loop structure of this class is also slightly different from
  * BruteForceConvolver, but is still pure CPU-based code.
+ *
+ * Additionally, and depending on the underlying CPU support, this convolver
+ * can use dot product implementations based on SIMD operations available in
+ * different CPU extended instruction sets. The default is to use the fastest
+ * one available, although users might want to use a different one.
  */
+template <simd_instruction_set SIMD>
 class AssociativeBruteForceConvolver : public Convolver {
 
 public:
-	explicit AssociativeBruteForceConvolver(unsigned int omp_threads) :
-		omp_threads(omp_threads) {}
+	AssociativeBruteForceConvolver(unsigned int omp_threads) : omp_threads(omp_threads) {};
 
 	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 

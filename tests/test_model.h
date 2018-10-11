@@ -259,7 +259,7 @@ public:
 			TS_SKIP("No FFTW available");
 		}
 
-		auto fft_conv = create_convolver("fft", ConvolverCreationPreferences(dims * finesampling, {2, 2}, 1, nullptr, effort_t::ESTIMATE, true));
+		auto fft_conv = create_convolver("fft", ConvolverCreationPreferences(dims * finesampling, {2, 2}, 1, nullptr, effort_t::ESTIMATE, true, simd_instruction_set::AUTO));
 		Model m {dims.x, dims.y};
 		m.set_convolver(fft_conv);
 		m.set_psf({{1, 1, 1, 1}, 2, 2});

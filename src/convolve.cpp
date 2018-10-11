@@ -33,6 +33,7 @@
 #include "profit/convolver_impl.h"
 #include "profit/dot_product.h"
 #include "profit/exceptions.h"
+#include "profit/library.h"
 #include "profit/omp_utils.h"
 #include "profit/utils.h"
 
@@ -126,7 +127,8 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 	return convolution;
 }
 
-Image AssociativeBruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
+template <simd_instruction_set SIMD>
+Image AssociativeBruteForceConvolver<SIMD>::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
 	const auto src_dims = src.getDimensions();
@@ -469,7 +471,25 @@ ConvolverPtr create_convolver(const ConvolverType type, const ConvolverCreationP
 		case BRUTE_OLD:
 			return std::make_shared<BruteForceConvolver>(prefs.omp_threads);
 		case BRUTE:
-			return std::make_shared<AssociativeBruteForceConvolver>(prefs.omp_threads);
+			if (!has_simd_instruction_set(prefs.instruction_set)) {
+				std::ostringstream os;
+				os << "Instruction set \"" << prefs.instruction_set << "\" is not supported";
+				throw invalid_parameter(os.str());
+			}
+#ifdef PROFIT_HAS_AVX
+			if (prefs.instruction_set == simd_instruction_set::AVX) {
+				return std::make_shared<AssociativeBruteForceConvolver<AVX>>(prefs.omp_threads);
+			}
+#endif // PROFIT_HAS_AVX
+#ifdef PROFIT_HAS_SSE2
+			if (prefs.instruction_set == simd_instruction_set::SSE2) {
+				return std::make_shared<AssociativeBruteForceConvolver<SSE2>>(prefs.omp_threads);
+			}
+#endif // PROFIT_HAS_SSE2
+			if (prefs.instruction_set == simd_instruction_set::NONE) {
+				return std::make_shared<AssociativeBruteForceConvolver<NONE>>(prefs.omp_threads);
+			}
+			return std::make_shared<AssociativeBruteForceConvolver<AUTO>>(prefs.omp_threads);
 #ifdef PROFIT_OPENCL
 		case OPENCL:
 			return std::make_shared<OpenCLConvolver>(OpenCLEnvImpl::fromOpenCLEnvPtr(prefs.opencl_env));

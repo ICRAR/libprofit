@@ -118,18 +118,21 @@ public:
 		omp_threads(1),
 		opencl_env(),
 		effort(effort_t::ESTIMATE),
-		reuse_krn_fft(false)
+		reuse_krn_fft(false),
+		instruction_set(simd_instruction_set::AUTO)
 	{};
 
 	ConvolverCreationPreferences(
 	    Dimensions src_dims, Dimensions krn_dims, unsigned int omp_threads,
-	    OpenCLEnvPtr opencl_env, effort_t effort, bool reuse_krn_fft) :
+	    OpenCLEnvPtr opencl_env, effort_t effort, bool reuse_krn_fft,
+	    simd_instruction_set instruction_set) :
 		src_dims(src_dims),
 		krn_dims(krn_dims),
 		omp_threads(omp_threads),
 		opencl_env(opencl_env),
 		effort(effort),
-		reuse_krn_fft(reuse_krn_fft)
+		reuse_krn_fft(reuse_krn_fft),
+		instruction_set(instruction_set)
 	{};
 
 
@@ -153,6 +156,8 @@ public:
 	/// Whether to reuse or not the FFT'd kernel or not. Used by the @ref ConvolverType::FFT convolver.
 	bool reuse_krn_fft;
 
+	/// The extended instruction set to use. Used by the @ref ConvolverType::BRUTE convolver
+	simd_instruction_set instruction_set;
 };
 
 /// Handy typedef for shared pointers to Convolver objects
