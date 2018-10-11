@@ -7,6 +7,12 @@ Changelog
 
 .. rubric:: Development version
 
+* New library method :func:`has_simd_instruction_set`
+  for users to check whether libprofit was compiled
+  with support for different instruction sets.
+
+.. rubric:: 1.8.1
+
 * Adding support for FFTW versions lower than 3.3.
 
 .. rubric:: 1.8.0

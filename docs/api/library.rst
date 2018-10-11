@@ -27,3 +27,4 @@ Library
 
 .. doxygenfunction:: profit::opencl_version_minor()
 
+.. doxygenfunction:: profit::has_simd_instruction_set(simd_instruction_set)

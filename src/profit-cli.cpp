@@ -150,6 +150,18 @@ void show_version(std::ostream &os) {
 	else {
 		os << "No";
 	}
+	os << endl << "Extended CPU instruction sets supported:";
+	bool sse2 = has_simd_instruction_set(simd_instruction_set::SSE2);
+	bool avx = has_simd_instruction_set(simd_instruction_set::AVX);
+	if (!sse2 && !avx) {
+		os << " none";
+	}
+	if (sse2) {
+		os << " SSE2";
+	}
+	if (avx) {
+		os << " AVX";
+	}
 	os << endl;
 }
 

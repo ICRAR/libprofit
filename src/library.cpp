@@ -219,6 +219,36 @@ unsigned short opencl_version_minor()
 #endif // PROFIT_OPENCL
 }
 
+bool has_simd_instruction_set(simd_instruction_set instruction_set)
+{
+	if (instruction_set == simd_instruction_set::AUTO || instruction_set == simd_instruction_set::NONE) {
+		return true;
+	}
+
+	// AVX implies SSE2
+#ifdef PROFIT_HAS_SSE2
+	if (instruction_set == simd_instruction_set::SSE2) {
+		return true;
+	}
+#endif // PROFIT_HAS_SSE2
+#ifdef PROFIT_HAS_AVX
+	if (instruction_set == simd_instruction_set::AVX) {
+		return true;
+	}
+#endif // PROFIT_HAS_AVX
+
+	return false;
+}
+
+bool has_avx()
+{
+#ifdef PROFIT_HAS_AVX
+	return true;
+#else
+	return false;
+#endif // PROFIT_HAS_AVX
+}
+
 void clear_cache()
 {
 	auto profit_home = get_profit_home();
