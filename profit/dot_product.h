@@ -28,6 +28,7 @@
 #define PROFIT_DOT_PRODUCT_H_
 
 #include "profit/config.h"
+#include "profit/common.h"
 
 /* Convenience macro */
 #if defined(PROFIT_HAS_SSE2) || defined(PROFIT_HAS_AVX)
@@ -229,28 +230,18 @@ double dot_sw(const double *src, const double *krn, std::size_t n)
  * =============================================================================
  */
 #ifdef PROFIT_HAS_INTRINSICS
-
-enum intrinsic {
-#ifdef PROFIT_HAS_SSE2
-	SSE2,
-#endif // PROFIT_HAS_SSE2
-#ifdef PROFIT_HAS_AVX
-	AVX
-#endif // PROFIT_HAS_AVX
-};
-
 template <int>
 struct intrinsic_traits;
 
-template <intrinsic Intrinsic>
+template <simd_instruction_set Intrinsic>
 static inline
 typename intrinsic_traits<Intrinsic>::accum_type _zero_intrinsic();
 
-template <intrinsic Intrinsic>
+template <simd_instruction_set Intrinsic>
 static inline
 double _extract_intrinsic(typename intrinsic_traits<Intrinsic>::accum_type final);
 
-template <intrinsic Intrinsic, unsigned short N>
+template <simd_instruction_set Intrinsic, unsigned short N>
 static inline
 typename intrinsic_traits<Intrinsic>::accum_type
 _dot_intrinsic(const double *src, const double *krn, typename intrinsic_traits<Intrinsic>::accum_type accum);
@@ -258,7 +249,7 @@ _dot_intrinsic(const double *src, const double *krn, typename intrinsic_traits<I
 
 #ifdef PROFIT_HAS_SSE2
 template <>
-struct intrinsic_traits<intrinsic::SSE2> {
+struct intrinsic_traits<SSE2> {
 	typedef __m128d accum_type;
 };
 
@@ -335,7 +326,7 @@ __m128d _dot_intrinsic<SSE2, 8>(const double *src, const double *krn, __m128d ac
 
 #ifdef PROFIT_HAS_AVX
 template <>
-struct intrinsic_traits<intrinsic::AVX> {
+struct intrinsic_traits<AVX> {
 	typedef __m256d accum_type;
 };
 
@@ -395,12 +386,12 @@ __m256d _dot_intrinsic<AVX, 8>(const double *src, const double *krn, __m256d acc
 }
 #endif // PROFIT_HAS_AVX
 
-template <intrinsic Intrinsic, unsigned int Batch_Size>
+template <simd_instruction_set Intrinsic, unsigned int Batch_Size>
 class _dot_remainder_instrinsic_calculator;
 
 // We implement this using classes because C++ function templates cannot be
 // partially specialized while classes can
-template <intrinsic Intrinsic, unsigned int Batch_Size>
+template <simd_instruction_set Intrinsic, unsigned int Batch_Size>
 static inline
 typename intrinsic_traits<Intrinsic>::accum_type
 _dot_remainder_intrinsic(const double *src, const double *krn, const std::size_t n, typename intrinsic_traits<Intrinsic>::accum_type buf)
@@ -408,7 +399,7 @@ _dot_remainder_intrinsic(const double *src, const double *krn, const std::size_t
 	return _dot_remainder_instrinsic_calculator<Intrinsic, Batch_Size>::_(src, krn, n, buf);
 }
 
-template <intrinsic Intrinsic>
+template <simd_instruction_set Intrinsic>
 class _dot_remainder_instrinsic_calculator<Intrinsic, 2> {
 public:
 	typedef typename intrinsic_traits<Intrinsic>::accum_type accum_type;
@@ -421,7 +412,7 @@ public:
 	}
 };
 
-template <intrinsic Intrinsic>
+template <simd_instruction_set Intrinsic>
 class _dot_remainder_instrinsic_calculator<Intrinsic, 4> {
 public:
 	typedef typename intrinsic_traits<Intrinsic>::accum_type accum_type;
@@ -438,7 +429,7 @@ public:
 	}
 };
 
-template <intrinsic Intrinsic>
+template <simd_instruction_set Intrinsic>
 class _dot_remainder_instrinsic_calculator<Intrinsic, 8> {
 public:
 	typedef typename intrinsic_traits<Intrinsic>::accum_type accum_type;
@@ -464,7 +455,7 @@ public:
 	}
 };
 
-template <intrinsic Intrinsic, unsigned short Batch_Size>
+template <simd_instruction_set Intrinsic, unsigned short Batch_Size>
 static inline
 double _dot_intrinsic(const double * src, const double * krn, std::size_t n)
 {

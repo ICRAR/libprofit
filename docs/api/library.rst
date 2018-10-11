@@ -1,6 +1,8 @@
 Library
 -------
 
+.. doxygenenum:: profit::simd_instruction_set
+
 .. doxygenfunction:: profit::init()
 
 .. doxygenfunction:: profit::finish()

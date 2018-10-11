@@ -29,6 +29,7 @@
 
 #include <cmath>
 #include <chrono>
+#include <iosfwd>
 
 /* M_PI is not part of C/C++, but usually there */
 #ifndef M_PI
@@ -101,6 +102,40 @@ namespace profit {
 		const static bool is_float = false;
 		const static bool is_double = true;
 	};
+
+	/**
+	 * SIMD instruction sets choosers can choose from
+	 */
+	enum simd_instruction_set {
+		/// Automatically choose the best available SIMD instruction set
+		AUTO = 0,
+		/// No SIMD instruction set
+		NONE,
+		/// The SSE2 instruction set
+		SSE2,
+		/// The AVX instruction set
+		AVX
+	};
+
+	template <typename T, typename CharT>
+	std::basic_ostream<T, CharT> &operator<<(std::basic_ostream<T, CharT> &os, simd_instruction_set instruction_set) {
+		if (instruction_set == AUTO) {
+			os << "AUTO";
+		}
+		else if (instruction_set == NONE) {
+			os << "NONE";
+		}
+		else if (instruction_set == SSE2) {
+			os << "SSE2";
+		}
+		else if (instruction_set == AVX) {
+			os << "AVX";
+		}
+		else {
+			os << "unknown";
+		}
+		return os;
+	}
 
 }
 
