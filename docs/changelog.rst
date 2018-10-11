@@ -7,6 +7,9 @@ Changelog
 
 .. rubric:: Development version
 
+* Users can now select the underlying
+  SIMD-capable instruction set to use
+  for brute-force convolution.
 * New library method :func:`has_simd_instruction_set`
   for users to check whether libprofit was compiled
   with support for different instruction sets.
