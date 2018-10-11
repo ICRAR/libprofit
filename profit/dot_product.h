@@ -447,26 +447,39 @@ double _dot_intrinsic(const double * src, const double * krn, std::size_t n)
 	accum_buf = _dot_remainder_intrinsic<Intrinsic, Batch_Size>(src_rem, krn_rem, rem, accum_buf);
 	return _extract_intrinsic<Intrinsic>(accum_buf);
 }
+#endif // PROFIT_HAS_INTRINSICS
 
+template <simd_instruction_set SIMD>
 static inline
-double dot_intrinsic(const double *src, const double *krn, std::size_t n)
+double dot_product(const double * src, const double * krn, std::size_t n)
 {
+	return dot_sw(src, krn, n);
+}
+
+#ifdef PROFIT_HAS_SSE2
+template <>
+double dot_product<SSE2>(const double *src, const double *krn, std::size_t n)
+{
+	return _dot_intrinsic<SSE2, 4>(src, krn, n);
+}
+#endif // PROFIT_HAS_SSE2
+
 #ifdef PROFIT_HAS_AVX
+template <>
+double dot_product<AVX>(const double * src, const double * krn, std::size_t n)
+{
+	return _dot_intrinsic<AVX, 8>(src, krn, n);
+}
+#endif // PROFIT_HAS_AVX
+
+template <>
+double dot_product<AUTO>(const double *src, const double *krn, std::size_t n)
+{
+	// Choose the best if requested
+#if defined(PROFIT_HAS_AVX)
 	return _dot_intrinsic<AVX, 8>(src, krn, n);
 #elif defined(PROFIT_HAS_SSE2)
 	return _dot_intrinsic<SSE2, 4>(src, krn, n);
-#endif
-}
-#endif // PROFIT_HAS_INTRINSICS
-
-//
-// The final dot_product function
-//
-static inline
-double dot_product(const double *src, const double *krn, std::size_t n)
-{
-#ifdef PROFIT_HAS_INTRINSICS
-	return dot_intrinsic(src, krn, n);
 #else
 	return dot_sw(src, krn, n);
 #endif

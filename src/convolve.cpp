@@ -193,7 +193,7 @@ Image AssociativeBruteForceConvolver<SIMD>::convolve(const Image &src, const Ima
 		// and compute the dot product of each of them, then sum up
 		double pixel = 0;
 		for (size_t l = 0; l < l_max - l_min; l++) {
-			pixel += dot_product(src.data() + src_offset, ikrn.data() + krn_offset, k_max - k_min);
+			pixel += dot_product<SIMD>(src.data() + src_offset, ikrn.data() + krn_offset, k_max - k_min);
 			src_offset += src_width;
 			krn_offset += krn_width;
 		}
