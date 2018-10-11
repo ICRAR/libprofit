@@ -183,6 +183,8 @@ Options:
   -c        Display OpenCL information about devices and platforms
   -n <n>    Use n OpenMP threads to calculate profiles
   -e <n>    FFTW plans created with n effort (more takes longer)
+  -I <n>    SIMD Instruction set to use with brute-force convolver.
+            0=auto (default), 1=none, 2=sse2, 3=avx.
   -r        Reuse FFT-transformed PSF across evaluations (if -T fft)
   -x        Image width. Defaults to 100
   -y        Image height. Defaults to 100
@@ -424,7 +426,7 @@ int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr
 	unsigned int cldev_idx = 0;
 	std::vector<std::string> tokens;
 
-	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tf:i:T:uS:C:ce:rn:F";
+	const char *options = "h?VsRP:p:w:H:x:y:X:Y:m:tf:i:T:uS:C:ce:rn:FI:";
 
 	while( (opt = getopt(argc, argv, options)) != -1 ) {
 		switch(opt) {
@@ -460,6 +462,10 @@ int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr
 
 			case 'r':
 				convolver_prefs.reuse_krn_fft = true;
+				break;
+
+			case 'I':
+				convolver_prefs.instruction_set = simd_instruction_set(std::stoul(optarg));
 				break;
 
 			case 'p':
