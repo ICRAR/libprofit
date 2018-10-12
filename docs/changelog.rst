@@ -5,6 +5,10 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
+.. rubric:: Development version
+
+* Adding support for FFTW versions lower than 3.3.
+
 .. rubric:: 1.8.0
 
 * :program:`profit-cli` compiling in Windows.
