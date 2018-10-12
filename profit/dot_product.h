@@ -125,9 +125,7 @@ double _dot_remainder_sw<4>(const double *src, const double *krn, std::size_t n)
 	else if (n == 2) {
 		buf += _dot_sw<2>(src, krn);
 	}
-	else if (n == 1) {
-		buf += _dot_sw<1>(src, krn);
-	}
+	buf += _dot_remainder_sw<2>(src, krn, n);
 	return buf;
 }
 

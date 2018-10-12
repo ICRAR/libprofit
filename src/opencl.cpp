@@ -77,6 +77,10 @@ std::map<int, OpenCL_plat_info> get_opencl_info() {
 
 OpenCLEnvPtr get_opencl_environment(unsigned int platform_idx, unsigned int device_idx, bool use_double, bool enable_profiling)
 {
+	UNUSED(platform_idx);
+	UNUSED(device_idx);
+	UNUSED(use_double);
+	UNUSED(enable_profiling);
 	return nullptr;
 }
 

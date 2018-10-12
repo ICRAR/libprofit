@@ -38,8 +38,8 @@ namespace profit {
 Profile::Profile(const Model &model, const std::string &name) :
 	model(model),
 	name(name),
-	stats(),
-	convolve(false)
+	convolve(false),
+	stats()
 {
 	register_parameter("convolve", convolve);
 }

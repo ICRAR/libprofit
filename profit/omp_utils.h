@@ -42,7 +42,7 @@ namespace profit {
  * ``j`` as arguments
  */
 template <typename Callable>
-void omp_2d_for(int threads, int width, int height, Callable &&f)
+void omp_2d_for(int threads, unsigned int width, unsigned int height, Callable &&f)
 {
 #if _OPENMP >= 200805 // OpenMP 3.0
 #pragma omp parallel for collapse(2) schedule(dynamic, 10) if(threads > 1) num_threads(threads)
