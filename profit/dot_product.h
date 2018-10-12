@@ -95,45 +95,6 @@ double _dot_sw<4>(const double *src, const double *krn)
 	return (tmp1 + tmp3) + (tmp2 + tmp4);
 }
 
-template <>
-double _dot_sw<5>(const double *src, const double *krn)
-{
-	auto t1 = _dot_sw<4>(src, krn);
-	auto t2 = _dot_sw<1>(src + 4, krn + 4);
-	return t1 + t2;
-}
-
-template <>
-double _dot_sw<6>(const double *src, const double *krn)
-{
-	auto t1 = _dot_sw<4>(src, krn);
-	auto t2 = _dot_sw<2>(src + 4, krn + 4);
-	return t1 + t2;
-}
-
-template <>
-double _dot_sw<7>(const double *src, const double *krn)
-{
-	auto t1 = _dot_sw<4>(src, krn);
-	auto t2 = _dot_sw<2>(src + 4, krn + 4);
-	auto t3 = _dot_sw<1>(src + 6, krn + + 6);
-	return t1 + (t2 + t3);
-}
-
-template <>
-double _dot_sw<8>(const double *src, const double *krn)
-{
-	double tmp1 = src[0] * krn[0];
-	double tmp2 = src[1] * krn[1];
-	double tmp3 = src[2] * krn[2];
-	double tmp4 = src[3] * krn[3];
-	double tmp5 = src[4] * krn[4];
-	double tmp6 = src[5] * krn[5];
-	double tmp7 = src[6] * krn[6];
-	double tmp8 = src[7] * krn[7];
-	return ((tmp1 + tmp3) + (tmp2 + tmp4)) + ((tmp5 + tmp6) + (tmp7 + tmp8));
-}
-
 //
 // _dot_remainder_sw<Batch_Size> performs the dot product of src and krn
 // for a variable given number of elements n, which is known to be less than
@@ -167,29 +128,6 @@ double _dot_remainder_sw<4>(const double *src, const double *krn, std::size_t n)
 	else if (n == 1) {
 		buf += _dot_sw<1>(src, krn);
 	}
-	return buf;
-}
-
-template <>
-double _dot_remainder_sw<8>(const double *src, const double *krn, std::size_t n)
-{
-	double buf = 0;
-	if (n == 7) {
-		auto t1 = _dot_sw<4>(src, krn);
-		auto t2 = _dot_sw<2>(src + 4, krn + 4);
-		auto t3 = _dot_sw<1>(src + 6, krn + + 6);
-		buf += t1 + (t2 + t3);
-	}
-	else if (n == 6) {
-		buf += _dot_sw<6>(src, krn);
-	}
-	else if (n == 5) {
-		buf += _dot_sw<5>(src, krn);
-	}
-	else if (n == 4) {
-		buf += _dot_sw<4>(src, krn);
-	}
-	buf += _dot_remainder_sw<4>(src, krn, n);
 	return buf;
 }
 
