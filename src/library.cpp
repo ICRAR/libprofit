@@ -24,6 +24,9 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <sstream>
 
 #include "profit/config.h"
@@ -111,11 +114,20 @@ bool init()
 #ifdef PROFIT_FFTW
 	auto fftw_wisdom_filename = get_fftw_wisdom_filename();
 	if (file_exists(fftw_wisdom_filename)) {
-		auto import_status = fftw_import_wisdom_from_filename(fftw_wisdom_filename.c_str());
-		if (import_status == 0) {
+		auto *fftw_wisdom_file = fopen(fftw_wisdom_filename.c_str(), "r");
+		if (!fftw_wisdom_file) {
 			std::ostringstream os;
-			os << "Importing fftw wisdom from " << fftw_wisdom_filename << " failed";
+			os << "Opening fftw wisdom from " << fftw_wisdom_filename << " failed: " << strerror(errno);
 			_init_diagnose = os.str();
+		}
+		else {
+			auto import_status = fftw_import_wisdom_from_file(fftw_wisdom_file);
+			if (import_status == 0) {
+				std::ostringstream os;
+				os << "Importing fftw wisdom from " << fftw_wisdom_filename << " failed: " << import_status;
+				_init_diagnose = os.str();
+			}
+			fclose(fftw_wisdom_file);
 		}
 	}
 
@@ -135,12 +147,16 @@ bool init()
 void finish()
 {
 #ifdef PROFIT_FFTW
-	auto fftw_wisdom_file = get_fftw_wisdom_filename();
-	auto export_status = fftw_export_wisdom_to_filename(fftw_wisdom_file.c_str());
-	if (export_status != 1) {
+	auto fftw_wisdom_filename = get_fftw_wisdom_filename();
+	auto *fftw_wisdom_file = fopen(fftw_wisdom_filename.c_str(), "w");
+	if (!fftw_wisdom_file) {
 		std::ostringstream os;
-		os << "Error when exporting fftw wisdom from " << fftw_wisdom_file << ": " << export_status;
+		os << "Error when exporting fftw wisdom from " << fftw_wisdom_file << ": " << strerror(errno);
 		_finish_diagnose = os.str();
+	}
+	else {
+		fftw_export_wisdom_to_file(fftw_wisdom_file);
+		fclose(fftw_wisdom_file);
 	}
 #ifdef PROFIT_FFTW_OPENMP
 	fftw_cleanup_threads();

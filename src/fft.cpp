@@ -78,12 +78,12 @@ FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsig
 	backward_plan(nullptr)
 {
 
-	double *real_tmp = fftw_alloc_real(size);
+	double *real_tmp = static_cast<double *>(fftw_malloc(sizeof(double) * size));
 	if (!real_tmp) {
 		throw std::bad_alloc();
 	}
 
-	fftw_complex *complex_tmp = fftw_alloc_complex(hermitian_size);
+	fftw_complex *complex_tmp = static_cast<fftw_complex *>(fftw_malloc(sizeof(fftw_complex) * hermitian_size));
 	if (!complex_tmp) {
 		throw std::bad_alloc();
 	}
