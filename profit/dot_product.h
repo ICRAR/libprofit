@@ -299,29 +299,6 @@ __m128d _dot_intrinsic<SSE2, 4>(const double *src, const double *krn, __m128d ac
 
 	return _mm_add_pd(_mm_add_pd(dp_1, dp_2), accum);
 }
-
-template <>
-__m128d _dot_intrinsic<SSE2, 8>(const double *src, const double *krn, __m128d accum)
-{
-	auto src_1 = _mm_loadu_pd(src);
-	auto src_2 = _mm_loadu_pd(src + 2);
-	auto src_3 = _mm_loadu_pd(src + 4);
-	auto src_4 = _mm_loadu_pd(src + 6);
-
-	auto krn_1 = _mm_loadu_pd(krn);
-	auto krn_2 = _mm_loadu_pd(krn + 2);
-	auto krn_3 = _mm_loadu_pd(krn + 4);
-	auto krn_4 = _mm_loadu_pd(krn + 6);
-
-	auto dp_1 = _mm_mul_pd(src_1, krn_1);
-	auto dp_2 = _mm_mul_pd(src_2, krn_2);
-	auto dp_3 = _mm_mul_pd(src_3, krn_3);
-	auto dp_4 = _mm_mul_pd(src_4, krn_4);
-
-	auto t1 = _mm_add_pd(dp_1, dp_2);
-	auto t2 = _mm_add_pd(dp_3, dp_4);
-	return _mm_add_pd(_mm_add_pd(t1, t2), accum);
-}
 #endif // PROFIT_HAS_SSE2
 
 #ifdef PROFIT_HAS_AVX
