@@ -148,22 +148,41 @@ private:
 		}
 	}
 
+	void _test_simd_convolver(simd_instruction_set instruction_set)
+	{
+		std::ostringstream msg;
+		msg << instruction_set << " should be invalid";
+		ConvolverCreationPreferences prefs;
+		prefs.instruction_set = instruction_set;
+		if (has_simd_instruction_set(instruction_set)) {
+			_check_convolver(create_convolver(ConvolverType::BRUTE, prefs));
+		}
+		else {
+			TSM_ASSERT_THROWS(msg.str(), create_convolver(ConvolverType::BRUTE, prefs), const invalid_parameter &);
+		}
+	}
+
 public:
 
 	void test_new_bruteforce_convolver() {
 		ConvolverCreationPreferences prefs;
 		_check_convolver(create_convolver(ConvolverType::BRUTE, prefs));
-		for (auto instruction_set: {simd_instruction_set::AVX, simd_instruction_set::SSE2, simd_instruction_set::NONE, simd_instruction_set::AUTO}) {
-			std::ostringstream msg;
-			msg << instruction_set << " should be invalid";
-			prefs.instruction_set = instruction_set;
-			if (has_simd_instruction_set(instruction_set)) {
-				_check_convolver(create_convolver(ConvolverType::BRUTE, prefs));
-			}
-			else {
-				TSM_ASSERT_THROWS(msg.str(), create_convolver(ConvolverType::BRUTE, prefs), const invalid_parameter &);
-			}
-		}
+	}
+
+	void test_brute_convolver_AVX() {
+		_test_simd_convolver(simd_instruction_set::AVX);
+	}
+
+	void test_brute_convolver_SSE2() {
+		_test_simd_convolver(simd_instruction_set::SSE2);
+	}
+
+	void test_brute_convolver_NONE() {
+		_test_simd_convolver(simd_instruction_set::AVX);
+	}
+
+	void test_brute_convolver_AUTO() {
+		_test_simd_convolver(simd_instruction_set::AUTO);
 	}
 
 	void test_old_bruteforce_openmp() {
