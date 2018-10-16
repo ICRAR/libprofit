@@ -82,12 +82,12 @@
  * Whether libprofit was compiled against a target CPU that supports the
  * SSE2 instructions extension
  */
- #cmakedefine PROFIT_HAS_SSE2
+#cmakedefine PROFIT_HAS_SSE2
 
 /**
  * Whether libprofit was compiled against a target CPU that supports the
  * AVX instructions extension
  */
-  #cmakedefine PROFIT_HAS_AVX
+#cmakedefine PROFIT_HAS_AVX
 
 #endif /* PROFIT_CONFIG_H */

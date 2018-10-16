@@ -277,7 +277,7 @@ if( LIBPROFIT_DEBUG )
 endif()
 
 #
-# Check whether we can use the following CPU extensions
+# Check whether we can use CPU extensions
 #
 if (NOT LIBPROFIT_NO_SIMD)
 	find_simd_extensions()
