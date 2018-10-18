@@ -336,12 +336,29 @@ public:
 	{
 		_extension_is_possible(dimensions, start);
 		D extended(dimensions);
+		extend(extended, start);
+		return extended;
+	}
+
+	/**
+	 * Extends this object into the given surface. The new surface's
+	 * dimensions must be greater or equal to the current dimensions.
+	 * The current contents of this surface are placed at @p start, relative to
+	 * the new surface's dimension.
+	 *
+	 * @param dimensions The dimensions of the new extended surface.
+	 * @param start The starting point of the original surface relative to the new one
+	 * @return The new extended surface
+	 */
+	void extend(D &extended, Point start = Point()) const
+	{
+		auto dimensions = extended.getDimensions();
+		_extension_is_possible(dimensions, start);
 		for(unsigned int j = 0; j < getHeight(); j++) {
 			for(unsigned int i = 0; i < getWidth(); i++) {
 				extended[(i+start.x) + (j+start.y)*dimensions.x] = _data[i + j*getWidth()];
 			}
 		}
-		return extended;
 	}
 
 	/**
