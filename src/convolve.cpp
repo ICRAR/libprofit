@@ -210,7 +210,7 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
                            effort_t effort, unsigned int plan_omp_threads,
                            bool reuse_krn_fft) :
 	fft_transformer(),
-	krn_fft(),
+	krn_fft(), ext_src(), ext_krn(),
 	reuse_krn_fft(reuse_krn_fft)
 {
 
@@ -220,8 +220,10 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
 	if (krn_dims.y > src_dims.y) {
 		throw invalid_parameter("krn_height must be <= src_height");
 	}
-	auto convolution_size = 4 * src_dims.x * src_dims.y;
-	fft_transformer = std::unique_ptr<FFTRealTransformer>(new FFTRealTransformer(convolution_size, effort, plan_omp_threads));
+	auto ext_dims = src_dims * 2;
+	fft_transformer = std::unique_ptr<FFTRealTransformer>(new FFTRealTransformer(ext_dims.x * ext_dims.y, effort, plan_omp_threads));
+	ext_src = Image(ext_dims);
+	ext_krn = Image(ext_dims);
 }
 
 Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
@@ -231,16 +233,17 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 
 	auto src_dims = src.getDimensions();
 	auto krn_dims = krn.getDimensions();
+	auto ext_dims = ext_src.getDimensions();
 
 	// Create extended images first
-	auto ext_dims = src_dims * 2;
-	Image ext_img = src.extend(ext_dims);
+	ext_src.zero();
+	src.extend(ext_src);
 
 	// Forward FFTs
-	std::vector<complex> src_fft = fft_transformer->forward(ext_img);
+	std::vector<complex> src_fft = fft_transformer->forward(ext_src);
 	if (krn_fft.empty()) {
 		auto krn_start = (src_dims - krn_dims) / 2;
-		Image ext_krn = krn.extend(ext_dims, krn_start);
+		krn.extend(ext_krn, krn_start);
 		krn_fft = fft_transformer->forward(ext_krn);
 	}
 
@@ -252,8 +255,8 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 	}
 
 	// inverse FFT and scale down
-	Image res(fft_transformer->backward(src_fft), ext_dims);
-	res /= res.size();
+	ext_src = Image(fft_transformer->backward(src_fft), ext_dims);
+	ext_src /= ext_src.size();
 
 	// The resulting image now starts at x_offset/y_offset
 	// even image and odd kernel requires slight adjustment
@@ -265,7 +268,7 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 		ext_offset.y -= 1;
 	}
 
-	return mask_and_crop(res, mask, crop, src_dims, ext_dims, ext_offset, offset_out);
+	return mask_and_crop(ext_src, mask, crop, src_dims, ext_dims, ext_offset, offset_out);
 }
 
 #endif /* PROFIT_FFTW */

@@ -112,6 +112,8 @@ private:
 	std::unique_ptr<FFTRealTransformer> fft_transformer;
 
 	std::vector<std::complex<double>> krn_fft;
+	Image ext_src;
+	Image ext_krn;
 
 	bool reuse_krn_fft;
 };
