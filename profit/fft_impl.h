@@ -143,38 +143,6 @@ private:
 	fftw_plan backward_plan;
 };
 
-#if 0
-class FFTComplexTransformer: public FFTTransformer {
-
-public:
-
-	/**
-	 * Creates a new plan of size @ size, using effort @p effort and @p omp_threads threads to
-	 * create it.
-	 *
-	 * @param size The size of the data to be transformed
-	 * @param effort The kind of effort that should be put into creating this plan
-	 * @param omp_threads The number of threads to use to execute the plan
-	 */
-	FFTComplexTransformer(unsigned int size, effort_t effort, unsigned int omp_threads);
-
-	/**
-	 * Destroy this plan
-	 */
-	~FFTComplexTransformer();
-
-	dcomplex_vec forward(const std::vector<double> &data) const override;
-
-	std::vector<double> backward(const dcomplex_vec &data) const override;
-
-private:
-	std::unique_ptr<fftw_complex> in;
-	std::unique_ptr<fftw_complex> out;
-	fftw_plan forward_plan;
-	fftw_plan backward_plan;
-};
-#endif // 0
-
 }  // namespace profit
 
 #endif /* PROFIT_FFWT */
