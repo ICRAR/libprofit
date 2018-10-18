@@ -41,77 +41,16 @@
 namespace profit {
 
 /**
- * An FFT transformer.
+ * An FFT transformer that turns real numbers into complex numbers and back.
  *
  * Instances of this class are able to perform forward FFT transformation
- * from a vector of double values into its corresponding complex series, and back.
- * The forward transformation yields a vector of complex values, but the
- * backward transformation yields a vector of double (i.e., only the real
- * part of the backward transformation).
+ * from a collection of double values into its corresponding complex series and
+ * back using hermitian redundancy. The forward and backward transformations
+ * occur in an internal buffer, but they allow users to pass collections of the
+ * corresponding type to store the output of the operation, thus avoiding
+ * dynamic memory allocation.
  */
-class FFTTransformer {
-
-public:
-
-	/*** A complex value with double elements */
-	typedef std::complex<double> dcomplex;
-
-	/*** A vector of complex, double values */
-	typedef std::vector<dcomplex> dcomplex_vec;
-
-	/**
-	 * Creates a new plan of size @ size, using effort @p effort and @p omp_threads threads to
-	 * create it.
-	 *
-	 * @param size The size of the data to be transformed
-	 * @param effort The kind of effort that should be put into creating this plan
-	 * @param omp_threads The number of threads to use to execute the plan
-	 */
-	FFTTransformer(unsigned int size, effort_t effort, unsigned int omp_threads) :
-		size(size), effort(effort), omp_threads(omp_threads) {}
-
-	virtual ~FFTTransformer() {}
-
-	/**
-	 * Transforms the given vector of doubles into its Fourier Transform. The
-	 * resulting vector is a vector of complex values.
-	 *
-	 * @param data The vector of doubles to transform
-	 * @return The transformed image as a vector of complex numbers
-	 */
-	virtual dcomplex_vec forward(const std::vector<double> &data) const = 0;
-
-	/**
-	 * Transforms the given vector of complex values into their inverse Fourier
-	 * Transform. The resulting vector is a vector of doubles only (the real
-	 * part of the inverse transformation).
-	 *
-	 * @param data A vector of complex numbers.
-	 * @return A vector with the real part of the corresponding inverse
-	 * transformation.
-	 */
-	virtual std::vector<double> backward(const dcomplex_vec &data) const = 0;
-
-protected:
-	int get_fftw_effort() const;
-	unsigned int get_size() const {
-		return size;
-	}
-
-private:
-	unsigned int size;
-	effort_t effort;
-	unsigned int omp_threads;
-
-};
-
-/**
- * An FFTTransformer that interprets Image data as real numbers.
- *
- * Because
- * therefore using
- */
-class FFTRealTransformer: public FFTTransformer {
+class FFTRealTransformer {
 
 public:
 
@@ -123,20 +62,49 @@ public:
 	 * @param effort The kind of effort that should be put into creating this plan
 	 * @param omp_threads The number of threads to use to execute the plan
 	 */
-	FFTRealTransformer(unsigned int size, effort_t effort,
-			unsigned int omp_threads);
+	FFTRealTransformer(unsigned int size, effort_t effort, unsigned int omp_threads);
 
 	/**
 	 * Destructor. It destroys the underlying plans.
 	 */
 	~FFTRealTransformer();
 
-	dcomplex_vec forward(const std::vector<double> &data) const override;
+	/**
+	 * Transforms a container of numbers into their Fourier Transform. The
+	 * resulting vector is a vector of complex values.
+	 *
+	 * @param input The numbers to transform
+	 * @param output The vector of complex numbers where the result will be stored.
+	 * It must be at least as long as the hermitian size
+	 */
+	template <typename T>
+	void forward(const T &input, std::vector<std::complex<double>> &output) const;
 
-	std::vector<double> backward(const dcomplex_vec &data) const override;
+	/**
+	 * Transforms the given vector of complex values into their inverse Fourier
+	 * Transform. The resulting vector is a vector of doubles only (the real
+	 * part of the inverse transformation). The vector of complex values must
+	 * be the hermitian redundant version of the FFT transform.
+	 *
+	 * @param input The vector of complex numbers to transform
+	 * @param output The container of doubles where the result will be stored.
+	 */
+	template <typename T>
+	void backward(const std::vector<std::complex<double>> &input, T &output) const;
+
+	unsigned int get_size() {
+		return size;
+	}
+
+	unsigned int get_hermitian_size() {
+		return hermitian_size;
+	}
 
 private:
+	unsigned int size;
 	unsigned int hermitian_size;
+	unsigned int omp_threads;
+	effort_t effort;
 	std::unique_ptr<double> real_buf;
 	std::unique_ptr<fftw_complex> complex_buf;
 	fftw_plan forward_plan;

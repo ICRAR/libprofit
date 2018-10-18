@@ -98,6 +98,10 @@ private:
  * dimensions starting at the center of the original image's mapping on the
  * extended image (i.e., ``(src_width/2, src_height/2)`` minus one if the
  * original dimensions are odd).
+ *
+ * This convolver has been implemented in such a way that no memory allocation
+ * happens during convolution (other than the final Image's allocation) to
+ * improve performance.
  */
 class FFTConvolver : public Convolver {
 
@@ -111,11 +115,13 @@ public:
 private:
 	std::unique_ptr<FFTRealTransformer> fft_transformer;
 
+	std::vector<std::complex<double>> src_fft;
 	std::vector<std::complex<double>> krn_fft;
 	Image ext_src;
 	Image ext_krn;
 
 	bool reuse_krn_fft;
+	bool krn_fft_initialized;
 };
 
 #endif /* PROFIT_FFTW */

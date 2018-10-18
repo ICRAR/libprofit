@@ -210,8 +210,8 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
                            effort_t effort, unsigned int plan_omp_threads,
                            bool reuse_krn_fft) :
 	fft_transformer(),
-	krn_fft(), ext_src(), ext_krn(),
-	reuse_krn_fft(reuse_krn_fft)
+	src_fft(), krn_fft(), ext_src(), ext_krn(),
+	reuse_krn_fft(reuse_krn_fft), krn_fft_initialized(false)
 {
 
 	if (krn_dims.x > src_dims.x) {
@@ -222,14 +222,14 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
 	}
 	auto ext_dims = src_dims * 2;
 	fft_transformer = std::unique_ptr<FFTRealTransformer>(new FFTRealTransformer(ext_dims.x * ext_dims.y, effort, plan_omp_threads));
+	src_fft.resize(fft_transformer->get_hermitian_size());
+	krn_fft.resize(fft_transformer->get_hermitian_size());
 	ext_src = Image(ext_dims);
 	ext_krn = Image(ext_dims);
 }
 
 Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
-
-	typedef std::complex<double> complex;
 
 	auto src_dims = src.getDimensions();
 	auto krn_dims = krn.getDimensions();
@@ -240,22 +240,20 @@ Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mas
 	src.extend(ext_src);
 
 	// Forward FFTs
-	std::vector<complex> src_fft = fft_transformer->forward(ext_src);
-	if (krn_fft.empty()) {
+	fft_transformer->forward(ext_src, src_fft);
+	if (!reuse_krn_fft || !krn_fft_initialized) {
 		auto krn_start = (src_dims - krn_dims) / 2;
 		krn.extend(ext_krn, krn_start);
-		krn_fft = fft_transformer->forward(ext_krn);
+		fft_transformer->forward(ext_krn, krn_fft);
+		krn_fft_initialized = true;
 	}
 
 	// element-wise multiplication
-	std::transform(src_fft.begin(), src_fft.end(), krn_fft.begin(), src_fft.begin(), std::multiplies<complex>());
-
-	if (!reuse_krn_fft) {
-		krn_fft.clear();
-	}
+	std::transform(src_fft.begin(), src_fft.end(), krn_fft.begin(), src_fft.begin(),
+	               std::multiplies<std::complex<double>>());
 
 	// inverse FFT and scale down
-	ext_src = Image(fft_transformer->backward(src_fft), ext_dims);
+	fft_transformer->backward(src_fft, ext_src);
 	ext_src /= ext_src.size();
 
 	// The resulting image now starts at x_offset/y_offset

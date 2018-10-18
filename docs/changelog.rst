@@ -13,6 +13,10 @@ Changelog
 * New library method :func:`has_simd_instruction_set`
   for users to check whether libprofit was compiled
   with support for different instruction sets.
+* Improved FFTW-based convolver performance
+  by avoiding dynamic memory allocation at convolution time.
+  This brings a noticeable performance improvement
+  of around 20%.
 
 .. rubric:: 1.8.1
 
