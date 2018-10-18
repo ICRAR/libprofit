@@ -230,6 +230,15 @@ public:
 		TS_ASSERT_EQUALS(im.end(), it);
 	}
 
+	void test_zero() {
+		std::vector<double> data {1, 2, 3, 4};
+		Image im(data, 2, 2);
+		im.zero();
+		for(auto &pixel: im) {
+			TS_ASSERT_EQUALS(pixel, 0.);
+		}
+	}
+
 	void test_add() {
 
 		std::vector<double> data {1, 2, 3, 4};

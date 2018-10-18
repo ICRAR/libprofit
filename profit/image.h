@@ -316,6 +316,13 @@ public:
 	}
 
 	/**
+	 * Assigns zero to all elements of this Image.
+	 */
+	void zero() {
+		_data.assign(_data.size(), 0);
+	}
+
+	/**
 	 * Creates a new surface that is an extension of this object. The new
 	 * dimensions must be greater or equal to the current dimensions.
 	 * The current contents of this surface are placed at @p start, relative to
