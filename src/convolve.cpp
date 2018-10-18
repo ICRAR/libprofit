@@ -221,7 +221,7 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
 		throw invalid_parameter("krn_height must be <= src_height");
 	}
 	auto convolution_size = 4 * src_dims.x * src_dims.y;
-	fft_transformer = std::unique_ptr<FFTTransformer>(new FFTRealTransformer(convolution_size, effort, plan_omp_threads));
+	fft_transformer = std::unique_ptr<FFTRealTransformer>(new FFTRealTransformer(convolution_size, effort, plan_omp_threads));
 }
 
 Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
