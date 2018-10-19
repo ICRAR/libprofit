@@ -41,6 +41,18 @@
 namespace profit {
 
 /**
+ * A deleter class that we can use for our unique_ptr objects holding
+ * FFTW-allocated arrays.
+ */
+template <typename T>
+class fftw_deleter {
+public:
+	void operator()(T *x) {
+		fftw_free(x);
+	}
+};
+
+/**
  * An FFT transformer that turns real numbers into complex numbers and back.
  *
  * Instances of this class are able to perform forward FFT transformation
@@ -104,9 +116,8 @@ private:
 	unsigned int size;
 	unsigned int hermitian_size;
 	unsigned int omp_threads;
-	effort_t effort;
-	std::unique_ptr<double> real_buf;
-	std::unique_ptr<fftw_complex> complex_buf;
+	std::unique_ptr<double, fftw_deleter<double>> real_buf;
+	std::unique_ptr<fftw_complex, fftw_deleter<fftw_complex>> complex_buf;
 	fftw_plan forward_plan;
 	fftw_plan backward_plan;
 };

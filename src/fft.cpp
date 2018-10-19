@@ -65,51 +65,42 @@ int get_fftw_effort(effort_t effort)
 	}
 }
 
+template <typename T>
+static inline
+T *_fftw_buf(std::size_t size)
+{
+	T *buf = static_cast<T *>(fftw_malloc(sizeof(T) * size));
+	if (!buf) {
+		throw std::bad_alloc();
+	}
+	return buf;
+}
+
+
 FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsigned int omp_threads) :
 	size(size), hermitian_size(size / 2 + 1),
-	omp_threads(omp_threads), effort(effort),
-	real_buf(), complex_buf(),
+	omp_threads(omp_threads),
+	real_buf(_fftw_buf<double>(size)), complex_buf(_fftw_buf<fftw_complex>(hermitian_size)),
 	forward_plan(nullptr),
 	backward_plan(nullptr)
 {
-
-	double *real_tmp = static_cast<double *>(fftw_malloc(sizeof(double) * size));
-	if (!real_tmp) {
-		throw std::bad_alloc();
-	}
-
-	fftw_complex *complex_tmp = static_cast<fftw_complex *>(fftw_malloc(sizeof(fftw_complex) * hermitian_size));
-	if (!complex_tmp) {
-		throw std::bad_alloc();
-	}
-
-	real_buf.reset(real_tmp);
-	complex_buf.reset(complex_tmp);
-
 #ifdef PROFIT_FFTW_OPENMP
 	fftw_plan_with_nthreads(omp_threads);
 #endif /* PROFIT_FFTW_OPENMP */
 
 	int fftw_effort = get_fftw_effort(effort);
-	forward_plan = fftw_plan_dft_r2c_1d(size, real_tmp, complex_tmp, FFTW_DESTROY_INPUT | fftw_effort);
+	forward_plan = fftw_plan_dft_r2c_1d(size, real_buf.get(), complex_buf.get(), FFTW_DESTROY_INPUT | fftw_effort);
 	if (!forward_plan) {
 		throw fft_error("Error creating forward plan");
 	}
-	backward_plan = fftw_plan_dft_c2r_1d(size, complex_tmp, real_tmp, FFTW_DESTROY_INPUT | fftw_effort);
+	backward_plan = fftw_plan_dft_c2r_1d(size, complex_buf.get(), real_buf.get(), FFTW_DESTROY_INPUT | fftw_effort);
 	if (!backward_plan) {
 		throw fft_error("Error creating backward plan");
 	}
-
 }
 
 FFTRealTransformer::~FFTRealTransformer()
 {
-	if (real_buf) {
-		fftw_free(real_buf.release());
-	}
-	if (complex_buf) {
-		fftw_free(complex_buf.release());
-	}
 	if (forward_plan) {
 		fftw_destroy_plan(forward_plan);
 		forward_plan = nullptr;
