@@ -5,7 +5,7 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
-.. rubric:: Development version
+.. rubric:: 1.8.2
 
 * Users can now select the underlying
   SIMD-capable instruction set to use
