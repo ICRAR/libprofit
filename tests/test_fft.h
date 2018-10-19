@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -291,6 +292,42 @@ public:
 		Image result3 = convolver->convolve(src, krn, mask, false);
 		TS_ASSERT(result1 == result2);
 		TS_ASSERT(result2 == result3);
+	}
+
+	void test_valid_efforts()
+	{
+		_check_fftw_support();
+
+		auto make_convolver = [](effort_t effort) {
+			ConvolverCreationPreferences prefs;
+			prefs.src_dims = {2, 2};
+			prefs.krn_dims = {1, 1};
+			prefs.effort = effort;
+			return create_convolver(ConvolverType::FFT, prefs);
+		};
+
+		// These are all valid efforts
+		for (auto &effort: {effort_t::ESTIMATE, effort_t::EXHAUSTIVE, effort_t::MEASURE, effort_t::PATIENT}) {
+			TS_ASSERT(make_convolver(effort));
+		}
+
+		// This doesn't exist
+		TS_ASSERT_THROWS(make_convolver(effort_t(4)), std::invalid_argument);
+	}
+
+	void test_valid_src_krn_sizes()
+	{
+		_check_fftw_support();
+
+		// krn dims must be <= src dims
+		ConvolverCreationPreferences prefs;
+		prefs.src_dims = {2, 2};
+		prefs.krn_dims = {1, 1};
+		TS_ASSERT(create_convolver(ConvolverType::FFT, prefs));
+		prefs.krn_dims = {3, 1};
+		TS_ASSERT_THROWS(create_convolver(ConvolverType::FFT, prefs), invalid_parameter);
+		prefs.krn_dims = {1, 3};
+		TS_ASSERT_THROWS(create_convolver(ConvolverType::FFT, prefs), invalid_parameter);
 	}
 
 };
