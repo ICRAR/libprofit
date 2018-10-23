@@ -290,6 +290,14 @@ void print_opencl_info(std::ostream &out) {
 }
 
 static
+void print_cl_command_times(std::ostream &os, const std::string &prefix, const OpenCL_command_times &t, const std::string &action)
+{
+	print_stats_line(os, prefix, action + " submission", t.submit / 1e6 );
+	print_stats_line(os, prefix, action + " waiting", t.wait / 1e6 );
+	print_stats_line(os, prefix, action + " execution", t.exec / 1e6 );
+}
+
+static
 void print_cl_stats(std::ostream &os, const std::string &prefix0, bool opencl_120, const OpenCL_times &stats) {
 
 	auto prefix1 = prefix0 + "  ";
@@ -299,15 +307,11 @@ void print_cl_stats(std::ostream &os, const std::string &prefix0, bool opencl_12
 	print_stats_line(os, prefix0, cl_ops_os.str(), stats.total / 1e6 );
 	print_stats_line(os, prefix1, "Kernel preparation", stats.kernel_prep / 1e6 );
 	if( opencl_120 ) {
-		print_stats_line(os, prefix1, "Fill submission", stats.filling_times.submit / 1e6 );
-		print_stats_line(os, prefix1, "Fill execution", stats.filling_times.exec / 1e6 );
+		print_cl_command_times(os, prefix1, stats.filling_times, "Fill");
 	}
-	print_stats_line(os, prefix1, "Write submission", stats.writing_times.submit / 1e6 );
-	print_stats_line(os, prefix1, "Write execution", stats.writing_times.exec / 1e6 );
-	print_stats_line(os, prefix1, "Kernel submission", stats.kernel_times.submit / 1e6 );
-	print_stats_line(os, prefix1, "Kernel execution", stats.kernel_times.exec / 1e6 );
-	print_stats_line(os, prefix1, "Read submission", stats.reading_times.submit / 1e6 );
-	print_stats_line(os, prefix1, "Read execution", stats.reading_times.exec / 1e6 );
+	print_cl_command_times(os, prefix1, stats.writing_times, "Write");
+	print_cl_command_times(os, prefix1, stats.kernel_times, "Kernel");
+	print_cl_command_times(os, prefix1, stats.reading_times, "Read");
 }
 
 static
