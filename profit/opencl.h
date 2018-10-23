@@ -50,6 +50,7 @@ typedef unsigned int cl_ver_t;
 class PROFIT_API OpenCL_command_times {
 public:
 	nsecs_t submit;
+	nsecs_t wait;
 	nsecs_t exec;
 	OpenCL_command_times &operator+=(const OpenCL_command_times &other);
 	const OpenCL_command_times operator+(const OpenCL_command_times &other) const;

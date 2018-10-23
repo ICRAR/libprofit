@@ -59,6 +59,7 @@ namespace profit {
 
 OpenCL_command_times &OpenCL_command_times::operator+=(const OpenCL_command_times &other) {
 	submit += other.submit;
+	wait += other.wait;
 	exec += other.exec;
 	return *this;
 }
@@ -104,12 +105,17 @@ nsecs_t _cl_submit_time(const cl::Event &evt) {
 }
 
 static
+nsecs_t _cl_wait_time(const cl::Event &evt) {
+	return _cl_duration<CL_PROFILING_COMMAND_SUBMIT, CL_PROFILING_COMMAND_START>(evt);
+}
+
+static
 nsecs_t _cl_exec_time(const cl::Event &evt) {
 	return _cl_duration<CL_PROFILING_COMMAND_START, CL_PROFILING_COMMAND_END>(evt);
 }
 
 OpenCL_command_times cl_cmd_times(const cl::Event &evt) {
-	return {_cl_submit_time(evt), _cl_exec_time(evt)};
+	return {_cl_submit_time(evt), _cl_wait_time(evt), _cl_exec_time(evt)};
 }
 
 static cl_ver_t get_opencl_version(const std::string &version)
