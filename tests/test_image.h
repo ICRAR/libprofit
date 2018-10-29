@@ -144,7 +144,7 @@ public:
 	}
 
 	void test_invalid_dimensions() {
-		TS_ASSERT_THROWS(Image im({1, 2, 3, 4}, 1, 1), std::invalid_argument);
+		TS_ASSERT_THROWS(Image im({1, 2, 3, 4}, 1, 1), std::invalid_argument &);
 	}
 
 	void test_copy() {
@@ -349,16 +349,16 @@ public:
 		Image im({1, 2, 3, 4}, 2, 2);
 
 		// too wide
-		TS_ASSERT_THROWS(im.crop({3, 1}, {0, 0}), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({3, 1}, {0, 0}), std::invalid_argument &);
 
 		// too tall
-		TS_ASSERT_THROWS(im.crop({1, 3}, {0, 0}), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({1, 3}, {0, 0}), std::invalid_argument &);
 
 		// horizontally overflows
-		TS_ASSERT_THROWS(im.crop({0, 0}, {3, 1}), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({0, 0}, {3, 1}), std::invalid_argument &);
 
 		// vertically overflows
-		TS_ASSERT_THROWS(im.crop({0, 0}, {1, 3}), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({0, 0}, {1, 3}), std::invalid_argument &);
 	}
 
 	void test_extend() {
@@ -398,16 +398,16 @@ public:
 		Image im({1, 2, 3, 4}, 2, 2);
 
 		// too thin
-		TS_ASSERT_THROWS(im.extend({1, 5}, {0, 0}), std::invalid_argument);
+		TS_ASSERT_THROWS(im.extend({1, 5}, {0, 0}), std::invalid_argument &);
 
 		// too short
-		TS_ASSERT_THROWS(im.crop({5, 1}, {0, 0}), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({5, 1}, {0, 0}), std::invalid_argument &);
 
 		// horizontally overflows
-		TS_ASSERT_THROWS(im.crop({5, 5}, {4, 0}), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({5, 5}, {4, 0}), std::invalid_argument &);
 
 		// vertically overflows
-		TS_ASSERT_THROWS(im.crop({5, 5}, {0, 4}), std::invalid_argument);
+		TS_ASSERT_THROWS(im.crop({5, 5}, {0, 4}), std::invalid_argument &);
 
 	}
 
@@ -416,7 +416,7 @@ public:
 		Image im({1, 2, 3, 4}, 2, 2);
 
 		// zero is not allowed
-		TS_ASSERT_THROWS(im.upsample(0), std::invalid_argument);
+		TS_ASSERT_THROWS(im.upsample(0), std::invalid_argument &);
 
 		// identity upsampling
 		TS_ASSERT_EQUALS(im, im.upsample(1));
@@ -456,8 +456,8 @@ public:
 		Image im2({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, 5, 3);
 
 		// zero is not allowed
-		TS_ASSERT_THROWS(im1.downsample(0), std::invalid_argument);
-		TS_ASSERT_THROWS(im2.downsample(0), std::invalid_argument);
+		TS_ASSERT_THROWS(im1.downsample(0), std::invalid_argument &);
+		TS_ASSERT_THROWS(im2.downsample(0), std::invalid_argument &);
 
 		// identity downsampling
 		TS_ASSERT_EQUALS(im1, im1.downsample(1));

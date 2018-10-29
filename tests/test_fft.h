@@ -312,7 +312,7 @@ public:
 		}
 
 		// This doesn't exist
-		TS_ASSERT_THROWS(make_convolver(effort_t(4)), std::invalid_argument);
+		TS_ASSERT_THROWS(make_convolver(effort_t(4)), std::invalid_argument &);
 	}
 
 	void test_valid_src_krn_sizes()
@@ -325,9 +325,9 @@ public:
 		prefs.krn_dims = {1, 1};
 		TS_ASSERT(create_convolver(ConvolverType::FFT, prefs));
 		prefs.krn_dims = {3, 1};
-		TS_ASSERT_THROWS(create_convolver(ConvolverType::FFT, prefs), invalid_parameter);
+		TS_ASSERT_THROWS(create_convolver(ConvolverType::FFT, prefs), invalid_parameter &);
 		prefs.krn_dims = {1, 3};
-		TS_ASSERT_THROWS(create_convolver(ConvolverType::FFT, prefs), invalid_parameter);
+		TS_ASSERT_THROWS(create_convolver(ConvolverType::FFT, prefs), invalid_parameter &);
 	}
 
 };
