@@ -147,8 +147,8 @@ void RadialProfile::initial_calculations() {
 	 * Calculate the total luminosity used by this profile, used
 	 * later to calculate the exact contribution of each pixel.
 	 */
-	double box = this->box + 2;
-	double r_box = M_PI * box / (2*beta(1/box, 1/box));
+	double b2 = this->box + 2;
+	double r_box = M_PI * b2 / (2 * beta(1/b2, 1/b2));
 	double lumtot = this->get_lumtot() * axrat / r_box;
 	this->_ie = std::pow(10, -0.4*(this->mag - magzero))/lumtot;
 
@@ -167,11 +167,10 @@ void RadialProfile::initial_calculations() {
 		/*
 		 * Calculate a bound, adaptive upscale
 		 */
-		unsigned int resolution;
-		resolution = (unsigned int)std::ceil(160 / (this->rscale_switch * this->rscale));
-		resolution += resolution % 2;
-		resolution = std::max(4,std:: min(16, (int)resolution));
-		this->resolution = resolution;
+		auto res = static_cast<unsigned int>(std::ceil(160 / (rscale_switch * rscale)));
+		res += res % 2;
+		res = std::max(4U, std::min(16U, res));
+		this->resolution = res;
 
 		/*
 		 * If the user didn't give a rscale_max we calculate one that covers
@@ -303,7 +302,9 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask, const PixelScal
 			return;
 		}
 
-		double x_prof, y_prof, r_prof;
+		double x_prof;
+		double y_prof;
+		double r_prof;
 		double y = half_ybin + j * scale.second;
 		double x = half_xbin + i * scale.first;
 		this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
@@ -322,14 +323,14 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask, const PixelScal
 		}
 		else {
 
-			unsigned int resolution;
-			unsigned int max_recursions;
-			this->subsampling_params(x, y, resolution, max_recursions);
+			unsigned int ss_resolution;
+			unsigned int ss_max_recursions;
+			this->subsampling_params(x, y, ss_resolution, ss_max_recursions);
 
 			/* Subsample and integrate */
 			pixel_val =  this->subsample_pixel(x - half_xbin, x + half_xbin,
-											   y - half_ybin, y + half_ybin,
-											   0, max_recursions, resolution);
+			                                   y - half_ybin, y + half_ybin,
+			                                   0, ss_max_recursions, ss_resolution);
 		}
 
 		image[i + j * width] = flux_scale * pixel_val;
