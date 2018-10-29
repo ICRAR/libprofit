@@ -178,7 +178,7 @@ public:
 	}
 
 	void test_brute_convolver_NONE() {
-		_test_simd_convolver(simd_instruction_set::AVX);
+		_test_simd_convolver(simd_instruction_set::NONE);
 	}
 
 	void test_brute_convolver_AUTO() {
