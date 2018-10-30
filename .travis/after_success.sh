@@ -47,5 +47,5 @@ sonar-scanner \
     -Dsonar.projectKey=libprofit \
     -Dsonar.organization=rtobar-github \
     -Dsonar.cfamily.build-wrapper-output=bw-output \
-    -Dsonar.exclusions=profit/cl/cl2.hpp \
+    -Dsonar.exclusions=profit/cl/cl2.hpp,src/profit-cli.cpp,src/fits_utils.cpp,profit/fits_utils.h \
     -Dsonar.cfamily.gcov.reportsPath=gcov-reports
