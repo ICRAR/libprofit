@@ -27,6 +27,8 @@
 #ifndef PROFIT_OMP_UTILS_H_
 #define PROFIT_OMP_UTILS_H_
 
+#include "profit/common.h"
+
 namespace profit {
 
 /**
@@ -59,6 +61,7 @@ void omp_2d_for(int threads, unsigned int width, unsigned int height, Callable &
 		f(i, j);
 	}
 #else
+	UNUSED(threads);
 	for (unsigned int j = 0; j < height; j++) {
 		for (unsigned int i = 0; i < width; i++) {
 			f(i, j);

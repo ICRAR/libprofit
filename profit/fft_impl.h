@@ -115,7 +115,6 @@ public:
 private:
 	unsigned int size;
 	unsigned int hermitian_size;
-	unsigned int omp_threads;
 	std::unique_ptr<double, fftw_deleter<double>> real_buf;
 	std::unique_ptr<fftw_complex, fftw_deleter<fftw_complex>> complex_buf;
 	fftw_plan forward_plan;

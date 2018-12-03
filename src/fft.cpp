@@ -79,7 +79,6 @@ T *_fftw_buf(std::size_t size)
 
 FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsigned int omp_threads) :
 	size(size), hermitian_size(size / 2 + 1),
-	omp_threads(omp_threads),
 	real_buf(_fftw_buf<double>(size)), complex_buf(_fftw_buf<fftw_complex>(hermitian_size)),
 	forward_plan(nullptr),
 	backward_plan(nullptr)
