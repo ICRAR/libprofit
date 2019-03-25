@@ -37,19 +37,19 @@ then
 		brew update
 	fi
 
-	# The xcode 8.3 and 9.3 images need oclint to be uninstalled
-	# (see travis-ci issue #8826)
-	if [ "${XCODE}" = "8.3" -o "${XCODE}" = "9.3" ]
-	then
-		brew cask uninstall oclint
-	fi
-
 	# cxxtest pulls python@2, so we need to unlink
 	# the pre-installed python first
 	brew unlink python
 
 	# Minimal dependencies for testing
-	brew install gsl fftw cxxtest
+	brew install gsl cxxtest
+
+	# 7.3 (El Capitan) mostly doesn't have associated bottles anymore,
+	# and fftw is pulling both gcc and open-mpi, which take way too long
+	# to compile; let's simply skip this one
+	if [ "${XCODE}" != "7.3" ]; then
+		brew install fftw
+	fi
 	return
 fi
 
