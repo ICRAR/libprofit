@@ -34,7 +34,7 @@ fi
 cd ${TRAVIS_BUILD_DIR}
 
 # Get coverage results and upload to coveralls
-coveralls --gcov `which gcov-6` -b build --gcov-options '\-lp' -r . -i ./src -i ./profit -e src/profit-cli.cpp -E '.*fits_utils.*'
+coveralls --gcov `which gcov-6` -b build --gcov-options '\-lp' -r . -i ./src -i ./include/profit -e src/profit-cli.cpp -E '.*fits_utils.*'
 
 # Re-generate the coverage results (manually this time),
 # check the code quality, and upload all results to sonarqube
@@ -43,9 +43,9 @@ cd gcov-reports
 gcov-6 -lp ../build/CMakeFiles/profit.dir/src/*.gcno ../build/CMakeFiles/profit-cli.dir/src/*.gcno
 cd ..
 sonar-scanner \
-    -Dsonar.sources=src,profit \
+    -Dsonar.sources=src,include/profit \
     -Dsonar.projectKey=libprofit \
     -Dsonar.organization=rtobar-github \
     -Dsonar.cfamily.build-wrapper-output=bw-output \
-    -Dsonar.exclusions=profit/cl/cl2.hpp,src/profit-cli.cpp,src/fits_utils.cpp,profit/fits_utils.h \
+    -Dsonar.exclusions=include/profit/cl/cl2.hpp,src/profit-cli.cpp,src/fits_utils.cpp,include/profit/fits_utils.h \
     -Dsonar.cfamily.gcov.reportsPath=gcov-reports
