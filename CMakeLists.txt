@@ -287,12 +287,12 @@ endif()
 # Create the final configuration file that records
 # the compile-time options used for this libprofit build
 #
-configure_file(profit/config.h.in profit/config.h @ONLY)
+configure_file(include/profit/config.h.in profit/config.h @ONLY)
 
 #
 # Common definitions for the shared lib and the binary
 #
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 
 #
 # MSVC builds need the 3rdparty/getopt submodule to be checked out,
