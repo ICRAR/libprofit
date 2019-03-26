@@ -360,7 +360,11 @@ set(PROFIT_SRC
    src/sky.cpp
    src/utils.cpp
 )
-add_library(profit SHARED ${PROFIT_SRC} ${OPENCL_KERNEL_HEADERS})
+set(LIB_TYPE SHARED)
+if (MSVC)
+	set(LIB_TYPE STATIC)
+endif()
+add_library(profit ${LIB_TYPE} ${PROFIT_SRC} ${OPENCL_KERNEL_HEADERS})
 target_link_libraries(profit ${profit_LIBS})
 set(PROFIT_TARGETS profit)
 
