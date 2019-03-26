@@ -52,6 +52,13 @@ public:
 	}
 };
 
+class fftw_plan_destroyer {
+public:
+	void operator()(fftw_plan_s *p) {
+		fftw_destroy_plan(p);
+	}
+};
+
 /**
  * An FFT transformer that turns real numbers into complex numbers and back.
  *
@@ -75,11 +82,6 @@ public:
 	 * @param omp_threads The number of threads to use to execute the plan
 	 */
 	FFTRealTransformer(unsigned int size, effort_t effort, unsigned int omp_threads);
-
-	/**
-	 * Destructor. It destroys the underlying plans.
-	 */
-	~FFTRealTransformer();
 
 	/**
 	 * Transforms a container of numbers into their Fourier Transform. The
@@ -117,8 +119,8 @@ private:
 	unsigned int hermitian_size;
 	std::unique_ptr<double, fftw_deleter<double>> real_buf;
 	std::unique_ptr<fftw_complex, fftw_deleter<fftw_complex>> complex_buf;
-	fftw_plan forward_plan;
-	fftw_plan backward_plan;
+	std::unique_ptr<fftw_plan_s, fftw_plan_destroyer> forward_plan;
+	std::unique_ptr<fftw_plan_s, fftw_plan_destroyer> backward_plan;
 };
 
 }  // namespace profit

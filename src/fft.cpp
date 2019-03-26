@@ -88,26 +88,16 @@ FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsig
 #endif /* PROFIT_FFTW_OPENMP */
 
 	int fftw_effort = get_fftw_effort(effort);
-	forward_plan = fftw_plan_dft_r2c_1d(size, real_buf.get(), complex_buf.get(), FFTW_DESTROY_INPUT | fftw_effort);
-	if (!forward_plan) {
+	auto fwd_plan = fftw_plan_dft_r2c_1d(size, real_buf.get(), complex_buf.get(), FFTW_DESTROY_INPUT | fftw_effort);
+	if (!fwd_plan) {
 		throw fft_error("Error creating forward plan");
 	}
-	backward_plan = fftw_plan_dft_c2r_1d(size, complex_buf.get(), real_buf.get(), FFTW_DESTROY_INPUT | fftw_effort);
-	if (!backward_plan) {
+	auto bwd_plan = fftw_plan_dft_c2r_1d(size, complex_buf.get(), real_buf.get(), FFTW_DESTROY_INPUT | fftw_effort);
+	if (!bwd_plan) {
 		throw fft_error("Error creating backward plan");
 	}
-}
-
-FFTRealTransformer::~FFTRealTransformer()
-{
-	if (forward_plan) {
-		fftw_destroy_plan(forward_plan);
-		forward_plan = nullptr;
-	}
-	if (backward_plan) {
-		fftw_destroy_plan(backward_plan);
-		backward_plan = nullptr;
-	}
+	forward_plan.reset(fwd_plan);
+	backward_plan.reset(bwd_plan);
 }
 
 template <typename T>
@@ -116,7 +106,7 @@ void FFTRealTransformer::forward(const T &input, std::vector<std::complex<double
 	check_size(input, size);
 	check_size(output, hermitian_size);
 	std::copy(input.begin(), input.end(), real_buf.get());
-	fftw_execute(forward_plan);
+	fftw_execute(forward_plan.get());
 	std::memcpy(output.data(), complex_buf.get(), sizeof(fftw_complex) * hermitian_size);
 }
 
@@ -126,7 +116,7 @@ void FFTRealTransformer::backward(const std::vector<std::complex<double>> &input
 	check_size(input, hermitian_size);
 	check_size(output, size);
 	std::memcpy(complex_buf.get(), input.data(), sizeof(fftw_complex) * hermitian_size);
-	fftw_execute(backward_plan);
+	fftw_execute(backward_plan.get());
 	std::copy(real_buf.get(), real_buf.get() + size, output.begin());
 }
 
