@@ -31,6 +31,7 @@
 #include <utility>
 
 #include "profit/image.h"
+#include "profit/utils.h"
 
 namespace profit {
 
@@ -217,10 +218,9 @@ void _downsample_avg(const Dimensions &down_dims, unsigned int factor, const Ima
 		}
 	}
 }
+
 Image Image::downsample(unsigned int factor, DownsamplingMode mode) const
 {
-	using std::ceil;
-
 	if (factor == 0) {
 		throw std::invalid_argument("downsampling factor is 0");
 	}
@@ -229,8 +229,7 @@ Image Image::downsample(unsigned int factor, DownsamplingMode mode) const
 	}
 
 	auto dims = getDimensions();
-	auto down_dims = Dimensions{static_cast<unsigned int>(ceil(dims.x / float(factor))),
-	                            static_cast<unsigned int>(ceil(dims.y / float(factor)))};
+	auto down_dims = Dimensions{ceil_div(dims.x, factor), ceil_div(dims.y, factor)};
 	Image downsampled(down_dims);
 
 	// The following implementations might not be ideal, but our images are not
