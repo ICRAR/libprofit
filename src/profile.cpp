@@ -150,7 +150,7 @@ void Profile::parameter(const std::string &param_spec)
 
 	bool found = (
 		set_parameter(bool_parameters, pname, get_name(), val, [](const std::string &s) { return std::stoul(s, nullptr, 10); }) ||
-		set_parameter(uint_parameters, pname, get_name(), val, [](const std::string &s) { return std::stoul(s, nullptr, 10); }) ||
+		set_parameter(uint_parameters, pname, get_name(), val, [](const std::string &s) { return stoui(s); }) ||
 		set_parameter(double_parameters, pname, get_name(), val, [](const std::string &s) { return std::stod(s); })
 	);
 

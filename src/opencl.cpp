@@ -133,9 +133,9 @@ static cl_ver_t get_opencl_version(const std::string &version)
 		throw opencl_error("OpenCL version doesn't contain a dot: " + opencl_version);
 	}
 
-	unsigned long major = stoul(opencl_version.substr(0, dot_idx));
-	unsigned long minor = stoul(opencl_version.substr(dot_idx+1, opencl_version.npos));
-	return major*100U + minor*10U;
+	auto major = stoui(opencl_version.substr(0, dot_idx));
+	auto minor = stoui(opencl_version.substr(dot_idx+1, opencl_version.npos));
+	return major * 100U + minor * 10U;
 }
 
 static cl_ver_t get_opencl_version(const cl::Platform &platform) {

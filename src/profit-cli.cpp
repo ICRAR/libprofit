@@ -104,8 +104,8 @@ Image parse_psf(std::string optarg, Model &m)
 	}
 
 	auto it = tokens.begin();
-	unsigned int psf_width = std::stoul(*it++);
-	unsigned int psf_height = std::stoul(*it++);
+	unsigned int psf_width = stoui(*it++);
+	unsigned int psf_height = stoui(*it++);
 	if( read_scales ) {
 		double psf_scale_x = std::stod(*it++);
 		double psf_scale_y = std::stod(*it++);
@@ -489,13 +489,13 @@ int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr
 				if( tokens.size() != 3 ) {
 					throw invalid_cmdline("-C argument must be of the form 'p,d,D' (e.g., -C 0,1,0)");
 				}
-				clplat_idx = std::stoul(tokens[0].c_str());
-				cldev_idx = std::stoul(tokens[1].c_str());
-				use_double = std::stoul(tokens[2].c_str());
+				clplat_idx = stoui(tokens[0].c_str());
+				cldev_idx = stoui(tokens[1].c_str());
+				use_double = bool(stoui(tokens[2].c_str()));
 				break;
 
 			case 'n':
-				m.set_omp_threads(std::stoul(optarg));
+				m.set_omp_threads(stoui(optarg));
 				convolver_prefs.omp_threads = m.get_omp_threads();
 				break;
 
@@ -519,15 +519,15 @@ int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr
 				break;
 
 			case 'w':
-				width = std::stoul(optarg);
+				width = stoui(optarg);
 				break;
 
 			case 'H':
-				height = std::stoul(optarg);
+				height = stoui(optarg);
 				break;
 
 			case 'S':
-				finesampling = std::stoul(optarg);
+				finesampling = stoui(optarg);
 				break;
 
 			case 'F':
@@ -556,7 +556,7 @@ int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr
 				break;
 
 			case 'i':
-				iterations = std::stoul(optarg);
+				iterations = stoui(optarg);
 				break;
 
 			default:
