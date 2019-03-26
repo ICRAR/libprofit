@@ -27,6 +27,7 @@
 #ifndef PROFIT_UTILS_H
 #define PROFIT_UTILS_H
 
+#include <string>
 #include <vector>
 
 #include "profit/common.h"
@@ -181,6 +182,27 @@ PROFIT_API std::string &trim(std::string &s);
  * @return The new trimmed string
  */
 PROFIT_API std::string trim(const std::string &s);
+
+/**
+ * Like std::stoul, but returns an unsigned int
+ * @param s The string to convert
+ * @return The unsigned int
+ */
+inline unsigned int stoui(const std::string &s)
+{
+	return static_cast<unsigned int>(std::stoul(s));
+}
+
+/**
+ * Returns the ceiling of the division between @p x and @p y
+ * @param x The dividend
+ * @param y The divisor
+ * @return The ceiling of divind @p x by @p y
+ */
+inline unsigned int ceil_div(unsigned int x, unsigned int y)
+{
+	return (x + y - 1) / y;
+}
 
 } /* namespace profit */
 
