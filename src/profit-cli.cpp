@@ -237,8 +237,8 @@ void usage(std::basic_ostream<T> &os, char *prog_name) {
 }
 
 static
-	int nchars = prefix.size() + stat_name.size();
 void print_stats_line(std::ostream &os, const std::string &prefix, const std::string &stat_name, nsecs_t nsecs) {
+	int nchars = int(prefix.size() + stat_name.size());
 	int nspaces = std::max(0, 50 - nchars);
 	std::string spaces(nspaces, ' ');
 	os << prefix << stat_name << spaces << " : " << std::setw(10)

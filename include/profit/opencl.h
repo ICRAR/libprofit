@@ -62,7 +62,7 @@ public:
  */
 struct PROFIT_API OpenCL_times {
 	nsecs_t kernel_prep;
-	unsigned int nwork_items;
+	size_t nwork_items;
 	OpenCL_command_times writing_times;
 	OpenCL_command_times reading_times;
 	OpenCL_command_times filling_times;

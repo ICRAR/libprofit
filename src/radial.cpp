@@ -402,8 +402,8 @@ unsigned int new_subsampling_points(const std::vector<ss_info_t<FT>> &prev_ss_in
 		// and contains res*res subsampling points
 		FT x0 = x - info.xbin / 2;
 		FT y0 = y - info.ybin / 2;
-		FT ss_xbin = info.xbin / res;
-		FT ss_ybin = info.ybin / res;
+		FT ss_xbin = info.xbin / FT(res);
+		FT ss_ybin = info.ybin / FT(res);
 
 		// we can't cope with more subsampling, sorry
 		if( ss_xbin == 0 || ss_ybin == 0 ) {
@@ -412,9 +412,9 @@ unsigned int new_subsampling_points(const std::vector<ss_info_t<FT>> &prev_ss_in
 
 		subsampled_pixels++;
 		for(unsigned int j=0; j!=res; j++) {
-			FT y_diff = (j + 0.5) * ss_ybin;
+			FT y_diff = (FT(j) + FT(0.5)) * ss_ybin;
 			for(unsigned int i=0; i!=res; i++) {
-				FT x_diff = (i + 0.5) * ss_xbin;
+				FT x_diff = (FT(i) + FT(0.5)) * ss_xbin;
 				ss_info.push_back({
 					{x0 + x_diff, y0 + y_diff},
 					ss_xbin, ss_ybin,
@@ -637,7 +637,7 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 
 				FT val = kinfo.val;
 				for(unsigned int i=0; i<=recur_level; i++) {
-					val /= (ss_info_it->resolution * ss_info_it->resolution);
+					val /= FT(ss_info_it->resolution * ss_info_it->resolution);
 				}
 
 				subimages_results[subimage_idx].point = std::move(ss_info_it->point);
@@ -674,8 +674,8 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelS
 	t_loopend = system_clock::now();
 
 	std::for_each(subimages_results.begin(), subimages_results.end(), [&image, &scale](const im_result_t &res) {
-		FT x = res.point.x / scale.first;
-		FT y = res.point.y / scale.second;
+		FT x = FT(res.point.x / scale.first);
+		FT y = FT(res.point.y / scale.second);
 		unsigned int idx = static_cast<unsigned int>(floor(x)) + static_cast<unsigned int>(floor(y)) * image.getWidth();
 		image[idx] += res.value;
 	});
