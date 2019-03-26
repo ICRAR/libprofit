@@ -380,7 +380,8 @@ set(PROFIT_TARGETS ${PROFIT_TARGETS} profit-cli)
 #
 install(TARGETS ${PROFIT_TARGETS}
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 install(FILES
        ${CMAKE_CURRENT_BINARY_DIR}/profit/config.h
         profit/common.h
