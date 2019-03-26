@@ -42,15 +42,7 @@
 #endif
 
 // Proper function exporting/importing under Windows
-#ifdef _WIN32
-# ifdef profit_EXPORTS
-#  define PROFIT_API __declspec(dllexport)
-# else
-#  define PROFIT_API __declspec(dllimport)
-# endif
-#else
-# define PROFIT_API
-#endif
+#define PROFIT_API
 
 /* Sometimes we don't use all arguments */
 #define UNUSED(x) do { (void)x; } while(0)
