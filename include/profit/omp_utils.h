@@ -55,7 +55,7 @@ void omp_2d_for(int threads, unsigned int width, unsigned int height, Callable &
 	}
 #elif _OPENMP >= 200203 // OpenMP 2.0. No "collapse", signed int loop variable
 #pragma omp parallel for schedule(dynamic, 10) if(threads > 1) num_threads(threads)
-	for (int x = 0; x < width * height; x++) {
+	for (int x = 0; x < int(width * height); x++) {
 		unsigned int i = x % width;
 		unsigned int j = x / width;
 		f(i, j);
