@@ -44,6 +44,7 @@ public:
 	_2dcoordinate(unsigned int x, unsigned int y) : x(x), y(y) {}
 	_2dcoordinate(const _2dcoordinate &other) : x(other.x), y(other.y) {}
 	_2dcoordinate(_2dcoordinate &&other) : x(other.x), y(other.y) { other.x = 0; other.y = 0; }
+	~_2dcoordinate() = default;
 
 	unsigned int x;
 	unsigned int y;
@@ -161,17 +162,6 @@ public:
 		// no-op
 	}
 
-	surface_base(const surface_base &other) :
-		dimensions(other.dimensions)
-	{
-		// no-op
-	}
-
-	surface_base(surface_base &&other) :
-		dimensions(std::move(other.dimensions))
-	{
-	}
-
 	unsigned int getHeight() const {
 		return dimensions.y;
 	}
@@ -200,20 +190,6 @@ public:
 	/// Comparison operator
 	bool operator==(const surface_base &other) const {
 		return dimensions == other.dimensions;
-	}
-
-	/// Move assignment
-	surface_base &operator=(surface_base &&rhs)
-	{
-		dimensions = std::move(rhs.dimensions);
-		return *this;
-	}
-
-	/// Copy assignment
-	surface_base &operator=(const surface_base &rhs)
-	{
-		dimensions = rhs.dimensions;
-		return *this;
 	}
 
 protected:
@@ -294,28 +270,6 @@ public:
 	}
 
 	/**
-	 * Copy constructor
-	 * @param other A different image
-	 */
-	surface(const surface &other) :
-		surface_base(other),
-		_data(other._data)
-	{
-		check_size();
-	}
-
-	/**
-	 * Move constructor
-	 * @param other A different image
-	 */
-	surface(surface &&other) :
-		surface_base(std::move(other)),
-		_data(std::move(other._data))
-	{
-		// no-op
-	}
-
-	/**
 	 * Assigns zero to all elements of this Image.
 	 */
 	void zero() {
@@ -387,22 +341,6 @@ public:
 	bool operator==(const surface &other) const {
 		return surface_base::operator==(other) &&
 		       _data == other._data;
-	}
-
-	/// Move assignment
-	surface &operator=(surface &&rhs)
-	{
-		surface_base::operator=(std::move(rhs));
-		_data = std::move(rhs._data);
-		return *this;
-	}
-
-	/// Copy assignment
-	surface &operator=(const surface &rhs)
-	{
-		surface_base::operator=(rhs);
-		_data = rhs._data;
-		return *this;
 	}
 
 	/// subscript operator
@@ -477,25 +415,6 @@ public:
 	Mask(const std::vector<bool> &data, Dimensions dimensions);
 	Mask(std::vector<bool> &&data, unsigned int width, unsigned int height);
 	Mask(std::vector<bool> &&data, Dimensions dimensions);
-	Mask(const Mask& other);
-	Mask(Mask &&other);
-
-	// Move and copy assignment need to be declared because we explicitly
-	// declare constructors for this class
-
-	/// Move assignment
-	Mask &operator=(Mask &&rhs)
-	{
-		surface::operator=(std::move(rhs));
-		return *this;
-	}
-
-	/// Copy assignment
-	Mask &operator=(const Mask &rhs)
-	{
-		surface::operator=(rhs);
-		return *this;
-	}
 
 };
 
@@ -513,8 +432,6 @@ public:
 	Image(const std::vector<double> &data, Dimensions dimensions);
 	Image(std::vector<double> &&data, unsigned int width, unsigned int height);
 	Image(std::vector<double> &&data, Dimensions dimensions);
-	Image(const Image& other);
-	Image(Image &&other);
 
 	/** Available image upsampling modes */
 	enum UpsamplingMode {
@@ -624,23 +541,6 @@ public:
 	 */
 	const value_type *data() const {
 		return _get().data();
-	}
-
-	// Move and copy assignment need to be declared because we explicitly
-	// declare constructors for this class
-
-	/// Move assignment
-	Image &operator=(Image &&rhs)
-	{
-		surface::operator=(std::move(rhs));
-		return *this;
-	}
-
-	/// Copy assignment
-	Image &operator=(const Image &rhs)
-	{
-		surface::operator=(rhs);
-		return *this;
 	}
 
 	/// Addition assignment of another Image
