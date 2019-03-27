@@ -24,7 +24,6 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <algorithm>
 #include <functional>
 #include <memory>
 #include <sstream>
@@ -141,10 +140,7 @@ Image AssociativeBruteForceConvolver<SIMD>::convolve(const Image &src, const Ima
 	const unsigned int krn_half_width = krn_width / 2;
 	const unsigned int krn_half_height = krn_height / 2;
 
-	std::vector<double> krn_data = krn;
-	std::reverse(krn_data.begin(), krn_data.end());
-	Image ikrn(std::move(krn_data), krn.getDimensions());
-
+	Image ikrn = krn.reverse();
 	Image convolution(src_dims);
 
 	const size_t src_krn_offset = krn_half_width + krn_half_height*src_width;

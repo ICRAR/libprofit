@@ -28,6 +28,7 @@
 #ifndef PROFIT_IMAGE_H
 #define PROFIT_IMAGE_H
 
+#include <algorithm>
 #include <stdexcept>
 #include <vector>
 
@@ -335,6 +336,20 @@ public:
 			}
 		}
 		return crop;
+	}
+
+	/**
+	 * Returns a copy of this surface with its underlying values in the reversed
+	 * order, such that the top-right corner is now that bottom-left corner and
+	 * vice-versa.
+	 *
+	 * @return A new object with reversed values
+	 */
+	D reverse() const
+	{
+		D reversed(static_cast<const D &>(*this));
+		std::reverse(reversed.begin(), reversed.end());
+		return reversed;
 	}
 
 	/// Comparison operator

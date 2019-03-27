@@ -529,4 +529,17 @@ public:
 			TS_ASSERT_DELTA(downsampled2[expectation.first], expectation.second, 1e-8);
 		}
 	}
+
+	void test_reverse()
+	{
+		Image im {{0, 1, 2, 3, 4, 5}, 2, 3};
+		auto reversed = im.reverse();
+		std::vector<std::pair<Point, double>> expectations {
+			{{0, 0}, 5}, {{1, 0}, 4}, {{0, 1}, 3}, {{1, 1}, 2}, {{0, 2}, 1}, {{1, 2}, 0}
+		};
+		for(auto& expectation: expectations) {
+			TS_ASSERT_EQUALS(reversed[expectation.first], expectation.second);
+		}
+
+	}
 };
