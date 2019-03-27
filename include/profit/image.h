@@ -248,7 +248,7 @@ public:
 	typedef typename std::vector<T>::iterator iterator;
 	typedef typename std::vector<T>::const_iterator const_iterator;
 
-	surface(Dimensions dimensions = Dimensions()) :
+	explicit surface(Dimensions dimensions = Dimensions()) :
 		surface_base(dimensions),
 		_data(dimensions.x * dimensions.y)
 	{
@@ -394,7 +394,7 @@ public:
 	const_iterator cend() const { return _data.cend(); }
 
 	/// type casting to std::vector<T>
-	operator std::vector<T>() const {
+	explicit operator std::vector<T>() const {
 		return std::vector<T>(_data);
 	}
 
