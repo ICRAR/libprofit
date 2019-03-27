@@ -72,7 +72,7 @@ template <simd_instruction_set SIMD>
 class AssociativeBruteForceConvolver : public Convolver {
 
 public:
-	AssociativeBruteForceConvolver(unsigned int omp_threads) : omp_threads(omp_threads) {};
+	explicit AssociativeBruteForceConvolver(unsigned int omp_threads) : omp_threads(omp_threads) {};
 
 	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
