@@ -63,8 +63,10 @@ public:
 	}
 
 	_2dcoordinate &operator=(const _2dcoordinate &other) {
-		x = other.x;
-		y = other.y;
+		if (&other != this) {
+			x = other.x;
+			y = other.y;
+		}
 		return *this;
 	}
 
