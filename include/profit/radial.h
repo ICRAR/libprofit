@@ -91,10 +91,13 @@ protected:
 	 */
 	double boxy_r(double x, double y) const
 	{
-		using std::pow;
-		using std::abs;
+		if (box == 0) {
+			return std::sqrt(x * x + y * y);
+		}
 		double box_plus_2 = box + 2.;
-		return pow(pow(abs(x), box_plus_2) + pow(abs(y), box_plus_2), 1./box_plus_2);
+		return std::pow(std::pow(std::abs(x), box_plus_2) +
+		                    std::pow(std::abs(y), box_plus_2),
+		                1. / box_plus_2);
 	}
 
 	/**
