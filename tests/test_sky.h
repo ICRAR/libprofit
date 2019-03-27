@@ -39,7 +39,7 @@ public:
 		auto skyprof = m.add_profile("sky");
 		skyprof->parameter("bg", 1.);
 
-		std::vector<double> image = m.evaluate();
+		auto image = m.evaluate();
 		for(auto pixel: image) {
 			TS_ASSERT_EQUALS(1, pixel);
 		}

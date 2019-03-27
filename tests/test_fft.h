@@ -133,9 +133,9 @@ public:
 
 		// evaluate normally first, and then using the FFTPlan
 		m.set_convolver(nullptr);
-		std::vector<double> original = m.evaluate();
+		auto original = m.evaluate();
 		m.set_convolver(test_case.fft_convolver);
-		std::vector<double> fft_produced = m.evaluate();
+		auto fft_produced = m.evaluate();
 
 		// Pixel by pixel the images should be fairly similar
 		for(unsigned int i=0; i!=original.size(); i++) {
