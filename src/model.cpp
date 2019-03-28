@@ -69,46 +69,46 @@ bool Model::has_profiles() const {
 	return this->profiles.size() > 0;
 }
 
-std::shared_ptr<Profile> Model::add_profile(const std::string &profile_name) {
-
-	using std::make_shared;
-
-	std::shared_ptr<Profile> profile;
-	if (profile_name == "null") {
-		profile = make_shared<NullProfile>(*this, profile_name);
-	}
-	else if( profile_name == "sky" ) {
-		profile = make_shared<SkyProfile>(*this, profile_name);
-	}
-	else if ( profile_name == "sersic" ) {
-		profile = make_shared<SersicProfile>(*this, profile_name);
-	}
-	else if ( profile_name == "moffat" ) {
-		profile = make_shared<MoffatProfile>(*this, profile_name);
-	}
-	else if ( profile_name == "ferrer" || profile_name == "ferrers" ) {
-		profile = make_shared<FerrerProfile>(*this, profile_name);
-	}
-	else if ( profile_name == "coresersic" ) {
-		profile = make_shared<CoreSersicProfile>(*this, profile_name);
-	}
-	else if ( profile_name == "king" ) {
-		profile = make_shared<KingProfile>(*this, profile_name);
-	}
-	else if ( profile_name == "brokenexp" ) {
-		profile = make_shared<BrokenExponentialProfile>(*this, profile_name);
-	}
-	else if ( profile_name == "psf" ) {
-		profile = make_shared<PsfProfile>(*this, profile_name);
-	}
-	else {
-		std::ostringstream ss;
-		ss << "Unknown profile name: " << profile_name;
-		throw invalid_parameter(ss.str());
-	}
-
+template <typename P>
+ProfilePtr Model::make_profile(const std::string &profile_name)
+{
+	auto profile = std::make_shared<P>(*this, profile_name);
 	this->profiles.push_back(profile);
 	return profile;
+}
+
+ProfilePtr Model::add_profile(const std::string &profile_name)
+{
+	if (profile_name == "null") {
+		return make_profile<NullProfile>(profile_name);
+	}
+	else if (profile_name == "sky") {
+		return make_profile<SkyProfile>(profile_name);
+	}
+	else if (profile_name == "sersic") {
+		return make_profile<SersicProfile>(profile_name);
+	}
+	else if (profile_name == "moffat") {
+		return make_profile<MoffatProfile>(profile_name);
+	}
+	else if (profile_name == "ferrer" || profile_name == "ferrers") {
+		return make_profile<FerrerProfile>(profile_name);
+	}
+	else if (profile_name == "coresersic") {
+		return make_profile<CoreSersicProfile>(profile_name);
+	}
+	else if (profile_name == "king") {
+		return make_profile<KingProfile>(profile_name);
+	}
+	else if (profile_name == "brokenexp") {
+		return make_profile<BrokenExponentialProfile>(profile_name);
+	}
+	else if (profile_name == "psf") {
+		return make_profile<PsfProfile>(profile_name);
+	}
+	std::ostringstream ss;
+	ss << "Unknown profile name: " << profile_name;
+	throw invalid_parameter(ss.str());
 }
 
 static

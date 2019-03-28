@@ -331,6 +331,9 @@ private:
 	unsigned int omp_threads;
 	std::vector<ProfilePtr> profiles;
 
+	template <typename P>
+	ProfilePtr make_profile(const std::string &name);
+
 	friend class PsfProfile;
 	friend class RadialProfile;
 };
