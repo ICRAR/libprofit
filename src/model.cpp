@@ -150,7 +150,7 @@ Image Model::evaluate(Point &offset_out) {
 	 * Validate all profiles.
 	 * Each profile can fail during validation in which case we don't proceed any further
 	 */
-	for(auto profile: this->profiles) {
+	for(auto &profile: this->profiles) {
 		profile->validate();
 	}
 
@@ -238,7 +238,7 @@ Image Model::evaluate(Point &offset_out) {
 
 std::map<std::string, std::shared_ptr<ProfileStats>> Model::get_stats() const {
 	std::map<std::string, std::shared_ptr<ProfileStats>> stats;
-	for(auto p: profiles) {
+	for(auto &p: profiles) {
 		stats[p->get_name()] = p->get_stats();
 	}
 	return stats;
@@ -247,7 +247,7 @@ std::map<std::string, std::shared_ptr<ProfileStats>> Model::get_stats() const {
 #ifdef PROFIT_DEBUG
 std::map<std::string, std::map<int, int>> Model::get_profile_integrations() const {
 	std::map<std::string, std::map<int, int>> profile_integrations;
-	for(auto p: profiles) {
+	for(auto &p: profiles) {
 		RadialProfile *rp = dynamic_cast<RadialProfile *>(p.get());
 		if( rp ) {
 			profile_integrations[rp->get_name()] = rp->get_integrations();
