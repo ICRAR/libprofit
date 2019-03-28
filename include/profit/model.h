@@ -150,7 +150,7 @@ public:
 	 * @see set_psf(const Image &psf)
 	 */
 	void set_psf(Image &&psf) {
-		this->psf = psf;
+		this->psf = std::move(psf);
 	}
 
 	/**
@@ -220,7 +220,7 @@ public:
 	 * @see set_mask(const Mask &mask)
 	 */
 	void set_mask(Mask &&mask) {
-		this->mask = mask;
+		this->mask = std::move(mask);
 	}
 
 	/**
