@@ -56,4 +56,4 @@ then
 fi
 
 # Go, go, go!
-eval cmake .. ${LIBPROFIT_CMAKE_OPTIONS}
+eval cmake .. ${LIBPROFIT_CMAKE_OPTIONS} -DCMAKE_INSTALL_PREFIX="$HOME/libprofit_installation"
