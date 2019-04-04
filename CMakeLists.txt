@@ -384,17 +384,17 @@ install(TARGETS ${PROFIT_TARGETS}
         ARCHIVE DESTINATION lib)
 install(FILES
        ${CMAKE_CURRENT_BINARY_DIR}/profit/config.h
-        profit/common.h
-        profit/convolve.h
-        profit/exceptions.h
-        profit/fft.h
-        profit/image.h
-        profit/library.h
-        profit/model.h
-        profit/opencl.h
-        profit/profile.h
-        profit/profit.h
-        profit/utils.h
+        include/profit/common.h
+        include/profit/convolve.h
+        include/profit/exceptions.h
+        include/profit/fft.h
+        include/profit/image.h
+        include/profit/library.h
+        include/profit/model.h
+        include/profit/opencl.h
+        include/profit/profile.h
+        include/profit/profit.h
+        include/profit/utils.h
         DESTINATION include/profit)
 
 #
