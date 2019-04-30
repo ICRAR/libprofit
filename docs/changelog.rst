@@ -5,6 +5,13 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
+.. rubric:: Development
+
+* Several performance and code improvements,
+  like removing unnecessary code,
+  avoiding unnecessary conversions
+  and avoiding a few dynamic allocations.
+
 .. rubric:: 1.8.2
 
 * Users can now select the underlying
