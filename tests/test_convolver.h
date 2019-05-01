@@ -22,6 +22,7 @@
 // MA 02111-1307  USA
 //
 
+#include <random>
 #include "common_test_setup.h"
 
 using namespace profit;
@@ -29,6 +30,18 @@ using namespace profit;
 class TestConvolver : public CxxTest::TestSuite {
 
 private:
+
+	Image uniform_random_image(Dimensions dim)
+	{
+		Image image(dim);
+		std::random_device dev;
+		std::default_random_engine engine(dev());
+		std::uniform_real_distribution<double> uniform(0, 1);
+		for(auto &d: image) {
+			d = uniform(engine);
+		}
+		return image;
+	}
 
 	void _pixels_within_tolerance(const Image &original_im, const Image &new_im,
 	                              unsigned int i, double tolerance) {
@@ -56,18 +69,11 @@ private:
 	}
 
 	void _check_convolver(ConvolverPtr &&otherConvolver) {
-		for(auto im_dim: {100, 101}) {
-			for(auto krn_dim: {24, 25}) {
+		for(auto im_dim: {100U, 101U}) {
+			for(auto krn_dim: {24U, 25U}) {
 				Mask mask;
-				Image src(im_dim, im_dim);
-				Image krn(krn_dim, krn_dim);
-				for(auto &d: src) {
-					d = (rand() % 10000) / 10000.0;
-				}
-				for(auto &d: krn) {
-					d = (rand() % 10000) / 10000.0;
-				}
-
+				auto src = uniform_random_image({im_dim, im_dim});
+				auto krn = uniform_random_image({krn_dim, krn_dim});
 				auto bConvolver = create_convolver(ConvolverType::BRUTE_OLD);
 				Image result1 = bConvolver->convolve(src, krn, mask);
 				Image result2 = otherConvolver->convolve(src, krn, mask);
@@ -81,18 +87,9 @@ private:
 
 	void _test_openmp_convolver(ConvolverType type) {
 
-		// Random images
-		auto im_dim = 50;
-		auto krn_dim = 25;
-		Image src(im_dim, im_dim);
-		Image krn(krn_dim, krn_dim);
+		auto src = uniform_random_image({50, 50});
+		auto krn = uniform_random_image({25, 25});
 		Mask mask;
-		for(auto &d: src) {
-			d = (rand() % 10000) / 10000.0;
-		}
-		for(auto &d: krn) {
-			d = (rand() % 10000) / 10000.0;
-		}
 
 		// A normal and an OpenMP-accelerated brute-force convolver
 		auto prefs = ConvolverCreationPreferences();
