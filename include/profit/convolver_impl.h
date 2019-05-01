@@ -40,7 +40,7 @@ public:
 	explicit BruteForceConvolver(unsigned int omp_threads) :
 		omp_threads(omp_threads) {}
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
+	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	unsigned int omp_threads;
@@ -74,7 +74,7 @@ class AssociativeBruteForceConvolver : public Convolver {
 public:
 	explicit AssociativeBruteForceConvolver(unsigned int omp_threads) : omp_threads(omp_threads) {};
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
+	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	unsigned int omp_threads;
@@ -110,7 +110,7 @@ public:
 	             effort_t effort, unsigned int plan_omp_threads,
 	             bool reuse_krn_fft);
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
+	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	std::unique_ptr<FFTRealTransformer> fft_transformer;
@@ -139,7 +139,7 @@ class OpenCLConvolver : public Convolver {
 public:
 	explicit OpenCLConvolver(OpenCLEnvImplPtr opencl_env);
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
+	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	OpenCLEnvImplPtr env;
@@ -158,7 +158,7 @@ class OpenCLLocalConvolver : public Convolver {
 public:
 	explicit OpenCLLocalConvolver(OpenCLEnvImplPtr opencl_env);
 
-	Image convolve(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
+	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	OpenCLEnvImplPtr env;

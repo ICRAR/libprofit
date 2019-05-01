@@ -47,6 +47,12 @@ Convolver::~Convolver()
 	// no-op
 }
 
+Image Convolver::convolve(const Image &src, const Image &krn, const Mask &mask,
+                          bool crop, Point &offset_out)
+{
+	return convolve_impl(src, krn, mask, crop, offset_out);
+}
+
 Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Dimensions orig_dims, const Dimensions &ext_dims, const Point &ext_offset, Point &offset_out) {
 
 	// No cropping requested
@@ -67,10 +73,8 @@ Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Di
 	return img.crop(orig_dims, ext_offset) & mask;
 }
 
-
-Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
+Image BruteForceConvolver::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
-
 	const auto src_dims = src.getDimensions();
 	const auto krn_dims = krn.getDimensions();
 	const auto src_width = src_dims.x;
@@ -127,7 +131,7 @@ Image BruteForceConvolver::convolve(const Image &src, const Image &krn, const Ma
 }
 
 template <simd_instruction_set SIMD>
-Image AssociativeBruteForceConvolver<SIMD>::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
+Image AssociativeBruteForceConvolver<SIMD>::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
 	const auto src_dims = src.getDimensions();
@@ -224,7 +228,7 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
 	ext_krn = Image(ext_dims);
 }
 
-Image FFTConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
+Image FFTConvolver::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 
 	auto src_dims = src.getDimensions();
@@ -276,7 +280,7 @@ OpenCLConvolver::OpenCLConvolver(OpenCLEnvImplPtr opencl_env) :
 	}
 }
 
-Image OpenCLConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
+Image OpenCLConvolver::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 	try {
 		return _convolve(src, krn, mask, crop, offset_out);
@@ -365,7 +369,7 @@ OpenCLLocalConvolver::OpenCLLocalConvolver(OpenCLEnvImplPtr opencl_env) :
 	}
 }
 
-Image OpenCLLocalConvolver::convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
+Image OpenCLLocalConvolver::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 	try {
 		return _convolve(src, krn, mask, crop, offset_out);
