@@ -7,6 +7,15 @@ Changelog
 
 .. rubric:: Development
 
+* Added explicit support to allow convolution
+  of images against kernels with bigger dimensions
+  than the images themselves.
+  This was previously supported implicitly, and only in certain cases,
+  by the OpenCL convolver,
+  while the FFT convolver threw an proper exception,
+  and the brute-force convolvers usually crashed.
+  This first implementation is not ideal,
+  but the use case is rare.
 * Several performance and code improvements,
   like removing unnecessary code,
   avoiding unnecessary conversions
