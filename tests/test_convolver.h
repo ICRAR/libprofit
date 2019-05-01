@@ -164,6 +164,32 @@ private:
 		}
 	}
 
+	void _test_psf_bigger_than_image(ConvolverType type, const ConvolverCreationPreferences &prefs = ConvolverCreationPreferences{})
+	{
+		// krn > src, and its central pixel=1 while the rest=0
+		// Thus, we exercise the krn > src convolution, and we can check
+		// that the result is correct by comparing it against the original src
+		auto src = uniform_random_image({3, 3});
+		auto krn = Image{5, 5};
+		krn[Point{2, 2}] = 1;
+
+		ConvolverCreationPreferences the_prefs = prefs;
+		the_prefs.src_dims = src.getDimensions();
+		the_prefs.krn_dims = krn.getDimensions();
+		auto convolver = create_convolver(type, the_prefs);
+		auto convolution = convolver->convolve(src, krn, Mask{});
+		images_within_tolerance(src, convolution, 1e-3);
+
+		// The same, now with a mask that allows a single pixel to appear
+		// in the convolution result
+		auto mask = Mask{{3, 3}};
+		auto masked_src = Image{{3, 3}};
+		mask[Point{1, 1}] = 1;
+		masked_src[Point{1, 1}] = src[Point{1, 1}];
+		convolution = convolver->convolve(src, krn, mask);
+		images_within_tolerance(masked_src, convolution, 1e-3);
+	}
+
 public:
 
 	void test_new_bruteforce_convolver() {
@@ -199,4 +225,19 @@ public:
 		_test_masked_convolution(ConvolverType::BRUTE_OLD);
 		_test_masked_convolution(ConvolverType::BRUTE);
 	}
+
+	void test_psf_bigger_than_image()
+	{
+		_test_psf_bigger_than_image(ConvolverType::BRUTE);
+		_test_psf_bigger_than_image(ConvolverType::BRUTE_OLD);
+		if (has_fftw()) {
+			_test_psf_bigger_than_image(ConvolverType::FFT);
+		}
+		if (has_opencl() && !get_opencl_info().empty()) {
+			ConvolverCreationPreferences prefs;
+			prefs.opencl_env = get_opencl_environment(0, 0, false, false);
+			_test_psf_bigger_than_image(ConvolverType::OPENCL, prefs);
+		}
+	}
+
 };

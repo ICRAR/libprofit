@@ -50,7 +50,27 @@ Convolver::~Convolver()
 Image Convolver::convolve(const Image &src, const Image &krn, const Mask &mask,
                           bool crop, Point &offset_out)
 {
-	return convolve_impl(src, krn, mask, crop, offset_out);
+	// convolve_impl requires images to be not smaller than kernels. If that's
+	// not the case we expand the image, convolve, then crop down the expansion.
+	// During the final cropping we make sure we only crop out the padding we
+	// added, and not the extra padding the convolution implementation might
+	// have added
+	auto src_dims = src.getDimensions();
+	auto krn_dims = krn.getDimensions();
+	if (krn_dims.x > src_dims.x || krn_dims.y > src_dims.y) {
+		auto new_dims = max(src_dims, krn_dims);
+		auto dims_diff = new_dims - src_dims;
+		auto extended_src = src.extend(new_dims);
+		auto extended_mask = Mask{};
+		if (mask) {
+			extended_mask = mask.extend(new_dims);
+		}
+		auto result = convolve_impl(extended_src, krn, extended_mask, crop, offset_out);
+		return result.crop(result.getDimensions() - dims_diff);
+	}
+	else {
+		return convolve_impl(src, krn, mask, crop, offset_out);
+	}
 }
 
 Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Dimensions orig_dims, const Dimensions &ext_dims, const Point &ext_offset, Point &offset_out) {
@@ -213,14 +233,8 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
 	src_fft(), krn_fft(), ext_src(), ext_krn(),
 	reuse_krn_fft(reuse_krn_fft), krn_fft_initialized(false)
 {
-
-	if (krn_dims.x > src_dims.x) {
-		throw invalid_parameter("krn_width must be <= src_width");
-	}
-	if (krn_dims.y > src_dims.y) {
-		throw invalid_parameter("krn_height must be <= src_height");
-	}
-	auto ext_dims = src_dims * 2;
+	auto effective_dims = max(src_dims, krn_dims);
+	auto ext_dims = effective_dims * 2;
 	fft_transformer = std::unique_ptr<FFTRealTransformer>(new FFTRealTransformer(ext_dims.x * ext_dims.y, effort, plan_omp_threads));
 	src_fft.resize(fft_transformer->get_hermitian_size());
 	krn_fft.resize(fft_transformer->get_hermitian_size());
