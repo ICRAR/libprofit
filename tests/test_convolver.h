@@ -43,6 +43,14 @@ private:
 		return image;
 	}
 
+	void images_within_tolerance(const Image &original_im, const Image &new_im, double tolerance)
+	{
+		TS_ASSERT_EQUALS(original_im.getDimensions(), new_im.getDimensions());
+		for (unsigned int i = 0; i != original_im.size(); i++) {
+			_pixels_within_tolerance(original_im, new_im, i, tolerance);
+		}
+	}
+
 	void _pixels_within_tolerance(const Image &original_im, const Image &new_im,
 	                              unsigned int i, double tolerance) {
 
@@ -50,7 +58,7 @@ private:
 		double original = original_im[i];
 		double new_pixel = new_im[i];
 		auto diff = std::abs(original - new_pixel);
-		if ( !diff ) {
+		if (!diff) {
 			// all good
 			return;
 		}
@@ -77,10 +85,7 @@ private:
 				auto bConvolver = create_convolver(ConvolverType::BRUTE_OLD);
 				Image result1 = bConvolver->convolve(src, krn, mask);
 				Image result2 = otherConvolver->convolve(src, krn, mask);
-				for(unsigned int i = 0; i < src.size(); i++) {
-					// Hopefully within 0.1% of error?
-					_pixels_within_tolerance(result1, result2, i, 1e-3);
-				}
+				images_within_tolerance(result1, result2, 1e-3);
 			}
 		}
 	}
