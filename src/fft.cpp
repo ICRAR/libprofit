@@ -107,7 +107,9 @@ void FFTRealTransformer::forward(const T &input, std::vector<std::complex<double
 	check_size(output, hermitian_size);
 	std::copy(input.begin(), input.end(), real_buf.get());
 	fftw_execute(forward_plan.get());
-	std::memcpy(output.data(), complex_buf.get(), sizeof(fftw_complex) * hermitian_size);
+	// This cast is required to work since C++11 according to the standard
+	auto *as_double = reinterpret_cast<double *>(output.data());
+	std::memcpy(as_double, complex_buf.get(), sizeof(fftw_complex) * hermitian_size);
 }
 
 template <typename T>
