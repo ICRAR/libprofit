@@ -359,7 +359,7 @@ std::string create_dirs(const std::string &at, const std::vector<std::string> &p
 }
 
 static
-void _removal_error(const char *path)
+fs_error _removal_error(const char *path)
 {
 	std::ostringstream os;
 	os << "Unexpected error found when removing " << path << ": ";
@@ -372,7 +372,7 @@ void _removal_error(const char *path)
 #else
 	os << errno << "(" << strerror(errno) << ")";
 #endif
-	throw fs_error(os.str());
+	return fs_error(os.str());
 }
 
 static
@@ -385,7 +385,7 @@ void _recursive_remove(const char *path)
 	WIN32_FIND_DATA data;
 	HANDLE find_handle = FindFirstFile(pattern.c_str(), &data);
 	if (find_handle == INVALID_HANDLE_VALUE) {
-		_removal_error(path);
+		throw _removal_error(path);
 	}
 
 	do {
@@ -403,7 +403,7 @@ void _recursive_remove(const char *path)
 			std::ostringstream full_path;
 			full_path << path << "\\" << data.cFileName;
 			if (!DeleteFile(full_path.str().c_str())) {
-				_removal_error(full_path.str().c_str());
+				throw _removal_error(full_path.str().c_str());
 			}
 		}
 	} while (FindNextFile(find_handle, &data) != 0);
@@ -411,14 +411,14 @@ void _recursive_remove(const char *path)
 	FindClose(find_handle);
 
 	if (!RemoveDirectory(path)) {
-		_removal_error(path);
+		throw _removal_error(path);
 	}
 #else
 
 	struct ::stat st;
 	int result = ::stat(path, &st);
 	if (result == -1) {
-		_removal_error(path);
+		throw _removal_error(path);
 	}
 
 	auto mode = st.st_mode & S_IFMT;
@@ -428,7 +428,7 @@ void _recursive_remove(const char *path)
 		// (making sure we skip . and ..), close it, and finally remove it
 		DIR *dir;
 		if ((dir = ::opendir(path)) == nullptr) {
-			_removal_error(path);
+			throw _removal_error(path);
 		}
 
 		struct dirent *ent;
@@ -444,11 +444,11 @@ void _recursive_remove(const char *path)
 		}
 
 		if (::closedir(dir) == -1) {
-			_removal_error(path);
+			throw _removal_error(path);
 		}
 
 		if (::rmdir(path) == -1) {
-			_removal_error(path);
+			throw _removal_error(path);
 		}
 
 		return;
@@ -457,7 +457,7 @@ void _recursive_remove(const char *path)
 	// No recursion needed, just remove
 	auto ret = ::unlink(path);
 	if (ret == -1) {
-		_removal_error(path);
+		throw _removal_error(path);
 	}
 #endif // _WIN32
 }
