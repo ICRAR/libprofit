@@ -298,7 +298,7 @@ bool inode_exists(const std::string &fname, mode_t expected_type, const char *ty
 		std::ostringstream os;
 		os << "Unexpected error found when inspecting " << fname << ": ";
 		os << strerror(errno);
-		throw std::runtime_error(os.str());
+		throw fs_error(os.str());
 	}
 
 
@@ -307,7 +307,7 @@ bool inode_exists(const std::string &fname, mode_t expected_type, const char *ty
 	if (!is_expected) {
 		std::ostringstream os;
 		os << fname << " exists but is not a " << type_name << ". Please remove it and try again";
-		throw std::runtime_error(os.str());
+		throw fs_error(os.str());
 	}
 
 	return true;
@@ -372,7 +372,7 @@ void _removal_error(const char *path)
 #else
 	os << errno << "(" << strerror(errno) << ")";
 #endif
-	throw std::runtime_error(os.str());
+	throw fs_error(os.str());
 }
 
 static

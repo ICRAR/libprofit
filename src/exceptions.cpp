@@ -86,4 +86,13 @@ fft_error::~fft_error() throw () {
 	// no-op
 }
 
+fs_error::fs_error(const std::string &what_arg) :
+	exception(what_arg)
+{
+	// no-op
+}
+
+fs_error::~fs_error() throw () {
+	// no-op
+}
 } /* namespace profit */

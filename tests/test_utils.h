@@ -137,7 +137,7 @@ public:
 	}
 
 	void test_recursive_remove_failures() {
-		TS_ASSERT_THROWS(recursive_remove(".this_shouldn_exist_at_all"), std::runtime_error &);
+		TS_ASSERT_THROWS(recursive_remove(".this_shouldn_exist_at_all"), fs_error &);
 	}
 
 };

@@ -97,6 +97,13 @@ public:
 	~fft_error() throw();
 };
 
+class fs_error: public exception
+{
+public:
+	explicit fs_error(const std::string &what);
+	~fs_error() throw();
+};
+
 } /* namespace profit */
 
 #endif /* PROFIT_EXCEPTIONS_H */
