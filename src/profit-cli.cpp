@@ -83,7 +83,7 @@ void parse_profile(std::ostream &os, Model &model, const std::string &descriptio
 }
 
 static
-Image parse_psf(std::string optarg, Model &m)
+Image parse_psf(const std::string &optarg, Model &m)
 {
 	bool read_scales = false;
 

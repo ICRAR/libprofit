@@ -41,7 +41,7 @@ Mask::Mask(unsigned int width, unsigned int height) :
 }
 
 Mask::Mask(Dimensions dimensions) :
-	surface(dimensions)
+	surface(std::move(dimensions))
 {
 }
 
@@ -51,7 +51,7 @@ Mask::Mask(const std::vector<bool>& data, unsigned int width, unsigned int heigh
 }
 
 Mask::Mask(const std::vector<bool>& data, Dimensions dimensions) :
-	surface(data, dimensions)
+	surface(data, std::move(dimensions))
 {
 }
 
@@ -61,7 +61,7 @@ Mask::Mask(std::vector<bool>&& data, unsigned int width, unsigned int height) :
 }
 
 Mask::Mask(std::vector<bool>&& data, Dimensions dimensions) :
-	surface(std::move(data), dimensions)
+	surface(std::move(data), std::move(dimensions))
 {
 }
 
@@ -71,7 +71,7 @@ Image::Image(unsigned int width, unsigned int height) :
 }
 
 Image::Image(Dimensions dimensions) :
-	surface(dimensions)
+	surface(std::move(dimensions))
 {
 }
 
@@ -81,7 +81,7 @@ Image::Image(const std::vector<double>& data, unsigned int width, unsigned int h
 }
 
 Image::Image(const std::vector<double>& data, Dimensions dimensions) :
-	surface(data, dimensions)
+	surface(data, std::move(dimensions))
 {
 }
 
@@ -91,7 +91,7 @@ Image::Image(std::vector<double> &&data, unsigned int width, unsigned int height
 }
 
 Image::Image(std::vector<double>&& data, Dimensions dimensions) :
-	surface(std::move(data), dimensions)
+	surface(std::move(data), std::move(dimensions))
 {
 }
 

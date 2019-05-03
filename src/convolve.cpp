@@ -73,7 +73,7 @@ Image Convolver::convolve(const Image &src, const Image &krn, const Mask &mask,
 	}
 }
 
-Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Dimensions orig_dims, const Dimensions &ext_dims, const Point &ext_offset, Point &offset_out) {
+Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Dimensions &orig_dims, const Dimensions &ext_dims, const Point &ext_offset, Point &offset_out) {
 
 	// No cropping requested
 	// Extend the mask to the size of the image, apply it,
@@ -287,7 +287,7 @@ Image FFTConvolver::convolve_impl(const Image &src, const Image &krn, const Mask
 
 #ifdef PROFIT_OPENCL
 OpenCLConvolver::OpenCLConvolver(OpenCLEnvImplPtr opencl_env) :
-	env(opencl_env)
+	env(std::move(opencl_env))
 {
 	if (!env) {
 		throw invalid_parameter("Empty OpenCL environment given to OpenCLConvolver");
@@ -376,7 +376,7 @@ Image OpenCLConvolver::_clpadded_convolve(const Image &src, const Image &krn, co
 
 
 OpenCLLocalConvolver::OpenCLLocalConvolver(OpenCLEnvImplPtr opencl_env) :
-	env(opencl_env)
+	env(std::move(opencl_env))
 {
 	if (!env) {
 		throw invalid_parameter("Empty OpenCL environment given to OpenCLLocalConvolver");
