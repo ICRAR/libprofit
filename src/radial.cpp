@@ -96,7 +96,7 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 				double delta_y_prof = (-xbin*this->_sin_ang + ybin*this->_cos_ang)/this->axrat;
 				double testval = this->evaluate_at(abs(x_prof), abs(y_prof) + abs(delta_y_prof));
 				if( abs(testval/subval - 1.0) > this->acc ) {
-					subsample_points.push_back(std::make_tuple(x, y));
+					subsample_points.emplace_back(std::make_tuple(x, y));
 				}
 				else {
 					total += subval;
