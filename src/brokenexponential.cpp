@@ -119,7 +119,7 @@ double BrokenExponentialProfile::get_lumtot() {
 	 */
 	double magtot = integrate_qagi(
 		[](double r, void *ctx) {
-			BrokenExponentialProfile *p = static_cast<BrokenExponentialProfile *>(ctx);
+			auto *p = static_cast<BrokenExponentialProfile *>(ctx);
 			return p->integrate_at(r);
 		},
 		0, this);

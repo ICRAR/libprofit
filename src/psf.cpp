@@ -51,7 +51,7 @@ unsigned int bind(double value, unsigned int max) {
 	if( intval < 0 ) {
 		return 0;
 	}
-	unsigned int uintval = static_cast<unsigned int>(intval);
+	auto uintval = static_cast<unsigned int>(intval);
 	return std::min(uintval, max);
 }
 

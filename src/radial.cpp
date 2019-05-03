@@ -444,7 +444,7 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask & /*mask*/, const P
 
 	OpenCL_times cl_times0 {};
 	OpenCL_times ss_cl_times {};
-	RadialProfileStats* stats = static_cast<RadialProfileStats *>(this->stats.get());
+	auto* stats = static_cast<RadialProfileStats *>(this->stats.get());
 
 	/* Points in time we want to measure */
 	system_clock::time_point t0, t_kprep, t_opencl, t_loopstart, t_loopend, t_imgtrans;

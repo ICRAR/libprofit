@@ -352,7 +352,7 @@ void print_stats(std::ostream &os, const Model &m) {
 		os << "Stats for profile " << profile_name << std::endl;
 
 		auto prefix1 = "  ";
-		RadialProfileStats *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
+		auto *rprofile_stats = dynamic_cast<RadialProfileStats *>(profile_stats);
 		auto opencl_env = m.get_opencl_env();
 		if( rprofile_stats && opencl_env ) {
 			bool opencl_120 = opencl_env->get_version() >= 120;
