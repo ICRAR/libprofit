@@ -93,7 +93,7 @@ Image Convolver::mask_and_crop(Image &img, const Mask &mask, bool crop, const Di
 	return img.crop(orig_dims, ext_offset) & mask;
 }
 
-Image BruteForceConvolver::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
+Image BruteForceConvolver::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool  /*crop*/, Point & /*offset_out*/)
 {
 	const auto src_dims = src.getDimensions();
 	const auto krn_dims = krn.getDimensions();
@@ -151,7 +151,7 @@ Image BruteForceConvolver::convolve_impl(const Image &src, const Image &krn, con
 }
 
 template <simd_instruction_set SIMD>
-Image AssociativeBruteForceConvolver<SIMD>::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
+Image AssociativeBruteForceConvolver<SIMD>::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool  /*crop*/, Point & /*offset_out*/)
 {
 
 	const auto src_dims = src.getDimensions();

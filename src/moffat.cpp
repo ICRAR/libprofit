@@ -94,7 +94,7 @@ double MoffatProfile::adjust_rscale_max() {
 	return std::ceil(std::max(fluxfrac(0.9999), 2.) / rscale);
 }
 
-double MoffatProfile::adjust_acc(double acc) {
+double MoffatProfile::adjust_acc(double  /*acc*/) {
 	return 0.1/axrat;
 }
 

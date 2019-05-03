@@ -82,37 +82,37 @@ inline double _r_factor(double b, double invexp)
   return std::pow(b, 1/invexp);
 }
 
-template<> inline double _r_factor<true, SersicProfile::pointfive>(double b, double invexp)
+template<> inline double _r_factor<true, SersicProfile::pointfive>(double b, double  /*invexp*/)
 {
 	return b*b;
 }
 
-template<> inline double _r_factor<true, SersicProfile::one>(double b, double invexp)
+template<> inline double _r_factor<true, SersicProfile::one>(double b, double  /*invexp*/)
 {
 	return b;
 }
 
-template<> inline double _r_factor<true, SersicProfile::two>(double b, double invexp)
+template<> inline double _r_factor<true, SersicProfile::two>(double b, double  /*invexp*/)
 {
 	return std::sqrt(b);
 }
 
-template<> inline double _r_factor<true, SersicProfile::three>(double b, double invexp)
+template<> inline double _r_factor<true, SersicProfile::three>(double b, double  /*invexp*/)
 {
 	return std::cbrt(b);
 }
 
-template<> inline double _r_factor<true, SersicProfile::four>(double b, double invexp)
+template<> inline double _r_factor<true, SersicProfile::four>(double b, double  /*invexp*/)
 {
 	return std::sqrt(std::sqrt(b));
 }
 
-template<> inline double _r_factor<true, SersicProfile::eight>(double b, double invexp)
+template<> inline double _r_factor<true, SersicProfile::eight>(double b, double  /*invexp*/)
 {
 	return std::sqrt(std::sqrt(std::sqrt(b)));
 }
 
-template<> inline double _r_factor<true, SersicProfile::sixteen>(double b, double invexp)
+template<> inline double _r_factor<true, SersicProfile::sixteen>(double b, double  /*invexp*/)
 {
 	return std::sqrt(std::sqrt(std::sqrt(std::sqrt(b))));
 }
@@ -123,37 +123,37 @@ template<> inline double _r_factor<false, SersicProfile::general>(double b, doub
 	return std::pow(std::sqrt(b), 1/invexp);
 }
 
-template<> inline double _r_factor<false, SersicProfile::pointfive>(double b, double invexp)
+template<> inline double _r_factor<false, SersicProfile::pointfive>(double b, double  /*invexp*/)
 {
 	return b;
 }
 
-template<> inline double _r_factor<false, SersicProfile::one>(double b, double invexp)
+template<> inline double _r_factor<false, SersicProfile::one>(double b, double  /*invexp*/)
 {
 	return std::sqrt(b);
 }
 
-template<> inline double _r_factor<false, SersicProfile::two>(double b, double invexp)
+template<> inline double _r_factor<false, SersicProfile::two>(double b, double  /*invexp*/)
 {
 	return std::sqrt(std::sqrt(b));
 }
 
-template<> inline double _r_factor<false, SersicProfile::three>(double b, double invexp)
+template<> inline double _r_factor<false, SersicProfile::three>(double b, double  /*invexp*/)
 {
 	return std::cbrt(std::sqrt(b));
 }
 
-template<> inline double _r_factor<false, SersicProfile::four>(double b, double invexp)
+template<> inline double _r_factor<false, SersicProfile::four>(double b, double  /*invexp*/)
 {
 	return std::sqrt(std::sqrt(std::sqrt(b)));
 }
 
-template<> inline double _r_factor<false, SersicProfile::eight>(double b, double invexp)
+template<> inline double _r_factor<false, SersicProfile::eight>(double b, double  /*invexp*/)
 {
 	return std::sqrt(std::sqrt(std::sqrt(std::sqrt(b))));
 }
 
-template<> inline double _r_factor<false, SersicProfile::sixteen>(double b, double invexp)
+template<> inline double _r_factor<false, SersicProfile::sixteen>(double b, double  /*invexp*/)
 {
 	return std::sqrt(std::sqrt(std::sqrt(std::sqrt(std::sqrt(b)))));
 }
@@ -168,7 +168,7 @@ inline double _base(double x, double y, double re, double exponent)
 }
 
 template<>
-inline double _base<false>(double x, double y, double re, double exponent)
+inline double _base<false>(double x, double y, double re, double  /*exponent*/)
 {
 	return (x*x + y*y)/(re * re);
 }
@@ -183,7 +183,7 @@ inline double _invexp(const double nser, const double exponent)
 }
 
 template<>
-inline double _invexp<false>(const double nser, const double exponent)
+inline double _invexp<false>(const double nser, const double  /*exponent*/)
 {
   return nser;
 }

@@ -55,7 +55,7 @@ unsigned int bind(double value, unsigned int max) {
 	return std::min(uintval, max);
 }
 
-void PsfProfile::evaluate(Image &image, const Mask &mask, const PixelScale &pixel_scale, double magzero) {
+void PsfProfile::evaluate(Image &image, const Mask & /*mask*/, const PixelScale &pixel_scale, double magzero) {
 
 	using std::floor;
 	using std::min;

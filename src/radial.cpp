@@ -226,7 +226,7 @@ double RadialProfile::adjust_acc(double acc)
 	return acc;
 }
 
-void RadialProfile::subsampling_params(double x, double y,
+void RadialProfile::subsampling_params(double  /*x*/, double  /*y*/,
                                        unsigned int &resolution,
                                        unsigned int &max_recursions) {
 	resolution = this->resolution;
@@ -433,7 +433,7 @@ std::chrono::nanoseconds::rep to_nsecs(const std::chrono::system_clock::duration
 }
 
 template <typename FT>
-void RadialProfile::evaluate_opencl(Image &image, const Mask &mask, const PixelScale &scale, OpenCLEnvImplPtr &env) {
+void RadialProfile::evaluate_opencl(Image &image, const Mask & /*mask*/, const PixelScale &scale, OpenCLEnvImplPtr &env) {
 
 	using std::chrono::system_clock;
 	typedef point_t<FT> point_t;
