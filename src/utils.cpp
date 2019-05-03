@@ -370,7 +370,7 @@ fs_error _removal_error(const char *path)
 	os << errormsg;
 	LocalFree(errormsg);
 #else
-	os << errno << "(" << strerror(errno) << ")";
+	os << errno << " (" << strerror(errno) << ")";
 #endif
 	return fs_error(os.str());
 }
