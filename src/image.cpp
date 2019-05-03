@@ -296,4 +296,4 @@ Image Image::operator/(unsigned int denominator) const
 	return operator/(static_cast<double>(denominator));
 }
 
-}
+} // namespace profit

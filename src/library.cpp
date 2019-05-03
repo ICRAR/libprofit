@@ -269,4 +269,4 @@ void clear_cache()
 #endif
 }
 
-}
+} // namespace profit

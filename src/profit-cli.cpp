@@ -635,7 +635,7 @@ int parse_and_run(int argc, char *argv[], std::ostream &cout, std::ostream &cerr
 	return 0;
 }
 
-} // namespace shark
+} // namespace profit
 
 extern "C" {
 
