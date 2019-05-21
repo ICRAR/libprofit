@@ -178,10 +178,10 @@ Image Model::evaluate(Point &offset_out) {
 	 */
 	std::vector<Image> profile_images;
 	for(auto &profile: this->profiles) {
-		Image profile_image(image_dims);
 		profile->adjust_for_finesampling(finesampling);
+		profile_images.emplace_back(image_dims);
+		auto &profile_image = profile_images.back();
 		profile->evaluate(profile_image, mask, {scale.first / finesampling, scale.second / finesampling}, magzero);
-		profile_images.push_back(std::move(profile_image));
 	}
 
 	/*
