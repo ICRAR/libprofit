@@ -204,6 +204,42 @@ typedef _2dcoordinate Point;
 /// A 2-dimensional dimension definition
 typedef _2dcoordinate Dimensions;
 
+/// A pair of points
+typedef std::pair<Point, Point> PointPair;
+
+/// A box defined by the lowest (inclusive) and highest (exclusive) 2D points
+/// that contain it.
+class Box : public PointPair {
+public:
+
+	/// Creates an empty box
+	Box() : PointPair({0, 0}, {0, 0})
+	{ }
+
+	/**
+	 * Creates a box starting at @p lb (inclusive) and ending at @p ub
+	 * (exclusive).
+	 * @param lb The lower boundaries of the box
+	 * @param ub The upper boundaries (exclusive in both dimensions) of the box
+	 */
+	Box(Point lb, Point ub) : PointPair(lb, ub)
+	{
+		if (!(first <=second)) {
+			throw std::invalid_argument("box's lower boundary must be <= than high boundary");
+		}
+	}
+
+	/// Whether this object represents an empty box
+	bool empty() {
+		return first == second;
+	}
+
+	Box operator*(unsigned int n)
+	{
+		return {first * n, second * n};
+	}
+};
+
 ///
 /// Non-templated code common to 2D surface classes
 ///

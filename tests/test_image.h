@@ -136,6 +136,31 @@ public:
 
 };
 
+class TestBox : public CxxTest::TestSuite {
+
+public:
+
+	void test_box()
+	{
+		auto box = Box{};
+		TS_ASSERT(box.empty());
+		box = Box{{1, 1}, {1, 1}};
+		TS_ASSERT(box.empty());
+		box = Box{{1, 1}, {1, 2}};
+		TS_ASSERT(!box.empty());
+		box = Box{{1, 1}, {2, 1}};
+		TS_ASSERT(!box.empty());
+	}
+
+	void test_invalid_boxes()
+	{
+		TS_ASSERT_THROWS((Box{{1, 1}, {0, 0}}), std::invalid_argument &);
+		TS_ASSERT_THROWS((Box{{0, 1}, {0, 0}}), std::invalid_argument &);
+		TS_ASSERT_THROWS((Box{{1, 0}, {0, 0}}), std::invalid_argument &);
+	}
+
+};
+
 class TestImage : public CxxTest::TestSuite {
 
 private:
