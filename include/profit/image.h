@@ -457,6 +457,45 @@ public:
 		return reversed;
 	}
 
+	/**
+	 * Returns a "value-interesting" bounding box for this surface; that is,
+	 * the subset of this surface inside which all values are different from
+	 * zero.
+	 *
+	 * @return The minimum bounding box within which all non-zero values of this
+	 * surface are contained.
+	 */
+	Box bounding_box() const
+	{
+		Point lb = getDimensions();
+		Point ub;
+		bool only_zeros = true;
+		for(unsigned int j = 0; j < getHeight(); j++) {
+			for(unsigned int i = 0; i < getWidth(); i++) {
+				if (_data[i + j * getWidth()] == 0) {
+					continue;
+				}
+				if (i < lb.x) {
+					lb.x = i;
+				}
+				if (j < lb.y) {
+					lb.y = j;
+				}
+				if ((i + 1) > ub.x) {
+					ub.x = i + 1;
+				}
+				if ((j + 1) > ub.y) {
+					ub.y = j + 1;
+				}
+				only_zeros = false;
+			}
+		}
+		if (only_zeros) {
+			return {};
+		}
+		return {lb, ub};
+	}
+
 	/// Comparison operator
 	bool operator==(const surface &other) const {
 		return surface_base::operator==(other) &&

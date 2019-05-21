@@ -594,6 +594,31 @@ public:
 		for(auto& expectation: expectations) {
 			TS_ASSERT_EQUALS(reversed[expectation.first], expectation.second);
 		}
+	}
 
+	template <typename Surface>
+	void _test_bounding_box(const Surface &im, Point lb, Point ub)
+	{
+		auto bb = im.bounding_box();
+		TS_ASSERT_EQUALS(lb, bb.first);
+		TS_ASSERT_EQUALS(ub, bb.second);
+	}
+
+	void test_bounding_box()
+	{
+		_test_bounding_box(Image{{1, 2, 3, 4, 5, 6}, 2, 3}, {0, 0}, {2, 3});
+		_test_bounding_box(Image{{0, 1, 2, 3, 4, 5}, 2, 3}, {0, 0}, {2, 3});
+		_test_bounding_box(Image{{0, 0, 2, 3, 4, 5}, 2, 3}, {0, 1}, {2, 3});
+		_test_bounding_box(Image{{0, 0, 2, 3, 0, 0}, 2, 3}, {0, 1}, {2, 2});
+		_test_bounding_box(Image{{0, 0, 2, 0, 0, 0}, 2, 3}, {0, 1}, {1, 2});
+		_test_bounding_box(Image{{0, 0, 0, 2, 0, 0}, 2, 3}, {1, 1}, {2, 2});
+		_test_bounding_box(Image{{0, 0, 0, 0, 0, 0}, 2, 3}, {0, 0}, {0, 0});
+		_test_bounding_box(Mask{{true,  true,  true,  true,  true,  true}, 2, 3}, {0, 0}, {2, 3});
+		_test_bounding_box(Mask{{false, true,  true,  true,  true,  true}, 2, 3}, {0, 0}, {2, 3});
+		_test_bounding_box(Mask{{false, false, true,  true,  true,  true}, 2, 3}, {0, 1}, {2, 3});
+		_test_bounding_box(Mask{{false, false, true,  true,  false, false}, 2, 3}, {0, 1}, {2, 2});
+		_test_bounding_box(Mask{{false, false, true,  false, false, false}, 2, 3}, {0, 1}, {1, 2});
+		_test_bounding_box(Mask{{false, false, false, true,  false, false}, 2, 3}, {1, 1}, {2, 2});
+		_test_bounding_box(Mask{{false, false, false, false, false, false}, 2, 3}, {0, 0}, {0, 0});
 	}
 };
