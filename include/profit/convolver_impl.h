@@ -74,6 +74,7 @@ class AssociativeBruteForceConvolver : public Convolver {
 public:
 	explicit AssociativeBruteForceConvolver(unsigned int omp_threads) : omp_threads(omp_threads) {};
 
+protected:
 	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
@@ -110,6 +111,7 @@ public:
 	             effort_t effort, unsigned int plan_omp_threads,
 	             bool reuse_krn_fft);
 
+protected:
 	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
@@ -139,6 +141,7 @@ class OpenCLConvolver : public Convolver {
 public:
 	explicit OpenCLConvolver(OpenCLEnvImplPtr opencl_env);
 
+protected:
 	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
@@ -158,6 +161,7 @@ class OpenCLLocalConvolver : public Convolver {
 public:
 	explicit OpenCLLocalConvolver(OpenCLEnvImplPtr opencl_env);
 
+protected:
 	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:

@@ -98,12 +98,11 @@ public:
 	Image convolve(const Image &src, const Image &krn, const Mask &mask,
 	               bool crop = true, Point &offset_out = NO_OFFSET);
 
+protected:
 	// Implemented by subclasses and called by convolve
 	virtual
 	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask,
 	                    bool crop = true, Point &offset_out = NO_OFFSET) = 0;
-
-protected:
 
 	Image mask_and_crop(Image &img, const Mask &mask, bool crop,
 	                    const Dimensions &orig_dims, const Dimensions &ext_dims,
