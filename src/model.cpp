@@ -118,6 +118,14 @@ void inform_offset(const Point &offset, Point &offset_out) {
 	}
 }
 
+ConvolverPtr &Model::ensure_convolver()
+{
+	if (!convolver) {
+		convolver = create_convolver(BRUTE);
+	}
+	return convolver;
+}
+
 Image Model::evaluate(Point &offset_out) {
 
 	/* Check limits */
@@ -199,10 +207,7 @@ Image Model::evaluate(Point &offset_out) {
 	if( do_convolve ) {
 		Image psf_img(psf);
 		psf_img.normalize();
-		if (!convolver) {
-			convolver = create_convolver(BRUTE);
-		}
-		image = convolver->convolve(image, psf_img, mask, crop, offset);
+		image = ensure_convolver()->convolve(image, psf_img, mask, crop, offset);
 		conv_dims = image.getDimensions();
 	}
 

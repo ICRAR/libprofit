@@ -334,6 +334,9 @@ private:
 	template <typename P>
 	ProfilePtr make_profile(const std::string &name);
 
+	// Make sure we have a convolver and return it
+	ConvolverPtr &ensure_convolver();
+
 	friend class PsfProfile;
 	friend class RadialProfile;
 };
