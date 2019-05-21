@@ -36,7 +36,13 @@
 
 namespace profit {
 
-/// An (x, y) pair in a 2-dimensional discrete surface
+/** An (x, y) pair in a 2-dimensional discrete surface
+ *
+ * Comparison between these objects can be done with the <, <=, ==, !=, > and >=
+ * operators, but users should not that there is no way to order values based
+ * on these operators (that is, objects of this type are by themselves
+ * non-sortable).
+ */
 class PROFIT_API _2dcoordinate {
 
 public:
@@ -49,6 +55,30 @@ public:
 
 	unsigned int x;
 	unsigned int y;
+
+	/// greater or equal comparison across both dimensions
+	bool operator>=(const _2dcoordinate &other) const
+	{
+		return x >= other.x && y >= other.y;
+	}
+
+	/// greater than comparison across both dimensions
+	bool operator>(const _2dcoordinate &other) const
+	{
+		return x > other.x && y > other.y;
+	}
+
+	/// less or equal comparison across both dimensions
+	bool operator<=(const _2dcoordinate &other) const
+	{
+		return x <= other.x && y <= other.y;
+	}
+
+	/// less than comparison across both dimensions
+	bool operator<(const _2dcoordinate &other) const
+	{
+		return x < other.x && y < other.y;
+	}
 
 	bool operator==(const _2dcoordinate &other) const {
 		return x == other.x && y == other.y;

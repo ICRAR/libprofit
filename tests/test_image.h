@@ -105,6 +105,35 @@ public:
 		TS_ASSERT_EQUALS((p * 2 + p + p) / 4, p);
 	}
 
+	void test_comparisons()
+	{
+		auto origin = Point{0, 0};
+
+		// <=
+		TS_ASSERT((origin <= Point{0, 0}));
+		TS_ASSERT((origin <= Point{0, 1}));
+		TS_ASSERT((origin <= Point{1, 0}));
+		TS_ASSERT((origin <= Point{1, 1}));
+
+		// <
+		TS_ASSERT(!(origin < Point{0, 0}));
+		TS_ASSERT(!(origin < Point{0, 1}));
+		TS_ASSERT(!(origin < Point{1, 0}));
+		TS_ASSERT((origin < Point{1, 1}));
+
+		// >=
+		TS_ASSERT((origin >= Point{0, 0}));
+		TS_ASSERT(!(origin >= Point{0, 1}));
+		TS_ASSERT(!(origin >= Point{1, 0}));
+		TS_ASSERT(!(origin >= Point{1, 1}));
+
+		// >
+		TS_ASSERT(!(origin > Point{0, 0}));
+		TS_ASSERT(!(origin > Point{0, 1}));
+		TS_ASSERT(!(origin > Point{1, 0}));
+		TS_ASSERT(!(origin > Point{1, 1}));
+	}
+
 };
 
 class TestImage : public CxxTest::TestSuite {
