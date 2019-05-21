@@ -269,6 +269,23 @@ public:
 		_check_images_within_tolerance(m);
 	}
 
+	void test_fftw_sky()
+	{
+		_check_fftw_support();
+		Model m;
+		auto sky = m.add_profile("sky");
+		sky->parameter("bg", 1.);
+		_check_images_within_tolerance(m);
+	}
+
+	void test_fftw_null()
+	{
+		_check_fftw_support();
+		Model m;
+		m.add_profile("null");
+		_check_images_within_tolerance(m);
+	}
+
 	void test_fftconvolver_reusage() {
 		_check_fftw_support();
 		Mask mask;
