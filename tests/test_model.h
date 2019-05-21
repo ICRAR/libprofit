@@ -240,16 +240,16 @@ public:
 		p->parameter("xcen", 50.);
 		p->parameter("ycen", 100.);
 		p->parameter("re", 30.);
-		auto flux = m.evaluate().getTotal();
+		auto flux = m.evaluate().total();
 
 		// Total flux should be more or less maintained when finesampling
 		m.set_finesampling(2);
-		auto finesampled_flux = m.evaluate().getTotal();
+		auto finesampled_flux = m.evaluate().total();
 		TS_ASSERT_DELTA(flux, finesampled_flux, flux * 0.001);
 
 		// Total flux should also be maintained when finesampling *and* not returning the fine image
 		m.set_return_finesampled(false);
-		finesampled_flux = m.evaluate().getTotal();
+		finesampled_flux = m.evaluate().total();
 		TS_ASSERT_DELTA(flux, finesampled_flux, flux * 0.001);
 	}
 

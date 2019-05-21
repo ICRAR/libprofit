@@ -95,13 +95,13 @@ Image::Image(std::vector<double>&& data, Dimensions dimensions) :
 {
 }
 
-double Image::getTotal() const {
+double Image::total() const {
 	return std::accumulate(begin(), end(), 0.);
 }
 
 void Image::normalize()
 {
-	double sum = getTotal();
+	double sum = total();
 	if( sum > 0 ) {
 		*this /= sum;
 	}

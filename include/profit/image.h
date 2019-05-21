@@ -528,11 +528,11 @@ public:
 	};
 
 	/**
-	 * Returns the sum of the image pixel's values
+	 * Returns the sum of the image pixel's values (or "total flux").
 	 *
 	 * @return The sum of the image pixel's values
 	 */
-	double getTotal() const;
+	double total() const;
 
 	/**
 	 * Upsamples this image by the given factor.

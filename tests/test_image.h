@@ -310,7 +310,7 @@ public:
 		Image im2 = static_cast<const Image &>(im1).normalize();
 		im1.normalize();
 		for(auto im: {&im1, &im2}) {
-			TS_ASSERT_DELTA(1, im->getTotal(), 1e-6);
+			TS_ASSERT_DELTA(1, im->total(), 1e-6);
 		}
 
 		// A zero-values image doesn't get normalized
@@ -318,13 +318,13 @@ public:
 		Image im4 = static_cast<const Image &>(im3).normalize();
 		im3.normalize();
 		for(auto im: {&im3, &im4}) {
-			TS_ASSERT_DELTA(0, im->getTotal(), 1e-6);
+			TS_ASSERT_DELTA(0, im->total(), 1e-6);
 		}
 
 		// Re-normalizing should get us to the same place
 		const Image im5({1, 2, 3, 4}, 2, 2);
 		Image im6 = static_cast<const Image &>(im5.normalize()).normalize();
-		TS_ASSERT_DELTA(1, im6.getTotal(), 1e-6);
+		TS_ASSERT_DELTA(1, im6.total(), 1e-6);
 	}
 
 	void test_crop() {
