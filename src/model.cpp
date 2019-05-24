@@ -181,7 +181,9 @@ Image Model::evaluate(Point &offset_out) {
 		profile->adjust_for_finesampling(finesampling);
 		profile_images.emplace_back(image_dims);
 		auto &profile_image = profile_images.back();
-		profile->evaluate(profile_image, mask, {scale.first / finesampling, scale.second / finesampling}, magzero);
+		profile->evaluate(profile_image, mask,
+		    {scale.first / finesampling, scale.second / finesampling},
+		    {0, 0}, magzero);
 	}
 
 	/*

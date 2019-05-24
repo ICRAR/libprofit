@@ -44,7 +44,8 @@ void SkyProfile::adjust_for_finesampling(unsigned int finesampling)
 	bg = requested_bg / (finesampling * finesampling);
 }
 
-void SkyProfile::evaluate(Image &image, const Mask &mask, const PixelScale & /*scale*/, double  /*magzero*/) {
+void SkyProfile::evaluate(Image &image, const Mask &mask, const PixelScale & /*scale*/,
+    const Point &/*offset*/, double  /*magzero*/) {
 
 	/* In case we need to mask some pixels out */
 	auto mask_it = mask.begin();

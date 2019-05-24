@@ -222,7 +222,8 @@ void SersicProfile::init_eval_function() {
 	m_eval_function = eval_function<boxy, t>;
 }
 
-void SersicProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) {
+void SersicProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale,
+    const Point &offset, double magzero) {
 
 	// inv_exponent is exactly what is yield by the templated _invexp function
 	// later on during each individual evaluation
@@ -250,7 +251,7 @@ void SersicProfile::evaluate(Image &image, const Mask &mask, const PixelScale &s
 		else                                       init_eval_function<false, general>();
 	}
 
-	return RadialProfile::evaluate(image, mask, scale, magzero);
+	return RadialProfile::evaluate(image, mask, scale, offset, magzero);
 }
 
 double SersicProfile::fluxfrac(double fraction) const {
@@ -336,8 +337,8 @@ void SersicProfile::subsampling_params(double x, double y,
 	RadialProfile::subsampling_params(x, y, resolution, max_recursions);
 
 	/* Higher subsampling params for central pixel if nser > 1 (only when auto-adjusting) */
-	bool center_pixel = abs(x - xcen) < model.get_image_pixel_scale().first &&
-	                    abs(y - ycen) < model.get_image_pixel_scale().second;
+	bool center_pixel = abs(x - _xcen) < model.get_image_pixel_scale().first &&
+	                    abs(y - _ycen) < model.get_image_pixel_scale().second;
 	if( adjust && center_pixel && nser > 1 ) {
 		resolution = 8;
 		max_recursions = 10;

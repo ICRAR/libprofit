@@ -15,7 +15,7 @@ class ExampleProfile : public Profile {
 public:
 	ExampleProfile(const Model &model, const std::string &name);
 	void validate() override;
-	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) override;
+	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, const Point &offset, double magzero) override;
 
 protected:
 	bool parameter(const std::string &name, double value);

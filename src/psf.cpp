@@ -55,8 +55,9 @@ unsigned int bind(double value, unsigned int max) {
 	return std::min(uintval, max);
 }
 
-void PsfProfile::evaluate(Image &image, const Mask & /*mask*/, const PixelScale &pixel_scale, double magzero) {
-
+void PsfProfile::evaluate(Image &image, const Mask & /*mask*/, const PixelScale &pixel_scale,
+    const Point &offset, double magzero)
+{
 	using std::floor;
 	using std::min;
 	using std::max;
@@ -76,10 +77,10 @@ void PsfProfile::evaluate(Image &image, const Mask & /*mask*/, const PixelScale 
 	unsigned int psf_height = model.psf.getHeight();
 
 	/* Where we start/end applying the psf into the target image */
-	double origin_x = this->xcen - psf_width*psf_scale_x/2.;
-	double end_x    = this->xcen + psf_width*psf_scale_x/2.;
-	double origin_y = this->ycen - psf_height*psf_scale_y/2.;
-	double end_y    = this->ycen + psf_height*psf_scale_y/2.;
+	double origin_x = this->xcen + offset.x * scale_x - psf_width * psf_scale_x / 2;
+	double end_x    = this->xcen + offset.y * scale_y + psf_width * psf_scale_x / 2;
+	double origin_y = this->ycen + offset.x * scale_x - psf_height * psf_scale_y / 2;
+	double end_y    = this->ycen + offset.y * scale_y + psf_height * psf_scale_y / 2;
 
 	/*
 	 * We first loop over the pixels of the image, making sure we don't go

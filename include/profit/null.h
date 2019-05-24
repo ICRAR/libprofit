@@ -49,7 +49,8 @@ public:
 		// no-op
 	};
 
-	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero)
+	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, const Point &offset,
+	    double magzero)
 	{
 		// no-op
 	};

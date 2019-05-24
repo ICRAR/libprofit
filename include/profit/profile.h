@@ -130,9 +130,12 @@ public:
 	 * @param image The Image object where values need to be stored.
 	 * @param mask The mask to apply during profile calculation.
 	 * @param scale The pixel scale of the image.
+	 * @param offset The offset of the profile's origin with respect to the
+	 * the image's origin
 	 * @param magzero The profile's zero magnitude value.
 	 */
-	virtual void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) = 0;
+	virtual void evaluate(Image &image, const Mask &mask, const PixelScale &scale,
+	    const Point &offset, double magzero) = 0;
 
 	/**
 	 * Parses @p parameter_spec, which should look like `name = value`, and

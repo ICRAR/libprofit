@@ -73,7 +73,8 @@ public:
 	 * ---------------------------------------------
 	 */
 	void validate() override;
-	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) override;
+	void evaluate(Image &image, const Mask &mask, const PixelScale &scale,
+	    const Point &offset, double magzero) override;
 
 #ifdef PROFIT_DEBUG
 	std::map<int,int> get_integrations();
@@ -273,6 +274,8 @@ private:
 	double _ie;
 	double _cos_ang;
 	double _sin_ang;
+	double _xcen;
+	double _ycen;
 	double magzero;
 
 	void evaluate_cpu(Image &image, const Mask &mask, const PixelScale &scale);

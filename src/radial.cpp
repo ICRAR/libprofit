@@ -45,8 +45,8 @@ namespace profit
 
 inline
 void RadialProfile::_image_to_profile_coordinates(double x, double y, double &x_prof, double &y_prof) {
-	x -= this->xcen;
-	y -= this->ycen;
+	x -= this->_xcen;
+	y -= this->_ycen;
 	x_prof =  x * this->_cos_ang + y * this->_sin_ang;
 	y_prof = -x * this->_sin_ang + y * this->_cos_ang;
 	y_prof /= this->axrat;
@@ -236,7 +236,8 @@ void RadialProfile::subsampling_params(double  /*x*/, double  /*y*/,
 /**
  * The main profile evaluation function
  */
-void RadialProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) {
+void RadialProfile::evaluate(Image &image, const Mask &mask, const PixelScale &scale,
+    const Point &offset, double magzero) {
 
 	this->magzero = magzero;
 
@@ -248,6 +249,10 @@ void RadialProfile::evaluate(Image &image, const Mask &mask, const PixelScale &s
 	 * list of values around every method call.
 	 */
 	this->initial_calculations();
+
+	// Adjust the center of our profile for the given offset of the image origin
+	_xcen = xcen + offset.x * scale.first;
+	_ycen = ycen + offset.y * scale.second;
 
 	stats = std::make_shared<RadialProfileStats>();
 #ifdef PROFIT_DEBUG
@@ -698,8 +703,8 @@ void RadialProfile::evaluate_opencl(Image &image, const Mask & /*mask*/, const P
 
 template <typename FT>
 void RadialProfile::add_common_kernel_parameters(unsigned int arg, cl::Kernel &kernel) const {
-	kernel.setArg((arg++), FT(xcen));
-	kernel.setArg((arg++), FT(ycen));
+	kernel.setArg((arg++), FT(_xcen));
+	kernel.setArg((arg++), FT(_ycen));
 	kernel.setArg((arg++), FT(_cos_ang));
 	kernel.setArg((arg++), FT(_sin_ang));
 	kernel.setArg((arg++), FT(axrat));

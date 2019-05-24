@@ -82,7 +82,8 @@ protected:
 	 * Inherited from RadialProfile
 	 * ----------------------------
 	 */
-	void evaluate(Image &image, const Mask &mask, const PixelScale &scale, double magzero) override;
+	void evaluate(Image &image, const Mask &mask, const PixelScale &scale,
+	    const Point &offset, double magzero) override;
 	void initial_calculations() override;
 	void subsampling_params(double x, double y, unsigned int &res, unsigned int &max_rec) override;
 	double get_pixel_scale(const PixelScale &scale) override;
