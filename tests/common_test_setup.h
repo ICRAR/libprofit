@@ -58,4 +58,46 @@ public:
 static LibraryInitializationFixture _lib_fixture;
 #endif
 
+enum zero_treatment_t {
+	EXPECT_0 = 0,
+	ASSUME_0
+};
+
+double relative_diff(double expected, double obtained, zero_treatment_t zero_treatment=EXPECT_0)
+{
+	auto diff = std::abs(expected - obtained);
+	if (!diff) {
+		// all good
+		return 0;
+	}
+	// avoid NaNs due to divide-by-zero
+	if (expected == 0) {
+		switch (zero_treatment) {
+		case EXPECT_0:
+			return diff;
+		case ASSUME_0:
+			return 0;
+		default:
+			throw invalid_parameter("Invalid zero_treatment");
+		}
+	}
+	return diff / expected;
+}
+
+void assert_images_relative_delta(const Image &expected, const Image &obtained,
+    double tolerance=0, zero_treatment_t zero_treatment=EXPECT_0)
+{
+	// Compare dimensions, total flux, and pixel-by-pixel
+	TS_ASSERT_EQUALS(expected.getDimensions(), obtained.getDimensions());
+	TS_ASSERT_LESS_THAN_EQUALS(relative_diff(expected.total(), obtained.total()), tolerance);
+	auto width = expected.getWidth();
+	for(unsigned int i=0; i!=expected.size(); i++) {
+		auto rel_diff = relative_diff(expected[i], obtained[i], zero_treatment);
+		std::ostringstream msg;
+		msg << "Pixel [" << i % width << "," << i / width << "] has values that are too different: ";
+		msg << expected[i] << " v/s " << obtained[i];
+		TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), rel_diff, tolerance);
+	}
+}
+
 } // namespace profit

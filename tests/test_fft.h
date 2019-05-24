@@ -122,12 +122,10 @@ public:
 
 	void _check_images_within_tolerance_with_fixtures(Model &m, fft_convolution_test_case &test_case)
 	{
-
 		if( !test_case.fft_convolver ) {
 			TS_SKIP("No FFTPlan found to run FFT tests with this fixture");
 		}
 
-		auto width = test_case.dims.x;
 		m.set_dimensions(test_case.dims);
 		m.set_psf(test_case.psf);
 
@@ -137,34 +135,7 @@ public:
 		m.set_convolver(test_case.fft_convolver);
 		auto fft_produced = m.evaluate();
 
-		// Pixel by pixel the images should be fairly similar
-		for(unsigned int i=0; i!=original.size(); i++) {
-
-			auto original_pixel = original[i];
-			auto fft_pixel = fft_produced[i];
-
-			auto diff = std::abs(original_pixel - fft_pixel);
-			if ( !diff ) {
-				// all good
-				continue;
-			}
-
-			// avoid NaNs due to divide-by-zero
-			// Also, when we have zero on a pixel with simple brute-force convolution
-			// it will be very hard to have a zero on the FFT-based convolution.
-			// The only thing we can really do is to assert that the value is
-			// indeed very low compared to the rest of the image
-			auto denomin = original_pixel;
-			if ( !denomin ) {
-				continue;
-			}
-
-			std::ostringstream msg;
-			auto relative_diff = diff / denomin;
-			msg << "Pixel [" << i % width << "," << i / width << "] has values that are too different: ";
-			msg << original_pixel << " v/s " << fft_pixel;
-			TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), relative_diff, test_case.tolerance);
-		}
+		assert_images_relative_delta(original, fft_produced, test_case.tolerance, zero_treatment_t::ASSUME_0);
 	}
 
 	void test_fft_brokenexp() {
