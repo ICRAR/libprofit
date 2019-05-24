@@ -114,9 +114,21 @@ public:
 		return *this;
 	}
 
+	_2dcoordinate &operator+=(unsigned int n) {
+		x += n;
+		y += n;
+		return *this;
+	}
+
 	_2dcoordinate operator+(const _2dcoordinate &other) const {
 		_2dcoordinate sum(*this);
 		sum += other;
+		return sum;
+	}
+
+	_2dcoordinate operator+(unsigned int n) const {
+		_2dcoordinate sum(*this);
+		sum += n;
 		return sum;
 	}
 
@@ -173,6 +185,11 @@ public:
 inline
 _2dcoordinate operator-(int x, const _2dcoordinate &other) {
 	return _2dcoordinate(x, x) - other;
+}
+
+inline
+_2dcoordinate operator-(const _2dcoordinate &other, int x) {
+	return other - _2dcoordinate(x, x);
 }
 
 /// Element-wise max() function for _2dcoordinate objects
