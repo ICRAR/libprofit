@@ -515,6 +515,8 @@ public:
 
 	// Constructors that look like those from _surface
 	Mask(unsigned int width, unsigned int height);
+	Mask(bool value, unsigned int width, unsigned int height);
+	Mask(bool value, Dimensions dimensions);
 	explicit Mask(Dimensions dimensions = Dimensions());
 	Mask(const std::vector<bool> &data, unsigned int width, unsigned int height);
 	Mask(const std::vector<bool> &data, Dimensions dimensions);
@@ -532,6 +534,8 @@ public:
 
 	// Constructors that look like those from _surface
 	Image(unsigned int width, unsigned int height);
+	Image(double value, Dimensions dimensions);
+	Image(double value, unsigned int width, unsigned int height);
 	explicit Image(Dimensions dimensions = Dimensions());
 	Image(const std::vector<double> &data, unsigned int width, unsigned int height);
 	Image(const std::vector<double> &data, Dimensions dimensions);

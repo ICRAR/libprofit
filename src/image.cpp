@@ -40,6 +40,16 @@ Mask::Mask(unsigned int width, unsigned int height) :
 {
 }
 
+Mask::Mask(bool value, Dimensions dimensions) :
+	surface(std::vector<bool>(dimensions.x * dimensions.y, value), std::move(dimensions))
+{
+}
+
+Mask::Mask(bool value, unsigned int width, unsigned int height) :
+	surface(std::vector<bool>(width * height, value), {width, height})
+{
+}
+
 Mask::Mask(Dimensions dimensions) :
 	surface(std::move(dimensions))
 {
@@ -67,6 +77,16 @@ Mask::Mask(std::vector<bool>&& data, Dimensions dimensions) :
 
 Image::Image(unsigned int width, unsigned int height) :
 	surface({width, height})
+{
+}
+
+Image::Image(double value, Dimensions dimensions) :
+	surface(std::vector<double>(dimensions.x * dimensions.y, value), std::move(dimensions))
+{
+}
+
+Image::Image(double value, unsigned int width, unsigned int height) :
+	surface(std::vector<double>(width * height, value), {width, height})
 {
 }
 
