@@ -35,6 +35,34 @@
 
 namespace profit {
 
+static double upsample_value(double pixel, double divide_factor)
+{
+	return pixel / divide_factor;
+}
+
+static bool upsample_value(const bool value)
+{
+	return value;
+}
+
+template <typename Surface, typename ... Ts>
+static inline
+Surface upsample_surface(const Surface &surface, unsigned int factor, Ts &&... ts)
+{
+	auto up_dims = surface.getDimensions() * factor;
+	Surface upsampled(up_dims);
+
+	// Each pixel from this surface is repeated `factor x factor` times
+	for (unsigned int row_u = 0; row_u != up_dims.y; row_u++) {
+		auto row = row_u / factor;
+		for (unsigned int col_u = 0; col_u != up_dims.x; col_u++) {
+			auto col = col_u / factor;
+			upsampled[col_u + row_u * up_dims.x] = upsample_value(surface[Point{col, row}], ts...);
+		}
+	}
+	return upsampled;
+}
+
 Mask::Mask(unsigned int width, unsigned int height) :
 	surface({width, height})
 {
@@ -58,6 +86,11 @@ Mask::Mask(Dimensions dimensions) :
 Mask::Mask(const std::vector<bool>& data, unsigned int width, unsigned int height) :
 	surface(data, {width, height})
 {
+}
+
+Mask Mask::upsample(unsigned int factor) const
+{
+	return upsample_surface(*this, factor);
 }
 
 Mask::Mask(const std::vector<bool>& data, Dimensions dimensions) :
@@ -142,20 +175,8 @@ Image Image::upsample(unsigned int factor, UpsamplingMode mode) const
 	if (factor == 1) {
 		return Image(*this);
 	}
-
-	auto up_dims = getDimensions() * factor;
-	Image upsampled(up_dims);
-
-	// Each pixel from this image is repeated `factor x factor` times
 	double divide_factor = mode == SCALE ? (factor * factor) : 1;
-	for (unsigned int row_u = 0; row_u != up_dims.y; row_u++) {
-		auto row = row_u / factor;
-		for (unsigned int col_u = 0; col_u != up_dims.x; col_u++) {
-			auto col = col_u / factor;
-			upsampled[col_u + row_u * up_dims.x] = this->operator[]({col, row}) / divide_factor;
-		}
-	}
-	return upsampled;
+	return upsample_surface(*this, factor, divide_factor);
 }
 
 static inline

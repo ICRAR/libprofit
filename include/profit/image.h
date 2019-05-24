@@ -630,6 +630,21 @@ public:
 	Mask(std::vector<bool> &&data, unsigned int width, unsigned int height);
 	Mask(std::vector<bool> &&data, Dimensions dimensions);
 
+	/**
+	 * Upsamples this mask by the given factor.
+	 *
+	 * The resulting mask's dimensions will be the original mask's times the
+	 * upsampling factor. The original mask's values are copied on the
+	 * corresponding <pre>factor * factor</pre> cells of the upsampled
+	 * mask.
+	 *
+	 * @param factor The upsampling factor. Must be greater than 0. If equals to
+	 * 1, the upsampled mask is equals to the original mask.
+	 * @param mode The upsampling mode to use
+	 * @return The upsampled mask
+	 */
+	Mask upsample(unsigned int factor) const;
+
 };
 
 /**
