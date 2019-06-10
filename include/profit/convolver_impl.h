@@ -115,6 +115,9 @@ protected:
 	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
+
+	void resize(const Dimensions &src_dims, const Dimensions &krn_dims);
+
 	std::unique_ptr<FFTRealTransformer> fft_transformer;
 
 	std::vector<std::complex<double>> src_fft;

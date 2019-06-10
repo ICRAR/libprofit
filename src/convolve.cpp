@@ -233,24 +233,35 @@ FFTConvolver::FFTConvolver(const Dimensions &src_dims, const Dimensions &krn_dim
 	src_fft(), krn_fft(), ext_src(), ext_krn(),
 	reuse_krn_fft(reuse_krn_fft), krn_fft_initialized(false)
 {
-	auto effective_dims = max(src_dims, krn_dims);
-	auto ext_dims = effective_dims * 2;
-	fft_transformer = std::unique_ptr<FFTRealTransformer>(new FFTRealTransformer(ext_dims.x * ext_dims.y, effort, plan_omp_threads));
+	fft_transformer = std::unique_ptr<FFTRealTransformer>(new FFTRealTransformer(effort, plan_omp_threads));
+	resize(src_dims, krn_dims);
+}
+
+void FFTConvolver::resize(const Dimensions &src_dims, const Dimensions &krn_dims)
+{
+	auto ext_dims = max(src_dims, krn_dims) * 2;
+	if (ext_dims.x == 0 || ext_dims.y == 0) {
+		return;
+	}
+	if (ext_dims == ext_src.getDimensions()) {
+		ext_src.zero();
+		return;
+	}
+	fft_transformer->resize(ext_dims.x * ext_dims.y);
 	src_fft.resize(fft_transformer->get_hermitian_size());
 	krn_fft.resize(fft_transformer->get_hermitian_size());
 	ext_src = Image(ext_dims);
 	ext_krn = Image(ext_dims);
+	krn_fft_initialized = false;
 }
 
 Image FFTConvolver::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
-
 	auto src_dims = src.getDimensions();
 	auto krn_dims = krn.getDimensions();
-	auto ext_dims = ext_src.getDimensions();
 
 	// Create extended images first
-	ext_src.zero();
+	resize(src_dims, krn_dims);
 	src.extend(ext_src);
 
 	// Forward FFTs
@@ -280,7 +291,7 @@ Image FFTConvolver::convolve_impl(const Image &src, const Image &krn, const Mask
 		ext_offset.y -= 1;
 	}
 
-	return mask_and_crop(ext_src, mask, crop, src_dims, ext_dims, ext_offset, offset_out);
+	return mask_and_crop(ext_src, mask, crop, src_dims, ext_src.getDimensions(), ext_offset, offset_out);
 }
 
 #endif /* PROFIT_FFTW */
