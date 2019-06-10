@@ -32,10 +32,7 @@
 #include "profit/config.h"
 #include "profit/library.h"
 #include "profit/utils.h"
-
-#ifdef PROFIT_FFTW
-#include <fftw3.h>
-#endif // PROFIT_FFTW
+#include "profit/fft_impl.h"
 
 namespace profit {
 
@@ -101,6 +98,8 @@ bool init()
 	// Initialize FFTW library, including its OpenMP support
 	// It is important to configure the OpenMP support before reading the wisdom,
 	// otherwise the plans will fail to import
+#ifdef PROFIT_FFTW
+	std::lock_guard<std::mutex> guard(fftw_mutex);
 #ifdef PROFIT_FFTW_OPENMP
 	int res = fftw_init_threads();
 	if (!res) {
@@ -111,7 +110,6 @@ bool init()
 	}
 #endif // PROFIT_FFTW_OPENMP
 
-#ifdef PROFIT_FFTW
 	auto fftw_wisdom_filename = get_fftw_wisdom_filename();
 	if (file_exists(fftw_wisdom_filename)) {
 		auto *fftw_wisdom_file = fopen(fftw_wisdom_filename.c_str(), "r");
@@ -147,6 +145,7 @@ bool init()
 void finish()
 {
 #ifdef PROFIT_FFTW
+	std::lock_guard<std::mutex> guard(fftw_mutex);
 	auto fftw_wisdom_filename = get_fftw_wisdom_filename();
 	auto *fftw_wisdom_file = fopen(fftw_wisdom_filename.c_str(), "w");
 	if (!fftw_wisdom_file) {
@@ -254,6 +253,7 @@ void clear_cache()
 	auto profit_home = get_profit_home();
 
 #ifdef PROFIT_FFTW
+	std::lock_guard<std::mutex> guard(fftw_mutex);
 	fftw_forget_wisdom();
 	auto fftw_cache = profit_home + "/fftw_cache";
 	if (dir_exists(fftw_cache)) {

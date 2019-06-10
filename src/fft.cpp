@@ -38,6 +38,8 @@
 
 namespace profit {
 
+std::mutex fftw_mutex;
+
 template <typename T>
 void check_size(const T &data, unsigned int size)
 {
@@ -83,6 +85,7 @@ FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsig
 	forward_plan(nullptr),
 	backward_plan(nullptr)
 {
+	std::lock_guard<std::mutex> guard(fftw_mutex);
 #ifdef PROFIT_FFTW_OPENMP
 	fftw_plan_with_nthreads(omp_threads);
 #endif /* PROFIT_FFTW_OPENMP */

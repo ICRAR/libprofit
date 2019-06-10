@@ -31,6 +31,7 @@
 
 #include <complex>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include <fftw3.h>
@@ -122,6 +123,10 @@ private:
 	std::unique_ptr<fftw_plan_s, fftw_plan_destroyer> forward_plan;
 	std::unique_ptr<fftw_plan_s, fftw_plan_destroyer> backward_plan;
 };
+
+/// The global mutex used to serialize FFTW operations other than fftw_execute
+extern std::mutex fftw_mutex;
+
 
 }  // namespace profit
 
