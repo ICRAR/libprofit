@@ -80,8 +80,8 @@ T *_fftw_buf(std::size_t size)
 
 
 FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsigned int omp_threads) :
-	size(size), hermitian_size(size / 2 + 1),
-	real_buf(_fftw_buf<double>(size)), complex_buf(_fftw_buf<fftw_complex>(hermitian_size)),
+	size(0), hermitian_size(0), effort(effort),
+	real_buf(nullptr), complex_buf(nullptr),
 	forward_plan(nullptr),
 	backward_plan(nullptr)
 {
@@ -89,7 +89,39 @@ FFTRealTransformer::FFTRealTransformer(unsigned int size, effort_t effort, unsig
 #ifdef PROFIT_FFTW_OPENMP
 	fftw_plan_with_nthreads(omp_threads);
 #endif /* PROFIT_FFTW_OPENMP */
+	resize_impl(size);
+}
 
+FFTRealTransformer::FFTRealTransformer(effort_t effort, unsigned int omp_threads) :
+	size(0), hermitian_size(0), effort(effort),
+	real_buf(nullptr), complex_buf(nullptr),
+	forward_plan(nullptr),
+	backward_plan(nullptr)
+{
+	std::lock_guard<std::mutex> guard(fftw_mutex);
+#ifdef PROFIT_FFTW_OPENMP
+	fftw_plan_with_nthreads(omp_threads);
+#endif /* PROFIT_FFTW_OPENMP */
+}
+
+void FFTRealTransformer::resize(unsigned int input_size)
+{
+	std::lock_guard<std::mutex> guard(fftw_mutex);
+	resize_impl(input_size);
+}
+
+void FFTRealTransformer::resize_impl(unsigned int input_size)
+{
+	if (input_size == 0) {
+		throw invalid_parameter("cannot resize fft transformer to size 0");
+	}
+	if (size == input_size) {
+		return;
+	}
+	size = input_size;
+	hermitian_size = input_size / 2 + 1;
+	real_buf.reset(_fftw_buf<double>(size));
+	complex_buf.reset(_fftw_buf<fftw_complex>(hermitian_size));
 	int fftw_effort = get_fftw_effort(effort);
 	auto fwd_plan = fftw_plan_dft_r2c_1d(size, real_buf.get(), complex_buf.get(), FFTW_DESTROY_INPUT | fftw_effort);
 	if (!fwd_plan) {

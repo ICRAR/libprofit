@@ -85,6 +85,23 @@ public:
 	FFTRealTransformer(unsigned int size, effort_t effort, unsigned int omp_threads);
 
 	/**
+	 * Creates a new transformer that will work with images and vectors of yet
+	 * unknown size. The new transformer will create plans using effort @p
+	 * effort and @p omp_threads threads.
+	 *
+	 * @param effort The kind of effort that should be put into creating this plan
+	 * @param omp_threads The number of threads to use to execute the plan
+	 */
+	FFTRealTransformer(effort_t effort, unsigned int omp_threads);
+
+	/**
+	 * Prepares this object to be able to process inputs of size @p size
+	 * @param input_size The new input size. Old plans and buffers are discarded
+	 * and replaced with new ones fitting this size
+	 */
+	void resize(unsigned int input_size);
+
+	/**
 	 * Transforms a container of numbers into their Fourier Transform. The
 	 * resulting vector is a vector of complex values.
 	 *
@@ -118,10 +135,13 @@ public:
 private:
 	unsigned int size;
 	unsigned int hermitian_size;
+	effort_t effort;
 	std::unique_ptr<double, fftw_deleter<double>> real_buf;
 	std::unique_ptr<fftw_complex, fftw_deleter<fftw_complex>> complex_buf;
 	std::unique_ptr<fftw_plan_s, fftw_plan_destroyer> forward_plan;
 	std::unique_ptr<fftw_plan_s, fftw_plan_destroyer> backward_plan;
+
+	void resize_impl(unsigned int input_size);
 };
 
 /// The global mutex used to serialize FFTW operations other than fftw_execute
