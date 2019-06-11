@@ -98,6 +98,24 @@ public:
 	Image convolve(const Image &src, const Image &krn, const Mask &mask,
 	               bool crop = true, Point &offset_out = NO_OFFSET);
 
+	/**
+	 * Returns the amount of padding that would be introduced by this convolver
+	 * when convolving an image and a kernel of sizes @p src_dims and @p
+	 * krn_dims, respectively. The padding is returned as a pair of points (or
+	 * dimensions) representing the padding in two dimensions at the bottom and
+	 * top ends of the result, respectively.
+	 *
+	 * This method does @b not perform any convolution; it simply calculates
+	 * what @em would be the padding of the image with respect to the
+	 * convolution result.
+	 *
+	 * @param src_dims The dimensions of the source image
+	 * @param krn_dims The dimensions of the kernel
+	 * @return The padding that the convolution process would introduce to the
+	 * returned image
+	 */
+	virtual PointPair padding(const Dimensions &src_dims, const Dimensions &krn_dims) const;
+
 protected:
 	// Implemented by subclasses and called by convolve
 	virtual

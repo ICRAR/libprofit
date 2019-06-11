@@ -111,12 +111,16 @@ public:
 	             effort_t effort, unsigned int plan_omp_threads,
 	             bool reuse_krn_fft);
 
+	PointPair padding(const Dimensions &src_dims, const Dimensions &krn_dims) const override;
+
 protected:
 	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 
 	void resize(const Dimensions &src_dims, const Dimensions &krn_dims);
+
+	Point offset_after_convolution(const Dimensions &src_dims, const Dimensions &krn_dims) const;
 
 	std::unique_ptr<FFTRealTransformer> fft_transformer;
 
@@ -144,11 +148,16 @@ class OpenCLConvolver : public Convolver {
 public:
 	explicit OpenCLConvolver(OpenCLEnvImplPtr opencl_env);
 
+	PointPair padding(const Dimensions &src_dims, const Dimensions &krn_dims) const override;
+
 protected:
 	Image convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop = true, Point &offset_out = NO_OFFSET) override;
 
 private:
 	OpenCLEnvImplPtr env;
+
+	// returns the extra OpenCL-imposed padding
+	Dimensions cl_padding(const Dimensions &src_dims) const;
 
 	Image _convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out);
 

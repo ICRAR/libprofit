@@ -47,6 +47,11 @@ Convolver::~Convolver()
 	// no-op
 }
 
+PointPair Convolver::padding(const Dimensions &src_dims, const Dimensions &krn_dims) const
+{
+	return {};
+}
+
 Image Convolver::convolve(const Image &src, const Image &krn, const Mask &mask,
                           bool crop, Point &offset_out)
 {
@@ -255,6 +260,26 @@ void FFTConvolver::resize(const Dimensions &src_dims, const Dimensions &krn_dims
 	krn_fft_initialized = false;
 }
 
+PointPair FFTConvolver::padding(const Dimensions &src_dims, const Dimensions &krn_dims) const
+{
+	auto ext_dims = max(src_dims, krn_dims) * 2;
+	auto offset = offset_after_convolution(src_dims, krn_dims);
+	return {offset, ext_dims - ext_dims / 2 - offset};
+}
+
+Point FFTConvolver::offset_after_convolution(const Dimensions &src_dims, const Dimensions &krn_dims) const
+{
+	// even image and odd kernel requires slight adjustment
+	auto offset = Point{src_dims / 2};
+	if (src_dims.x % 2 == 0 || krn_dims.x % 2 == 0) {
+		offset.x -= 1;
+	}
+	if (src_dims.y % 2 == 0 || krn_dims.y % 2 == 0) {
+		offset.y -= 1;
+	}
+	return offset;
+}
+
 Image FFTConvolver::convolve_impl(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out)
 {
 	auto src_dims = src.getDimensions();
@@ -281,16 +306,8 @@ Image FFTConvolver::convolve_impl(const Image &src, const Image &krn, const Mask
 	fft_transformer->backward(src_fft, ext_src);
 	ext_src /= ext_src.size();
 
-	// The resulting image now starts at x_offset/y_offset
-	// even image and odd kernel requires slight adjustment
-	auto ext_offset = src_dims / 2;
-	if (src_dims.x % 2 == 0 || krn_dims.x % 2 == 0) {
-		ext_offset.x -= 1;
-	}
-	if (src_dims.y % 2 == 0 || krn_dims.y % 2 == 0) {
-		ext_offset.y -= 1;
-	}
-
+	// The resulting image now starts at ext_offset
+	auto ext_offset = offset_after_convolution(src_dims, krn_dims);
 	return mask_and_crop(ext_src, mask, crop, src_dims, ext_src.getDimensions(), ext_offset, offset_out);
 }
 
@@ -316,12 +333,22 @@ Image OpenCLConvolver::convolve_impl(const Image &src, const Image &krn, const M
 	}
 }
 
+Dimensions OpenCLConvolver::cl_padding(const Dimensions &src_dims) const
+{
+	return (16 - (src_dims % 16)) % 16;
+}
+
+PointPair OpenCLConvolver::padding(const Dimensions &src_dims, const Dimensions &/*krn_dims*/) const
+{
+	return {{0, 0}, cl_padding(src_dims)};
+}
+
 Image OpenCLConvolver::_convolve(const Image &src, const Image &krn, const Mask &mask, bool crop, Point &offset_out) {
 
 	// We use a group size of 16x16, so let's extend the src image
 	// to the next multiple of 16
 	auto src_dims = src.getDimensions();
-	auto clpad_dims = (16 - (src_dims % 16)) % 16;
+	auto clpad_dims = cl_padding(src_dims);
 	auto ext_dims = src.getDimensions() + clpad_dims;
 	const Image clpad_src = src.extend(ext_dims);
 
