@@ -29,6 +29,7 @@
 #define PROFIT_IMAGE_H
 
 #include <algorithm>
+#include <ostream>
 #include <stdexcept>
 #include <vector>
 
@@ -182,6 +183,13 @@ public:
 
 };
 
+template <typename CharT>
+std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> &os, const _2dcoordinate &coord)
+{
+	os << '[' << coord.x << ", " << coord.y << ']';
+	return os;
+}
+
 inline
 _2dcoordinate operator-(int x, const _2dcoordinate &other) {
 	return _2dcoordinate(x, x) - other;
@@ -239,6 +247,13 @@ public:
 		return {first * n, second * n};
 	}
 };
+
+template <typename CharT>
+std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> &os, const Box &box)
+{
+	os << '[' << box.first << ", " << box.second << ']';
+	return os;
+}
 
 ///
 /// Non-templated code common to 2D surface classes
@@ -505,6 +520,59 @@ private:
 		}
 	}
 };
+
+namespace detail {
+
+	template <typename ValueT>
+	struct printing_return {
+		typedef ValueT type;
+	};
+
+	template <>
+	struct printing_return<bool> {
+		typedef char type;
+	};
+
+	template <typename ValueT>
+	inline
+	typename printing_return<ValueT>::type surface_value_for_printing(ValueT value)
+	{
+		return value;
+	}
+
+	template <>
+	inline
+	char surface_value_for_printing<bool>(bool value)
+	{
+		if (value) {
+			return 'T';
+		}
+		return 'F';
+	}
+} // namespace detail
+
+template <typename CharT, typename ValueT, typename Derived>
+std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> &os, const surface<ValueT, Derived> &s)
+{
+	os << '[';
+	auto width = s.getWidth();
+	auto height = s.getHeight();
+	for (unsigned int j = 0; j != height; j++) {
+		os << '[';
+		for (unsigned int i = 0; i != width; i++) {
+			os << detail::surface_value_for_printing(s[Point{i, j}]);
+			if (i < width - 1) {
+				os << ", ";
+			}
+		}
+		os << ']';
+		if (j < height - 1) {
+			os << ", ";
+		}
+	}
+	os << ']';
+	return os;
+}
 
 /**
  * A mask is surface of bools
