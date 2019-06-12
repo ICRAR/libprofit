@@ -57,7 +57,7 @@ Image Convolver::convolve(const Image &src, const Image &krn, const Mask &mask,
 	// have added
 	auto src_dims = src.getDimensions();
 	auto krn_dims = krn.getDimensions();
-	if (krn_dims.x > src_dims.x || krn_dims.y > src_dims.y) {
+	if (!(src_dims >= krn_dims)) { // not the same as src_dims < krn_dims
 		auto new_dims = max(src_dims, krn_dims);
 		auto dims_diff = new_dims - src_dims;
 		auto extended_src = src.extend(new_dims);
