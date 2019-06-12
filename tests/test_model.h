@@ -253,49 +253,64 @@ public:
 		TS_ASSERT_DELTA(flux, finesampled_flux, flux * 0.001);
 	}
 
-	void _test_no_crop(const Dimensions &dims, unsigned int finesampling)
+	void _test_no_crop(const Dimensions &dims, unsigned int finesampling, ConvolverType conv_type)
 	{
-		if (!has_fftw()) {
-			TS_SKIP("No FFTW available");
-		}
-
-		auto fft_conv = create_convolver("fft", ConvolverCreationPreferences(dims * finesampling, {2, 2}, 1, nullptr, effort_t::ESTIMATE, true, simd_instruction_set::AUTO));
+		ConvolverCreationPreferences conv_prefs;
+		conv_prefs.src_dims = dims * finesampling;
+		conv_prefs.krn_dims = {2, 2};
+		conv_prefs.reuse_krn_fft = true;
 		Model m {dims.x, dims.y};
-		m.set_convolver(fft_conv);
+		m.set_convolver(create_convolver(conv_type, conv_prefs));
 		m.set_psf({{1, 1, 1, 1}, 2, 2});
 		m.set_finesampling(finesampling);
 		auto p = m.add_profile("null");
 		p->parameter("convolve", true);
 
-		// Adjust our expectations
-		auto expected_img_dims = dims * finesampling;
-		auto _half_dims = expected_img_dims / 2;
-		auto expected_offset = Point(_half_dims.x - 1, _half_dims.y - 1);
 
 		// Default is to crop the image
+		auto expected_img_dims = dims * finesampling;
 		auto original_image = m.evaluate();
 		TS_ASSERT_EQUALS(original_image.getDimensions(), expected_img_dims);
 
-		// We know that the fft convolver creates an image that with dimensions
-		// that are double of the original, and that will start at 49,49
+		// Don't crop now, we should be able to reproduce that crop
+		auto expected_offset = Dimensions{0, 0};
+		auto expected_uncropped_img_dims = expected_img_dims;
+		if (conv_type == ConvolverType::FFT) {
+			expected_offset = expected_img_dims / 2 - 1;
+			expected_uncropped_img_dims = expected_img_dims * 2;
+		}
 		Point offset;
 		m.set_crop(false);
 		auto uncropped_image = m.evaluate(offset);
-		TS_ASSERT_EQUALS(uncropped_image.getDimensions(), expected_img_dims * 2);
+		TS_ASSERT_EQUALS(uncropped_image.getDimensions(), expected_uncropped_img_dims);
 		TS_ASSERT_EQUALS(offset, expected_offset);
-
-		// Manually cropping should yield the original
 		TS_ASSERT_EQUALS(original_image, uncropped_image.crop(expected_img_dims, offset));
 	}
 
 	void test_no_crop()
 	{
-		_test_no_crop({100, 100}, 1);
+		_test_no_crop({20, 20}, 1, ConvolverType::BRUTE);
 	}
 
 	void test_no_cropping_with_finesampling()
 	{
-		_test_no_crop({100, 100}, 2);
+		_test_no_crop({20, 20}, 2, ConvolverType::BRUTE);
+	}
+
+	void test_no_crop_fft_convolver()
+	{
+		if (!has_fftw()) {
+			TS_SKIP("No FFTW available");
+		}
+		_test_no_crop({20, 20}, 1, ConvolverType::FFT);
+	}
+
+	void test_no_cropping_with_finesampling_fft_convolver()
+	{
+		if (!has_fftw()) {
+			TS_SKIP("No FFTW available");
+		}
+		_test_no_crop({20, 20}, 2, ConvolverType::FFT);
 	}
 
 };
