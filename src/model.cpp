@@ -24,6 +24,8 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+#include <functional>
 #include <sstream>
 
 #include "profit/common.h"
@@ -126,52 +128,62 @@ ConvolverPtr &Model::ensure_convolver()
 	return convolver;
 }
 
-Image Model::evaluate(Point &offset_out) {
-
+Model::input_analysis Model::analyze_inputs()
+{
 	/* Check limits */
-	if( !requested_dimensions ) {
+	if (!requested_dimensions) {
 		throw invalid_parameter( "Model's requested dimensions are 0");
 	}
-	else if( this->scale.first <= 0 ) {
+	else if (scale.first <= 0) {
 		throw invalid_parameter("Model's scale_x cannot be negative or zero");
 	}
-	else if( this->scale.second <= 0 ) {
+	else if (scale.second <= 0) {
 		throw invalid_parameter("Model's scale_y cannot be negative or zero");
 	}
 
-	/*
-	 * If at least one profile is requesting convolving we require
-	 * a valid psf.
-	 */
-	for(auto &profile: this->profiles) {
-		if( profile->do_convolve() ) {
-			if( !this->psf ) {
-				std::ostringstream ss;
-				ss << "Profile " << profile->get_name() << " requires convolution but no valid psf was provided";
-				throw invalid_parameter(ss.str());
-			}
-			break;
-		}
+	input_analysis analysis;
+	analysis.convolution_required = std::any_of(profiles.begin(), profiles.end(),
+	                                            std::mem_fn(&Profile::do_convolve));
+
+	if (analysis.convolution_required && !psf) {
+		throw invalid_parameter("No psf provided but profile(s) requested convolution");
 	}
 
-	/*
-	 * Validate all profiles.
-	 * Each profile can fail during validation in which case we don't proceed any further
-	 */
+	/* Validate all profiles. Each profile can fail during validation */
 	for(auto &profile: this->profiles) {
 		profile->validate();
 	}
 
-	// The image we'll eventually return
-	auto image_dims = requested_dimensions * finesampling;
-	Image image(image_dims);
-	Point offset(0, 0);
+	return analysis;
+}
+
+Image Model::evaluate(Point &offset_out)
+{
+	auto analysis = analyze_inputs();
+	const auto image_dims = requested_dimensions * finesampling;
 
 	/* so long folks! */
-	if( dry_run ) {
-		inform_offset(offset, offset_out);
-		return image;
+	if (dry_run) {
+		inform_offset({0, 0}, offset_out);
+		return Image{image_dims};
 	}
+
+	Point offset;
+	auto image = produce_image(image_dims, mask, analysis, offset);
+
+	if (finesampling > 1 && !return_finesampled) {
+		image = image.downsample(finesampling, Image::DownsamplingMode::SUM);
+		offset /= finesampling;
+	}
+
+	inform_offset(offset, offset_out);
+	return image;
+}
+
+Image Model::produce_image(const Dimensions &image_dims, const Mask &mask,
+    const input_analysis &analysis, Point &offset)
+{
+	Image image(image_dims);
 
 	/*
 	 * Generate a separate image for each profile.
@@ -191,11 +203,9 @@ Image Model::evaluate(Point &offset_out) {
 	 */
 
 	// We first sum up all images that need convolving
-	bool do_convolve = false;
 	auto it = profile_images.begin();
 	for(auto &profile: this->profiles) {
 		if( profile->do_convolve() ) {
-			do_convolve = true;
 			image += *it;
 		}
 		it++;
@@ -206,7 +216,8 @@ Image Model::evaluate(Point &offset_out) {
 	// thus we keep track of this bigger size, and the offset
 	// of the original image with respect to the new, larger one
 	Dimensions conv_dims = image.getDimensions();
-	if( do_convolve ) {
+	offset = {0, 0};
+	if (analysis.convolution_required) {
 		Image psf_img(psf);
 		psf_img.normalize();
 		image = ensure_convolver()->convolve(image, psf_img, mask, crop, offset);
@@ -232,14 +243,7 @@ Image Model::evaluate(Point &offset_out) {
 		image += no_convolved_images;
 	}
 
-	// Downsample image if necessary
-	if (finesampling > 1 && !return_finesampled) {
-		image = image.downsample(finesampling, Image::DownsamplingMode::SUM);
-		offset /= finesampling;
-	}
-
 	/* Done! Good job :-) */
-	inform_offset(offset, offset_out);
 	return image;
 }
 

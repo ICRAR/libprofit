@@ -331,8 +331,21 @@ private:
 	unsigned int omp_threads;
 	std::vector<ProfilePtr> profiles;
 
+	// The result of analysing the model inputs, it contains all the necessary
+	// information needed to actually proceed with the rest of the tasks
+	struct input_analysis {
+		bool convolution_required;
+	};
+
 	template <typename P>
 	ProfilePtr make_profile(const std::string &name);
+
+	// Actually produce the image from the profiles and convolve it against the psf
+	Image produce_image(const Dimensions &image_dims, const Mask &mask,
+	    const input_analysis &analysis, Point &offset);
+
+	// Analyze the model's inputs and produce information needed by other steps
+	input_analysis analyze_inputs();
 
 	// Make sure we have a convolver and return it
 	ConvolverPtr &ensure_convolver();
