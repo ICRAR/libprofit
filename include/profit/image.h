@@ -631,6 +631,18 @@ public:
 	Mask(std::vector<bool> &&data, Dimensions dimensions);
 
 	/**
+	 * Returns a new Mask where the area covered by the new mask (i.e., where
+	 * the new mask's value is @pre true) is an "expanded" version of this mask.
+	 * This is similar in nature to a convolution, but simpler as it is a
+	 * simpler boolean operation that requires no additions or further scaling.
+	 *
+	 * @param pad the amount of cells to expand each input pixel on each dimension.
+	 * @param threads threads to use to perform computation. Only valid if
+	 * compiled with OpenMP support
+	 */
+	Mask expand_by(Dimensions pad, int threads=1) const;
+
+	/**
 	 * Upsamples this mask by the given factor.
 	 *
 	 * The resulting mask's dimensions will be the original mask's times the

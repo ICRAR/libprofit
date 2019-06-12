@@ -100,4 +100,30 @@ void assert_images_relative_delta(const Image &expected, const Image &obtained,
 	}
 }
 
+void assert_masks(const Mask &expected, const Mask &obtained)
+{
+	// Compare dimensions, total flux, and pixel-by-pixel
+	TS_ASSERT_EQUALS(expected.getDimensions(), obtained.getDimensions());
+	auto width = expected.getWidth();
+	bool failed = false;
+	for(unsigned int i=0; i!=expected.size(); i++) {
+		std::ostringstream msg;
+		msg << "Cell [" << i % width << "," << i / width << "] has different values: ";
+		msg << expected[i] << " v/s " << obtained[i];
+		// need explicit cast to bool here as Apple's clang refused to ultimately
+		// perform a C-style cast between std::__bit_iterator and unsigned char *,
+		// which is what happens under the hood in cxxtest
+		TSM_ASSERT_EQUALS(msg.str(), bool(expected[i]), bool(obtained[i]));
+		if (expected[i] != obtained[i]) {
+			failed = true;
+		}
+	}
+	if (failed) {
+		std::ostringstream msg;
+		msg << "Failed when comparing masks: Expected\n" << expected;
+		msg << "\nObtained:\n" << obtained;
+		TS_FAIL(msg.str());
+	}
+}
+
 } // namespace profit

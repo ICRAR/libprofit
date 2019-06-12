@@ -622,3 +622,71 @@ public:
 		_test_bounding_box(Mask{{false, false, false, false, false, false}, 2, 3}, {0, 0}, {0, 0});
 	}
 };
+
+class TestMask : public CxxTest::TestSuite {
+
+public:
+
+	void test_expand_by_simple()
+	{
+		Mask m{true, 1, 1};
+		m = m.extend({3, 3}, {1, 1});
+		auto expanded = m.expand_by({1, 1});
+		assert_masks(expanded, Mask{true, 3, 3});
+	}
+
+	void test_regular_shape_expand_by()
+	{
+		// expand a single pixel that is in the corner
+		Mask m{true, 1, 1};
+		m = m.extend({10, 10});
+		auto expanded = m.expand_by({1, 1});
+		assert_masks(expanded, Mask{true, 2, 2}.extend({10, 10}));
+		// expand a single pixel in the corner by different x/y amounts
+		m = Mask{true, 1, 1};
+		m = m.extend({10, 10});
+		expanded = m.expand_by({1, 4});
+		assert_masks(expanded, Mask{true, 2, 5}.extend({10, 10}));
+		// expand a single pixel placed in the middle of the image
+		m = Mask{true, 1, 1};
+		m = m.extend({11, 11}, {5, 5});
+		expanded = m.expand_by({2, 2});
+		assert_masks(expanded, Mask{true, 5, 5}.extend({11, 11}, {3, 3}));
+	}
+
+	void test_irregular_shape_expand_by()
+	{
+		Mask m {{
+			false, false, false, false, true,
+			true,  false, false, false, false,
+			true,  false, false, false, false,
+			false, false, false, false, false,
+			false, false, true,  true,  false
+		}, 5, 5};
+		Mask expected_expanded_by_1 {{
+			true,  true, false, true,  true,
+			true,  true, false, true,  true,
+			true,  true, false, false, false,
+			true,  true, true,  true,  true,
+			false, true, true,  true,  true
+		}, 5, 5};
+		assert_masks(expected_expanded_by_1, m.expand_by({1, 1}));
+	}
+
+	void test_even_expand_by()
+	{
+		Mask m {{
+			false, false, false, false,
+			false,  true, false, false,
+			false,  true, false, false,
+			false, false, false, false,
+		}, 4, 4};
+		Mask expected_expanded_by_1 {{
+			true,  true, true, false,
+			true,  true, true, false,
+			true,  true, true, false,
+			true,  true, true, false
+		}, 4, 4};
+		assert_masks(expected_expanded_by_1, m.expand_by({1, 1}));
+	}
+};

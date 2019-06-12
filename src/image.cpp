@@ -31,6 +31,7 @@
 #include <utility>
 
 #include "profit/image.h"
+#include "profit/omp_utils.h"
 #include "profit/utils.h"
 
 namespace profit {
@@ -106,6 +107,58 @@ Mask::Mask(std::vector<bool>&& data, unsigned int width, unsigned int height) :
 Mask::Mask(std::vector<bool>&& data, Dimensions dimensions) :
 	surface(std::move(data), std::move(dimensions))
 {
+}
+
+Mask Mask::expand_by(Dimensions pad, int threads) const
+{
+	Mask output{*this};
+	auto width = getWidth();
+	auto height = getHeight();
+	const size_t src_krn_offset = pad.x + pad.y * width;
+	const auto &mask_data = _get();
+	omp_2d_for(threads, width, height, [&](unsigned int i, unsigned int j) {
+		// Quickly skip those that are set already
+		auto output_idx = i + j * width;
+		if (output[output_idx]) {
+			return;
+		}
+
+		// Depending on where the output pixel is we might need to use
+		// smaller portions of the source image
+		size_t input_idx = output_idx - src_krn_offset;
+		unsigned int l_min = 0;
+		unsigned int l_max = 2 * pad.y + 1;
+		unsigned int k_min = 0;
+		unsigned int k_max = 2 * pad.x + 1;
+
+		if (j < pad.y) {
+			l_min = pad.y - j;
+		}
+		else if ((j + pad.y) >= height) {
+			l_max = height + pad.y - j;
+		}
+		if (i < pad.x) {
+			k_min = pad.x - i;
+		}
+		else if ((i + pad.x) >= width)
+		{
+			k_max = width + pad.x - i;
+		}
+		input_idx += k_min + l_min * width;
+
+		// Loop throught each of the rows of the src/krn surfaces
+		// and compute the dot product of each of them, then sum up
+		for (size_t l = 0; l < l_max - l_min; l++) {
+			auto first = mask_data.begin() + input_idx;
+			if (std::any_of(first, first + k_max - k_min,
+			                [](bool mask_value) { return mask_value; })) {
+				output[output_idx] = true;
+				return;
+			}
+			input_idx += width;
+		}
+	});
+	return output;
 }
 
 Image::Image(unsigned int width, unsigned int height) :
