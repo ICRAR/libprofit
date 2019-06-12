@@ -27,6 +27,39 @@
 
 #include "profit/profit.h"
 
+
+// Nice printing for some libprofit objects
+namespace CxxTest {
+
+// base class to be used with all classes supporting operator<<
+template <typename T>
+class StreamedString
+{
+	std::string as_string;
+public:
+	explicit StreamedString(const T &value)
+	{
+		std::ostringstream os;
+		os << value;
+		as_string = os.str();
+	}
+	const char *asString() const
+	{
+		return as_string.c_str();
+	}
+};
+
+// points/dimensions
+template <>
+class ValueTraits<profit::_2dcoordinate> : public StreamedString<profit::_2dcoordinate>
+{
+public:
+	explicit ValueTraits(const profit::_2dcoordinate &value) : StreamedString(value) {}
+};
+
+} // namespace CxxTest
+
+
 namespace profit {
 
 class LibraryInitializationFixture : public CxxTest::GlobalFixture {
