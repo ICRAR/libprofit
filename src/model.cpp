@@ -154,13 +154,36 @@ Model::input_analysis Model::analyze_inputs()
 		profile->validate();
 	}
 
+	// If the mask is conveniently smaller and centrally located over the image
+	// then we can actually avoid having to generated bigger model images
+	analysis.mask_needs_convolution = false;
+	bool model_needs_psf_padding = analysis.convolution_required;
+	if (!dry_run && mask && analysis.convolution_required) {
+		auto bounds = mask.bounding_box() * finesampling;
+		auto mask_pad_low = bounds.first;
+		auto mask_pad_up = mask.getDimensions() * finesampling - bounds.second;
+		auto needed = psf.getDimensions() / 2;
+		model_needs_psf_padding = !(mask_pad_low >= needed) || !(mask_pad_up >= needed);
+		analysis.mask_needs_convolution = true;
+	}
+	if (model_needs_psf_padding) {
+		analysis.psf_padding = psf.getDimensions() / 2;
+	}
+	else {
+		analysis.psf_padding = Dimensions{0, 0};
+	}
+
 	return analysis;
 }
 
 Image Model::evaluate(Point &offset_out)
 {
 	auto analysis = analyze_inputs();
-	const auto image_dims = requested_dimensions * finesampling;
+
+	// In order to preserve the total flux when convolution is requested we
+	// need to generate model images that are actually larger than the
+	// originally requested sizes.
+	const auto image_dims = requested_dimensions * finesampling + analysis.psf_padding * 2;
 
 	/* so long folks! */
 	if (dry_run) {
@@ -168,14 +191,52 @@ Image Model::evaluate(Point &offset_out)
 		return Image{image_dims};
 	}
 
+	// Adjust mask before passing it down to profiles
+	Mask mask;
+	if (this->mask) {
+		if (finesampling > 1) {
+			mask = this->mask.upsample(finesampling);
+		}
+		else {
+			mask = this->mask;
+		}
+		if (analysis.psf_padding) {
+			mask = mask.extend(image_dims, analysis.psf_padding);
+		}
+		if (analysis.mask_needs_convolution) {
+			mask = mask.expand_by(psf.getDimensions() / 2);
+		}
+	}
+
 	Point offset;
 	auto image = produce_image(image_dims, mask, analysis, offset);
+
+	// Remove PSF padding if one was added, and downsample if necessary
+	if (analysis.psf_padding) {
+		auto crop_offset = analysis.psf_padding;
+		auto crop_dims = image_dims - analysis.psf_padding * 2;
+		if (!crop) {
+			// We need to remove the padding effects from the uncropped
+			// area. For that we see how much more extra padding was added
+			// only due to the extra padding
+			auto conv_actual_padding = convolver->padding(image_dims, psf.getDimensions());
+			auto conv_intended_padding = convolver->padding(image_dims - analysis.psf_padding * 2, psf.getDimensions());
+			auto offset_diff = conv_actual_padding.first - conv_intended_padding.first;
+			auto dim_diff = conv_actual_padding.second - conv_intended_padding.second;
+			crop_dims = image.getDimensions() - analysis.psf_padding * 2;
+			crop_dims -= offset_diff + dim_diff;
+			crop_offset += offset_diff;
+			offset -= offset_diff;
+		}
+		image = image.crop(crop_dims, crop_offset);
+	}
 
 	if (finesampling > 1 && !return_finesampled) {
 		image = image.downsample(finesampling, Image::DownsamplingMode::SUM);
 		offset /= finesampling;
 	}
 
+	image &= this->mask;
 	inform_offset(offset, offset_out);
 	return image;
 }
@@ -195,7 +256,7 @@ Image Model::produce_image(const Dimensions &image_dims, const Mask &mask,
 		auto &profile_image = profile_images.back();
 		profile->evaluate(profile_image, mask,
 		    {scale.first / finesampling, scale.second / finesampling},
-		    {0, 0}, magzero);
+		    analysis.psf_padding, magzero);
 	}
 
 	/*

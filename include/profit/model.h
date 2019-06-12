@@ -335,6 +335,8 @@ private:
 	// information needed to actually proceed with the rest of the tasks
 	struct input_analysis {
 		bool convolution_required;
+		bool mask_needs_convolution;
+		Dimensions psf_padding;
 	};
 
 	template <typename P>

@@ -314,3 +314,113 @@ public:
 	}
 
 };
+
+class TestFluxCapturing : public CxxTest::TestSuite {
+
+private:
+
+	void _test_flux_is_captured(unsigned int model_size, unsigned int mask_size,
+	    unsigned int psf_size, ConvolverPtr convolver, unsigned int finesampling)
+	{
+		// Make a model containing a sky profile with a fixed background. Then
+		// we evaluate the model and then we do the same but with a mask.
+		// Optionally convolution with a psf is involved in both steps.
+		// At the end we should end up with the same image within the masked
+		// region, which implies we correctly captured all flux, even when doing
+		// convolution.
+		//
+		// We repeat the above for all the possible different positions of the
+		// mask to make sure we are accounting for all possible edge cases.
+		// TODO: add for loops for crop/no-crop
+
+		const Mask original_mask{true, mask_size, mask_size};
+		Image psf{1, psf_size, psf_size};
+		Model m{model_size, model_size};
+		m.set_finesampling(finesampling);
+		m.set_return_finesampled(false);
+		auto sersic = m.add_profile("sky");
+		sersic->parameter("bg", 1.);
+		if (convolver) {
+			sersic->parameter("convolve", true);
+		}
+		m.set_psf(psf);
+		m.set_convolver(convolver);
+		auto non_masked_image = m.evaluate();
+
+		auto assert_same_masked_image = [&] (Point mask_offset) {
+			auto mask = original_mask.extend({model_size, model_size}, {mask_offset.x, mask_offset.y});
+			m.set_mask(mask);
+			auto masked_image = m.evaluate();
+			assert_images_relative_delta(non_masked_image & mask, masked_image, 0.0001, zero_treatment_t::EXPECT_0);
+		};
+
+		for (auto mask_y_offset = 0U; mask_y_offset <= model_size - mask_size; mask_y_offset++) {
+			for (auto mask_x_offset = 0U; mask_x_offset <= model_size - mask_size; mask_x_offset++) {
+				assert_same_masked_image({mask_x_offset, mask_y_offset});
+			}
+		}
+	}
+
+	void _test_flux_is_captured(unsigned int model_size, unsigned int mask_size, unsigned int psf_size)
+	{
+		std::vector<ConvolverPtr> convolvers;
+		convolvers.emplace_back(nullptr);
+		convolvers.emplace_back(create_convolver(ConvolverType::BRUTE));
+		if (has_fftw()) {
+			convolvers.emplace_back(create_convolver(ConvolverType::FFT));
+		}
+		if (has_opencl() && !get_opencl_info().empty()) {
+			ConvolverCreationPreferences prefs;
+			prefs.opencl_env = get_opencl_environment(0, 0, false, false);
+			convolvers.emplace_back(create_convolver(ConvolverType::OPENCL, prefs));
+		}
+		for (auto &convolver: convolvers) {
+			for (auto finesampling: {1, 2}) {
+				_test_flux_is_captured(model_size, mask_size, psf_size, convolver, finesampling);
+			}
+		}
+	}
+
+public:
+	void test_empty_mask()
+	{
+		_test_flux_is_captured(20, 0, 5);
+	}
+
+	void test_tiny()
+	{
+		_test_flux_is_captured(5, 2, 5);
+		_test_flux_is_captured(5, 3, 5);
+		_test_flux_is_captured(5, 4, 5);
+		_test_flux_is_captured(5, 3, 4);
+		_test_flux_is_captured(5, 4, 4);
+		_test_flux_is_captured(5, 5, 4);
+		_test_flux_is_captured(3, 1, 2);
+	}
+
+	void test_small_mask_small_psf()
+	{
+		_test_flux_is_captured(20, 4, 5);
+		_test_flux_is_captured(20, 5, 5);
+		_test_flux_is_captured(20, 6, 5);
+		_test_flux_is_captured(20, 5, 6);
+		_test_flux_is_captured(20, 6, 6);
+		_test_flux_is_captured(20, 7, 6);
+	}
+
+	void test_small_mask_medium_psf()
+	{
+		_test_flux_is_captured(20, 5, 9);
+	}
+
+	void test_small_mask_full_psf()
+	{
+		_test_flux_is_captured(20, 5, 20);
+	}
+
+	void test_small_mask_bigger_psf()
+	{
+		_test_flux_is_captured(20, 5, 30);
+	}
+
+};
