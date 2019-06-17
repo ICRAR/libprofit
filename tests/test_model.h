@@ -52,6 +52,30 @@ public:
 		TS_ASSERT_EQUALS(dims.x * dims.y, m.evaluate().size());
 	}
 
+	void test_valid_masks(void)
+	{
+		Dimensions image_dims{100, 100};
+		Dimensions psf_dims{4, 4};
+		Model m(image_dims);
+		auto add_convolution = [&m, &psf_dims]() {
+			auto profile = m.add_profile("null");
+			profile->parameter("convolve", true);
+			m.set_psf(Image{1, psf_dims});
+		};
+		auto common_checks = [&m, &image_dims]() {
+			m.set_mask(Mask{true, image_dims});
+			m.evaluate(); // fine...
+			m.set_mask(Mask{});
+			m.evaluate(); // fine...
+			m.set_mask(Mask{true, image_dims - 1});
+			TS_ASSERT_THROWS(m.evaluate(), const invalid_parameter &);
+		};
+
+		common_checks();
+		add_convolution();
+		common_checks();
+	}
+
 	void test_valid_scales(void) {
 
 		Model m {1, 1};

@@ -158,6 +158,9 @@ Model::input_analysis Model::analyze_inputs() const
 	else if (scale.second <= 0) {
 		throw invalid_parameter("Model's scale_y cannot be negative or zero");
 	}
+	if (mask && mask.getDimensions() != requested_dimensions) {
+		throw invalid_parameter("Mask dimensions != model dimensions");
+	}
 
 	input_analysis analysis;
 	analysis.convolution_required = std::any_of(profiles.begin(), profiles.end(),
