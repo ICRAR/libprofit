@@ -227,6 +227,23 @@ public:
 	}
 
 	/**
+	 * Sets whether the mask given by the user should be automatically adjusted
+	 * in order to preserve flux during convolution or not. By default masks are
+	 * adjusted as necessary, but if users have a pre-adjusted Mask (obtained
+	 * via adjust(Mask &, const Dimensions &, const Image &, unsigned int))
+	 * and pass that to the Model, then they need to indicate that no further
+	 * adjustment in necessary
+	 *
+	 * @param adjust_mask Whether this model should internally adjust the mask
+	 * given by the user or not.
+	 * @see adjust(Mask &, const Dimensions &, const Image &, unsigned int)
+	 */
+	void set_adjust_mask(bool adjust_mask)
+	{
+		this->adjust_mask = adjust_mask;
+	}
+
+	/**
 	 * Set a convolver for this Model.
 	 * A convolver is an object used to carry out the convolution, if necessary.
 	 * If a convolver is present before calling `evaluate` then it is used.
@@ -341,6 +358,7 @@ private:
 	PixelScale psf_scale;
 	Mask mask;
 	ConvolverPtr convolver;
+	bool adjust_mask;
 	bool crop;
 	bool dry_run;
 	bool return_finesampled;
@@ -354,6 +372,7 @@ private:
 		Dimensions drawing_dims;
 		Dimensions psf_padding;
 		bool convolution_required;
+		bool mask_needs_psf_padding;
 		bool mask_needs_convolution;
 		bool mask_needs_adjustment;
 	};
@@ -371,7 +390,7 @@ private:
 	// Fill the analysis with model/mask expansion-related information
 	static void analyze_expansion_requirements(const Dimensions &dimensions,
 	    const Mask &mask, const Image &psf, unsigned int finesampling,
-	    input_analysis& analysis);
+	    input_analysis& analysis, bool adjust_mask);
 
 	// See adjust(Mask &mask, const Dimensions &, const Image &, unsigned int)
 	static void adjust(Mask &mask, const Image &psf, unsigned int finesampling,

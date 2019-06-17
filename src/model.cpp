@@ -58,6 +58,7 @@ Model::Model(unsigned int width, unsigned int height) :
 	psf_scale(1, 1),
 	mask(),
 	convolver(),
+	adjust_mask(true),
 	crop(true),
 	dry_run(false),
 	return_finesampled(true),
@@ -77,6 +78,7 @@ Model::Model(Dimensions dimensions) :
 	psf_scale(1, 1),
 	mask(),
 	convolver(),
+	adjust_mask(true),
 	crop(true),
 	dry_run(false),
 	return_finesampled(true),
@@ -149,7 +151,7 @@ ConvolverPtr &Model::ensure_convolver()
 
 void Model::analyze_expansion_requirements(const Dimensions &dimensions,
     const Mask &mask, const Image &psf, unsigned int finesampling,
-    input_analysis& analysis)
+    input_analysis& analysis, bool adjust_mask)
 {
 	// In order to correctly capture all flux in the model when convolving
 	// we need to produce images that span outside the originally requested
@@ -159,13 +161,18 @@ void Model::analyze_expansion_requirements(const Dimensions &dimensions,
 	// then we can actually avoid having to generated bigger model images
 	analysis.mask_needs_convolution = false;
 	bool model_needs_psf_padding = analysis.convolution_required;
-	if (mask && analysis.convolution_required) {
+	if (mask && !adjust_mask) {
+		model_needs_psf_padding = mask.getDimensions() > dimensions * finesampling;
+		analysis.mask_needs_psf_padding = false;
+	}
+	else if (mask && analysis.convolution_required) {
 		auto bounds = mask.bounding_box() * finesampling;
 		auto mask_pad_low = bounds.first;
 		auto mask_pad_up = mask.getDimensions() * finesampling - bounds.second;
 		auto needed = psf.getDimensions() / 2;
 		model_needs_psf_padding = !(mask_pad_low >= needed) || !(mask_pad_up >= needed);
 		analysis.mask_needs_convolution = true;
+		analysis.mask_needs_psf_padding = model_needs_psf_padding;
 	}
 	if (model_needs_psf_padding) {
 		analysis.psf_padding = psf.getDimensions() / 2;
@@ -188,7 +195,8 @@ Model::input_analysis Model::analyze_inputs() const
 	else if (scale.second <= 0) {
 		throw invalid_parameter("Model's scale_y cannot be negative or zero");
 	}
-	if (mask && mask.getDimensions() != requested_dimensions) {
+	// When adjust_mask=false we check the mask's dimensionality later
+	if (mask && adjust_mask && mask.getDimensions() != requested_dimensions) {
 		throw invalid_parameter("Mask dimensions != model dimensions");
 	}
 
@@ -206,7 +214,7 @@ Model::input_analysis Model::analyze_inputs() const
 	}
 
 	analyze_expansion_requirements(requested_dimensions, mask, psf,
-	                               finesampling, analysis);
+	                               finesampling, analysis, adjust_mask);
 	return analysis;
 }
 
@@ -216,7 +224,7 @@ bool Model::needs_adjustment(const Mask &mask, unsigned int finesampling,
 	if (!mask) {
 		return false;
 	}
-	return analysis.mask_needs_convolution || analysis.psf_padding || finesampling > 1;
+	return analysis.mask_needs_convolution || analysis.mask_needs_psf_padding || finesampling > 1;
 }
 
 void Model::adjust(Mask &mask, const Image &psf, unsigned int finesampling,
@@ -228,7 +236,7 @@ void Model::adjust(Mask &mask, const Image &psf, unsigned int finesampling,
 	if (finesampling > 1) {
 		mask = mask.upsample(finesampling);
 	}
-	if (analysis.psf_padding) {
+	if (analysis.mask_needs_psf_padding) {
 		mask = mask.extend(analysis.drawing_dims, analysis.psf_padding);
 	}
 	if (analysis.mask_needs_convolution) {
@@ -242,7 +250,7 @@ void Model::adjust(Mask &mask, const Dimensions &dims, const Image &psf,
 {
 	input_analysis analysis;
 	analysis.convolution_required = psf.size() > 0;
-	analyze_expansion_requirements(dims, mask, psf, finesampling, analysis);
+	analyze_expansion_requirements(dims, mask, psf, finesampling, analysis, true);
 	if (analysis.mask_needs_adjustment) {
 		adjust(mask, psf, finesampling, analysis);
 	}
@@ -261,12 +269,19 @@ Image Model::evaluate(Point &offset_out)
 	// Adjust mask before passing it down to profiles
 	Point offset;
 	Image image;
-	if (analysis.mask_needs_adjustment) {
-		Mask adjusted_mask(mask);
+	Mask adjusted_mask;
+	if (adjust_mask && analysis.mask_needs_adjustment) {
+		adjusted_mask = mask;
 		adjust(adjusted_mask, psf, finesampling, analysis);
 		image = produce_image(analysis.drawing_dims, adjusted_mask, analysis, offset);
 	}
 	else {
+		if (!adjust_mask && mask.getDimensions() != analysis.drawing_dims) {
+			std::ostringstream os;
+			os << "Mask dimensions != drawing dimensions: "
+			   << mask.getDimensions() << " != " << analysis.drawing_dims;
+			throw invalid_parameter(os.str());
+		}
 		image = produce_image(analysis.drawing_dims, mask, analysis, offset);
 	}
 
@@ -294,8 +309,12 @@ Image Model::evaluate(Point &offset_out)
 		image = image.downsample(finesampling, Image::DownsamplingMode::SUM);
 		offset /= finesampling;
 	}
+	// Only in this case we know exactly what to mask out; otherwise
+	// users should have the original mask
+	if (adjusted_mask) {
+		image &= mask;
+	}
 
-	image &= this->mask;
 	inform_offset(offset, offset_out);
 	return image;
 }

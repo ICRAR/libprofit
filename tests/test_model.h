@@ -70,10 +70,73 @@ public:
 			m.set_mask(Mask{true, image_dims - 1});
 			TS_ASSERT_THROWS(m.evaluate(), const invalid_parameter &);
 		};
+		auto convolution_checks = [&m, &image_dims, &psf_dims]() {
+			// pre-computed masks should have psf_padding if necessary.
+			// Pre-adjusted mask loose the original coverage information,
+			// so the model assumes its dimensionality reflects whether the
+			// model should grow or not
+			m.set_adjust_mask(false);
+			m.set_mask(Mask{1, image_dims});
+			m.evaluate(); // fine...
+			m.set_mask(Mask{1, image_dims + psf_dims});
+			m.evaluate(); // fine...
+			m.set_mask(Mask{1, image_dims + psf_dims + 1});
+			TS_ASSERT_THROWS(m.evaluate(), const invalid_parameter &);
+			m.set_mask(Mask{1, image_dims + psf_dims - 1});
+			TS_ASSERT_THROWS(m.evaluate(), const invalid_parameter &);
+		};
 
 		common_checks();
 		add_convolution();
 		common_checks();
+		convolution_checks();
+	}
+
+	void test_precomputed_mask_works()
+	{
+		// Two images are generated: one with the pre-computed mask
+		// and another with the interally-computed mask.
+		// They should be the same
+		Dimensions image_dims{10, 10};
+		Dimensions psf_dims{4, 4};
+		Image psf{1, psf_dims};
+		Model m{image_dims};
+		m.set_psf(psf);
+		auto sersic = m.add_profile("sersic");
+		sersic->parameter("xcen", 5.);
+		sersic->parameter("ycen", 5.);
+		sersic->parameter("re", 3.);
+		sersic->parameter("convolve", true);
+
+		auto assert_precomputed_mask_works = [&m, &image_dims, &psf](const Mask &mask) {
+			m.set_adjust_mask(true);
+			m.set_mask(mask);
+			auto internal_mask_image = m.evaluate();
+
+			Mask adjusted_mask(mask);
+			Model::adjust(adjusted_mask, image_dims, psf);
+			m.set_adjust_mask(false);
+			m.set_mask(adjusted_mask);
+			auto offline_mask_image = m.evaluate();
+
+			assert_images_relative_delta(internal_mask_image, offline_mask_image & mask, 0, zero_treatment_t::EXPECT_0);
+		};
+
+		// A full mask that requires the model and mask to expand their dimensions
+		assert_precomputed_mask_works(Mask{true, image_dims});
+
+		// A small mask that doesn't require model and mask dimensions expansion,
+		// even when the mask's coverage is expanded by psf_dims/2
+		Mask mask1{true, image_dims - psf_dims * 2};
+		mask1 = mask1.extend(image_dims, (image_dims - mask1.getDimensions()) / 2);
+		assert_precomputed_mask_works(mask1);
+
+		// A mask that doesn't require model and mask dimensions expansion
+		// due to its original coverage, but would require if the Model
+		// tried to add padding *again* due to the already-expanded coverage
+		Mask mask2{true, image_dims - psf_dims};
+		mask2 = mask2.extend(image_dims, (image_dims - mask2.getDimensions()) / 2);
+		assert_precomputed_mask_works(mask2);
 	}
 
 	void test_valid_scales(void) {
