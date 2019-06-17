@@ -312,6 +312,20 @@ public:
 	}
 
 	/**
+	 * Modifies @p mask in the same way that it would be modified internally
+	 * by a Model object in order to preserve flux during the convolution step
+	 * of the Model evaluation.
+	 *
+	 * @param mask The mask to be modified.
+	 * @param dims The dimensions of the Model
+	 * @param psf The PSF to be used during Model convolution
+	 * @param finesampling The finesampling factor to be used by the Model
+	 * @see set_adjust_mask(bool)
+	 */
+	static void adjust(Mask &mask, const Dimensions &dims,
+	    const Image &psf, unsigned int finesampling=1);
+
+	/**
 	 * The Point object that indicates that users don't want to retrieve back
 	 * the potential image offset when calling @ref evaluate(Point &)
 	 */

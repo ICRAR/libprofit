@@ -339,6 +339,46 @@ public:
 
 };
 
+class TestMaskAdjustments : public CxxTest::TestSuite {
+
+public:
+
+	void test_null_mask()
+	{
+		Mask mask;
+		Model::adjust(mask, {100, 100}, Image{});
+		TS_ASSERT(!mask);
+	}
+
+	void test_no_dimension_extension()
+	{
+		Dimensions image_dims{5, 5};
+		Dimensions psf_dims{2, 2};
+
+		// A mask with the outer part unset, but small enough for it to not
+		// require dimension extension
+		Mask mask{true, image_dims - psf_dims};
+		mask = mask.extend(image_dims, psf_dims / 2);
+
+		Image psf{1, psf_dims};
+		Model::adjust(mask, image_dims, psf);
+		assert_masks(Mask{true, image_dims}, mask);
+	}
+
+	void test_with_dimension_extension()
+	{
+		Dimensions image_dims{5, 5};
+		Dimensions psf_dims{2, 2};
+
+		// A mask fully set, it will require dimension extensions
+		Mask mask{true, image_dims};
+		Image psf{1, psf_dims};
+		Model::adjust(mask, image_dims, psf);
+		assert_masks(Mask{true, image_dims + psf_dims}, mask);
+	}
+
+};
+
 class TestFluxCapturing : public CxxTest::TestSuite {
 
 private:

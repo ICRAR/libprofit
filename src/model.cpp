@@ -237,6 +237,17 @@ void Model::adjust(Mask &mask, const Image &psf, unsigned int finesampling,
 	assert(mask.getDimensions() == analysis.drawing_dims);
 }
 
+void Model::adjust(Mask &mask, const Dimensions &dims, const Image &psf,
+    unsigned int finesampling)
+{
+	input_analysis analysis;
+	analysis.convolution_required = psf.size() > 0;
+	analyze_expansion_requirements(dims, mask, psf, finesampling, analysis);
+	if (analysis.mask_needs_adjustment) {
+		adjust(mask, psf, finesampling, analysis);
+	}
+}
+
 Image Model::evaluate(Point &offset_out)
 {
 	auto analysis = analyze_inputs();
