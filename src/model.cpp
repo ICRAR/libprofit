@@ -67,6 +67,24 @@ Model::Model(unsigned int width, unsigned int height) :
 	// no-op
 }
 
+Model::Model(Dimensions dimensions) :
+	requested_dimensions(dimensions),
+	finesampling(1),
+	scale(1, 1),
+	magzero(0),
+	psf(),
+	psf_scale(1, 1),
+	mask(),
+	convolver(),
+	crop(true),
+	dry_run(false),
+	return_finesampled(true),
+	opencl_env(),
+	omp_threads(0),
+	profiles()
+{
+}
+
 bool Model::has_profiles() const {
 	return this->profiles.size() > 0;
 }

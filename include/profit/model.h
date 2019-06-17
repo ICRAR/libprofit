@@ -69,6 +69,9 @@ public:
 	 */
 	Model(unsigned int width = 0, unsigned int height = 0);
 
+	/// Like Model(unsigned int, unsigned int), but accepting a Dimensions object
+	explicit Model(Dimensions dimensions);
+
 	/**
 	 * Creates a new profile for the given name and adds it to the given model.
 	 * On success, the new profile is created, added to the model,
