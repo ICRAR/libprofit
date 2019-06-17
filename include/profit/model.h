@@ -350,7 +350,7 @@ private:
 	    const input_analysis &analysis, Point &offset);
 
 	// Analyze the model's inputs and produce information needed by other steps
-	input_analysis analyze_inputs();
+	input_analysis analyze_inputs() const;
 
 	// Make sure we have a convolver and return it
 	ConvolverPtr &ensure_convolver();

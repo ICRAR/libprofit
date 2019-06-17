@@ -146,7 +146,7 @@ ConvolverPtr &Model::ensure_convolver()
 	return convolver;
 }
 
-Model::input_analysis Model::analyze_inputs()
+Model::input_analysis Model::analyze_inputs() const
 {
 	/* Check limits */
 	if (!requested_dimensions) {
