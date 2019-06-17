@@ -70,7 +70,7 @@ Mask::Mask(unsigned int width, unsigned int height) :
 }
 
 Mask::Mask(bool value, Dimensions dimensions) :
-	surface(std::vector<bool>(dimensions.x * dimensions.y, value), std::move(dimensions))
+	surface(std::vector<bool>(dimensions.x * dimensions.y, value), dimensions)
 {
 }
 
@@ -167,7 +167,7 @@ Image::Image(unsigned int width, unsigned int height) :
 }
 
 Image::Image(double value, Dimensions dimensions) :
-	surface(std::vector<double>(dimensions.x * dimensions.y, value), std::move(dimensions))
+	surface(std::vector<double>(dimensions.x * dimensions.y, value), dimensions)
 {
 }
 
