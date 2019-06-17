@@ -337,9 +337,11 @@ private:
 	// The result of analysing the model inputs, it contains all the necessary
 	// information needed to actually proceed with the rest of the tasks
 	struct input_analysis {
+		Dimensions drawing_dims;
+		Dimensions psf_padding;
 		bool convolution_required;
 		bool mask_needs_convolution;
-		Dimensions psf_padding;
+		bool mask_needs_adjustment;
 	};
 
 	template <typename P>
@@ -351,6 +353,19 @@ private:
 
 	// Analyze the model's inputs and produce information needed by other steps
 	input_analysis analyze_inputs() const;
+
+	// Fill the analysis with model/mask expansion-related information
+	static void analyze_expansion_requirements(const Dimensions &dimensions,
+	    const Mask &mask, const Image &psf, unsigned int finesampling,
+	    input_analysis& analysis);
+
+	// See adjust(Mask &mask, const Dimensions &, const Image &, unsigned int)
+	static void adjust(Mask &mask, const Image &psf, unsigned int finesampling,
+	    const input_analysis &analysis);
+
+	// Whether mask needs any type of adjustments given the analysis and finesampling
+	static bool needs_adjustment(const Mask &mask, unsigned int finesampling,
+	    const input_analysis &analysis);
 
 	// Make sure we have a convolver and return it
 	ConvolverPtr &ensure_convolver();
