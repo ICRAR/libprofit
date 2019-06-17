@@ -189,7 +189,7 @@ public:
 
 	void test_correct_dimensions() {
 		Image im1;
-		Image im2({1}, 1, 1);
+		Image im2(std::vector<double>{1}, 1, 1);
 		Image im3({1, 2}, 1, 2);
 		Image im4({1, 2}, 2, 1);
 		Image im5({1, 2, 3}, 1, 3);
@@ -254,7 +254,7 @@ public:
 
 		auto r = []() { return double(rand()); };
 		auto x = r();
-		Image im({x}, 1, 1);
+		Image im(x, 1, 1);
 		TS_ASSERT_EQUALS(x, im[0]);
 		auto val = im[Point{0, 0}];
 		TS_ASSERT_EQUALS(x, val);
@@ -276,7 +276,7 @@ public:
 
 	void test_iterators() {
 		auto x = double(rand());
-		Image im({x}, 1, 1);
+		Image im(x, 1, 1);
 
 		auto it = im.begin();
 		TS_ASSERT_EQUALS(x, *it);
