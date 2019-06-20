@@ -16,6 +16,7 @@ libprofit
    coordinates.rst
    profiles.rst
    convolution.rst
+   flux_capturing.rst
    new_profile.rst
    bindings.rst
    api.rst

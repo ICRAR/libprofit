@@ -7,6 +7,11 @@ Changelog
 
 .. rubric:: Development
 
+* Implemented correct :doc:`flux capturing <flux_capturing>`.
+  This feature was previously implemented
+  in the `ProFit <https://github.com/ICRAR/ProFit>`_ R package
+  as part of its fitting process,
+  but it was otherwise unavailable.
 * Added explicit support to allow convolution
   of images against kernels with bigger dimensions
   than the images themselves.
