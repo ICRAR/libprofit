@@ -119,6 +119,8 @@ with:
 * **rb**: The break radius.
 * **a**: The strength of the truncation as the radius approaches ``rb``.
 
+.. _profiles.sky:
+
 ``sky``
 -------
 
