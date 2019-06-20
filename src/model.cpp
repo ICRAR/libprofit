@@ -273,7 +273,7 @@ Image Model::evaluate(Point &offset_out)
 	if (adjust_mask && analysis.mask_needs_adjustment) {
 		adjusted_mask = mask;
 		adjust(adjusted_mask, psf, finesampling, analysis);
-		image = produce_image(analysis.drawing_dims, adjusted_mask, analysis, offset);
+		image = produce_image(adjusted_mask, analysis, offset);
 	}
 	else {
 		if (!adjust_mask && mask.getDimensions() != analysis.drawing_dims) {
@@ -282,7 +282,7 @@ Image Model::evaluate(Point &offset_out)
 			   << mask.getDimensions() << " != " << analysis.drawing_dims;
 			throw invalid_parameter(os.str());
 		}
-		image = produce_image(analysis.drawing_dims, mask, analysis, offset);
+		image = produce_image(mask, analysis, offset);
 	}
 
 	// Remove PSF padding if one was added, and downsample if necessary
@@ -319,9 +319,10 @@ Image Model::evaluate(Point &offset_out)
 	return image;
 }
 
-Image Model::produce_image(const Dimensions &image_dims, const Mask &mask,
-    const input_analysis &analysis, Point &offset)
+Image Model::produce_image(const Mask &mask, const input_analysis &analysis,
+    Point &offset)
 {
+	const Dimensions &image_dims = analysis.drawing_dims;
 	Image image(image_dims);
 
 	/*

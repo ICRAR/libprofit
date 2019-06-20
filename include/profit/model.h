@@ -381,8 +381,7 @@ private:
 	ProfilePtr make_profile(const std::string &name);
 
 	// Actually produce the image from the profiles and convolve it against the psf
-	Image produce_image(const Dimensions &image_dims, const Mask &mask,
-	    const input_analysis &analysis, Point &offset);
+	Image produce_image(const Mask &mask, const input_analysis &analysis, Point &offset);
 
 	// Analyze the model's inputs and produce information needed by other steps
 	input_analysis analyze_inputs() const;
