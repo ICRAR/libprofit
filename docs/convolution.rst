@@ -123,7 +123,7 @@ during model evaluation
 To do this, users must first
 call :func:`Model::set_crop` with a ``false`` argument.
 When calling :func:`Model::evaluate`,
-users must then also give a :class:`Point` argument
+users must then also give a :type:`Point` argument
 to retrieve the offset at which
 cropping should be done
 to remove the image padding

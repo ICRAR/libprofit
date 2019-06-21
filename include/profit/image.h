@@ -206,10 +206,10 @@ inline _2dcoordinate max(const _2dcoordinate a, const _2dcoordinate b)
 	return _2dcoordinate {std::max(a.x, b.x), std::max(a.x, b.x)};
 }
 
-/// A point in a 2-dimensional surface
+/// @typedef A point in a 2-dimensional surface
 typedef _2dcoordinate Point;
 
-/// A 2-dimensional dimension definition
+/// @typedef A 2-dimensional dimension definition
 typedef _2dcoordinate Dimensions;
 
 /// A pair of points
@@ -406,9 +406,9 @@ public:
 	 * The current contents of this surface are placed at @p start, relative to
 	 * the new surface's dimension.
 	 *
-	 * @param dimensions The dimensions of the new extended surface.
+	 * @param extended The new surface to hold the extended version of this image.
+	 * Its dimensions mandate how much the current image should extend.
 	 * @param start The starting point of the original surface relative to the new one
-	 * @return The new extended surface
 	 */
 	void extend(D &extended, Point start = Point()) const
 	{
@@ -632,7 +632,7 @@ public:
 
 	/**
 	 * Returns a new Mask where the area covered by the new mask (i.e., where
-	 * the new mask's value is @pre true) is an "expanded" version of this mask.
+	 * the new mask's value is @p true) is an "expanded" version of this mask.
 	 * This is similar in nature to a convolution, but simpler as it is a
 	 * simpler boolean operation that requires no additions or further scaling.
 	 *
@@ -652,7 +652,6 @@ public:
 	 *
 	 * @param factor The upsampling factor. Must be greater than 0. If equals to
 	 * 1, the upsampled mask is equals to the original mask.
-	 * @param mode The upsampling mode to use
 	 * @return The upsampled mask
 	 */
 	Mask upsample(unsigned int factor) const;

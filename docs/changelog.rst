@@ -83,7 +83,7 @@ Changelog
 
 .. rubric:: 1.7.1
 
-* Added :member:`Image::upsample` and :member:`Image::downsample` to scale an
+* Added :func:`Image::upsample` and :func:`Image::downsample` to scale an
   image up or down (using different modes).
 * Added :func:`Model::set_return_finesampled` to return internally
   upsampled images.

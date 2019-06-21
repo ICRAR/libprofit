@@ -33,7 +33,7 @@ namespace profit {
 
 /**
  * Runs @p f over each point ``(i, j)`` of a grid of width @p width and height
- * @p height using @p threads OpenMP threads. If no OpenMP support is found, @f
+ * @p height using @p threads OpenMP threads. If no OpenMP support is found, @p f
  * is called sequentially in row-first order (that is, ``i`` values changing
  * more rapidly than ``j`` values).
  *

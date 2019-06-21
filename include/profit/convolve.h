@@ -168,16 +168,16 @@ public:
 	/// using OpenMP, when available) and the brute-force convolvers.
 	unsigned int omp_threads;
 
-	/// A pointer to an OpenCL environment. Used by the ConvolverType::OPENCL convolvers.
+	/// A pointer to an OpenCL environment. Used by the OPENCL convolvers.
 	OpenCLEnvPtr opencl_env;
 
-	/// The amount of effort to put into the plan creation. Used by the @ref ConvolverType::FFT convolver.
+	/// The amount of effort to put into the plan creation. Used by the @ref FFT convolver.
 	effort_t effort;
 
-	/// Whether to reuse or not the FFT'd kernel or not. Used by the @ref ConvolverType::FFT convolver.
+	/// Whether to reuse or not the FFT'd kernel or not. Used by the @ref FFT convolver.
 	bool reuse_krn_fft;
 
-	/// The extended instruction set to use. Used by the @ref ConvolverType::BRUTE convolver
+	/// The extended instruction set to use. Used by the @ref BRUTE convolver
 	simd_instruction_set instruction_set;
 };
 
