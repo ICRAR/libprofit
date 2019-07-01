@@ -5,7 +5,7 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
-.. rubric:: Development
+.. rubric:: 1.9.0
 
 * Implemented correct :doc:`flux capturing <flux_capturing>`.
   This feature was previously implemented
