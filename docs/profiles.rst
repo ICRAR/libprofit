@@ -143,6 +143,8 @@ at a specific location and for a given user-defined magnitude.
 * **mag**: The total flux magnitude of the PSF.
 
 
+.. _profiles.null:
+
 ``null``
 --------
 

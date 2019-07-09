@@ -5,6 +5,23 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
+.. rubric:: Development
+
+* The implementation of the :class:`Model` class has been improved.
+  In particular it has been made more memory efficient,
+  which is particularly important in scenarios
+  where many profiles (in the order of thousands)
+  are added into it.
+  Previously each profile was allocated its own :class:`Image`,
+  which added both to the memory footprint,
+  and to the total runtime.
+  Now a single scratch space is used for all profiles,
+  and individual results are immediately summed up,
+  respecting the convolution settings of each profile.
+  Experiments with the :ref:`null profile <profiles.null>`
+  show a significant decrease in runtime
+  when many Model evaluations take place.
+
 .. rubric:: 1.9.0
 
 * Implemented correct :doc:`flux capturing <flux_capturing>`.
