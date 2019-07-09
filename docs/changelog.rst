@@ -5,7 +5,7 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
-.. rubric:: Development
+.. rubric:: 1.9.1
 
 * The implementation of the :class:`Model` class has been improved.
   In particular it has been made more memory efficient,
