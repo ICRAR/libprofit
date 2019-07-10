@@ -5,6 +5,13 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
+.. rubric:: Development
+
+* :class:`Model` objects now internally store
+  the normalized version of the PSF
+  given by the user instead of the original,
+  which was never really needed.
+
 .. rubric:: 1.9.1
 
 * The implementation of the :class:`Model` class has been improved.

@@ -350,9 +350,7 @@ Image Model::produce_image(const Mask &mask, const input_analysis &analysis,
 	// Perform convolution if needed, then add back to the model image
 	offset = {0, 0};
 	if (analysis.convolution_required) {
-		Image psf_img(psf);
-		psf_img.normalize();
-		to_convolve = ensure_convolver()->convolve(to_convolve, psf_img, mask, crop, offset);
+		to_convolve = ensure_convolver()->convolve(to_convolve, psf, mask, crop, offset);
 		// The result of the convolution might be bigger that the original,
 		// dependingo on user settings, so we need to account for that
 		if (to_convolve.getDimensions() != analysis.drawing_dims) {
