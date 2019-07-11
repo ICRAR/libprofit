@@ -138,7 +138,7 @@ void PsfProfile::evaluate(Image &image, const Mask & /*mask*/, const PixelScale 
 			}
 
 			/* Finally, write down the final value into our pixel */
-			image[pix_x + pix_y*width] = val * scale;
+			image[pix_x + pix_y*width] += val * scale;
 		}
 	}
 

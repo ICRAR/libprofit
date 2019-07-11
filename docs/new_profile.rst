@@ -174,16 +174,14 @@ Evaluation
 Next, we look to the :func:`evaluate <Profile::evaluate>` method.
 Its ``image`` argument
 corresponds to the surface where the pixels must be drawn.
-Each profile in the model receives a different image surface,
-so you will start with a clean slate.
-The image is already initialized with zeros,
+All profiles in the model receive
+**the same** image surface,
+so care must be taken
+to *add* values into the image's pixel
+rather than *setting* them.
+The image is already initialized with zeros when created,
 so if your profile doesn't cover the entire image
-there is no need to cover unfilled areas with zeros.
-The image is a vector of ``double`` values
-representing a 2D image with dimensions ``model->width`` x ``model->height``,
-with data organized in rows first, columns later.
-This means that to access pixel ``(x,y)``
-one must access the vector at position ``x + y*model->width``.
+no action needs to occur.
 
 It was mentioned earlier that the ``example`` profile
 fills the image by taking the X and Y coordinates

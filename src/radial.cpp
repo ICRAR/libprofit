@@ -338,7 +338,7 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask, const PixelScal
 			                                   0, ss_max_recursions, ss_resolution);
 		}
 
-		image[i + j * width] = flux_scale * pixel_val;
+		image[i + j * width] += flux_scale * pixel_val;
 	});
 
 }

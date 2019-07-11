@@ -58,7 +58,7 @@ void SkyProfile::evaluate(Image &image, const Mask &mask, const PixelScale & /*s
 			continue;
 		}
 
-		pixel = this->bg;
+		pixel += this->bg;
 	}
 }
 

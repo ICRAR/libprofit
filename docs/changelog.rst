@@ -7,6 +7,15 @@ Changelog
 
 .. rubric:: Development
 
+* All profile evaluation has been changed
+  from being absolute (profiles set the final value of a pixel)
+  to be additive (their add their pixel values onto the image).
+  This change in behavior has the effect
+  that one less memory allocation is needed,
+  which can be a big difference
+  when generating big images,
+  while also simplifying the logic
+  of the :class:`Model` evaluation.
 * :class:`Model` objects now internally store
   the normalized version of the PSF
   given by the user instead of the original,

@@ -228,7 +228,7 @@ public:
 
 		// They should be the same! We add them in the same order to make sure
 		// that floating-point rounding yields the same result
-		TS_ASSERT(image1 == image4);
+		assert_images_relative_delta(image1, image4, 1e-9, zero_treatment_t::ASSUME_0);
 	}
 
 	void test_profile_images_addition_after_convolving() {
