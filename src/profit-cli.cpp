@@ -68,16 +68,27 @@ void parse_profile(std::ostream &os, Model &model, const std::string &descriptio
 		throw invalid_cmdline("Missing parameter name after -p");
 	}
 
-	/* The description might be only a name */
-	auto parts = split(desc, ":");
-	auto p = model.add_profile(parts[0]);
-	std::vector<std::string> parameter_specs(std::make_move_iterator(parts.begin() + 1),
-	                                         std::make_move_iterator(parts.end()));
-	for(auto &parameter_spec: parameter_specs) {
-		try {
-			p->parameter(parameter_spec);
-		} catch (const unknown_parameter &e) {
-			os << e.what();
+	/* The description is [count,]name[:param1=val1:param2;val2...] */
+	unsigned int count = 1;
+	auto parts = split(desc, ",");
+	if (parts.size() > 1) {
+		count = static_cast<unsigned int>(std::stod(parts[0]));
+		parts = split(parts[1], ":");
+	}
+	else {
+		parts = split(desc, ":");
+	}
+	auto profile_name = parts[0];
+	std::vector<std::string> parameter_specs(parts.begin() + 1, parts.end());
+
+	for (unsigned int i = 0; i != count; i++) {
+		auto p = model.add_profile(profile_name);
+		for(auto &parameter_spec: parameter_specs) {
+			try {
+				p->parameter(parameter_spec);
+			} catch (const unknown_parameter &e) {
+				os << e.what();
+			}
 		}
 	}
 }
@@ -205,12 +216,17 @@ The following convolver types are supported:
  * opencl: An OpenCL-based brute-force convolver
  * fft: An FFT-based convolver
 
-Profiles should be specified as follows:
+Profiles should be specified as follows (parts between [] are optional):
 
--p name:param1=val1:param2=val2:...
+-p [count,]name[:param1=val1:param2=val2:...]
 
-The following profiles (and parameters) are currently accepted:
+Here "count" specifies the number of times to repeat a given profile (useful for
+scalability checks), "name" is the name of the profile (see below), and the rest
+are the list of parameter and values for that profile.
 
+The following profiles and parameters are currently supported:
+
+ * null
  * psf: xcen, ycen, mag
  * sky: bg
  * sersic: re, nser, rescale_flux
