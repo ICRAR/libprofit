@@ -5,7 +5,7 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
-.. rubric:: Development
+.. rubric:: 1.9.2
 
 * All profile evaluation has been changed
   from being absolute (profiles set the final value of a pixel)
