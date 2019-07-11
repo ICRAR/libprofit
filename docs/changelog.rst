@@ -16,6 +16,7 @@ Changelog
   useful for scaling tests.
   Also, writing FITS files in little endian systems
   doesn't allocate extra memory anymore.
+* Minor improvements to imaging classes.
 
 .. rubric:: 1.9.1
 
