@@ -43,12 +43,10 @@ public:
 		psfprof->parameter("xcen", 2.);
 		psfprof->parameter("ycen", 2.);
 		psfprof->parameter("mag", 0.);
+		auto expected_image = Image{0.25, {2, 2}};
+		expected_image = expected_image.extend({10, 10}, {1, 1});
 
-		auto image = m.evaluate();
-		for(auto &pixel: image) {
-			TS_ASSERT_DELTA(0.25, pixel, 1e9);
-		}
-
+		assert_images_relative_delta(expected_image, m.evaluate(), 1e-9, zero_treatment_t::ASSUME_0);
 	}
 
 };
