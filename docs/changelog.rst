@@ -11,6 +11,11 @@ Changelog
   the normalized version of the PSF
   given by the user instead of the original,
   which was never really needed.
+* :program:`profit-cli` now makes it easier to specify
+  multiple copies of the same profile,
+  useful for scaling tests.
+  Also, writing FITS files in little endian systems
+  doesn't allocate extra memory anymore.
 
 .. rubric:: 1.9.1
 

@@ -190,10 +190,11 @@ void to_fits(const Image &image, const Point &offset, const PixelScale &pixel_sc
 
 	/* data has to be big-endian */
 	size_t image_size = image.size();
-	if( is_little_endian() ) {
-		std::vector<double> big_endian_image(image_size);
-		std::transform(image.begin(), image.end(), big_endian_image.begin(), swap_bytes);
-		f.write(reinterpret_cast<const char *>(big_endian_image.data()), sizeof(double) * image_size);
+	if (is_little_endian()) {
+		std::for_each(image.begin(), image.end(), [&f](double pixel) {
+			swap_bytes(pixel);
+			f.write(reinterpret_cast<const char *>(&pixel), sizeof(double));
+		});
 	}
 	else {
 		f.write(reinterpret_cast<const char *>(image.data()), sizeof(double) * image_size);
