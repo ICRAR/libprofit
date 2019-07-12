@@ -42,25 +42,25 @@ matrix:
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-4.6, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
+      packages: [g++-4.6, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-4.6 CXXFLAGS="-std=c++0x"
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-4.7, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
+      packages: [g++-4.7, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-4.7
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-4.9, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
+      packages: [g++-4.9, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-4.9
   - compiler: gcc
     addons:
      apt:
       sources: ubuntu-toolchain-r-test
-      packages: [g++-5, libfftw3-dev, libgsl0-dev, opencl-headers, cxxtest]
+      packages: [g++-5, libfftw3-dev, libgsl0-dev, opencl-headers]
     env: COMPILER=g++-5
   - compiler: gcc
     cache:

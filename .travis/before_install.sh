@@ -27,6 +27,10 @@
 
 cd ${TRAVIS_BUILD_DIR}
 
+# cxxtest can be used from sources, which is the easiest way to go about it
+git clone https://github.com/CxxTest/cxxtest
+export CMAKE_PREFIX_PATH=$PWD/cxxtest
+
 # In MacOS we simply need to brew install some things
 if [ "${TRAVIS_OS_NAME}" = "osx" ]
 then
@@ -37,12 +41,8 @@ then
 		brew update
 	fi
 
-	# cxxtest pulls python@2, so we need to unlink
-	# the pre-installed python first
-	brew unlink python
-
 	# Minimal dependencies for testing
-	brew install gsl cxxtest
+	brew install gsl
 
 	# 7.3 (El Capitan) mostly doesn't have associated bottles anymore,
 	# and fftw is pulling both gcc and open-mpi, which take way too long
