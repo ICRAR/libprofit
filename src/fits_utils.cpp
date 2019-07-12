@@ -192,7 +192,7 @@ void to_fits(const Image &image, const Point &offset, const PixelScale &pixel_sc
 	size_t image_size = image.size();
 	if (is_little_endian()) {
 		std::for_each(image.begin(), image.end(), [&f](double pixel) {
-			swap_bytes(pixel);
+			pixel = swap_bytes(pixel);
 			f.write(reinterpret_cast<const char *>(&pixel), sizeof(double));
 		});
 	}
