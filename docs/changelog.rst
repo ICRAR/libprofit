@@ -5,7 +5,7 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
-.. rubric:: Development version
+.. rubric:: 1.9.3
 
 * A bug in the OpenCL implementation of the radial profiles
   prevented Models with multiple profiles
