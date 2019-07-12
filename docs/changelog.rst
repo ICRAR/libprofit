@@ -5,6 +5,25 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
+.. rubric:: Development version
+
+* A bug in the OpenCL implementation of the radial profiles
+  prevented Models with multiple profiles
+  from displaying correctly,
+  as the output image would contain
+  only the values of last profile.
+  This was a problem introduced
+  only in the last version of *libprofit*,
+  and not an ongoing issue.
+* When using OpenCL,
+  any radial profile specifying ``rough=true``
+  caused the output image not to be scaled properly,
+  with values not taking into account the profile's magnitude
+  or pixel scale.
+  This seems to have been an issue for a long time,
+  but since ``rough=true`` is not a common option
+  it had gone under the radar for some time.
+
 .. rubric:: 1.9.2
 
 * All profile evaluation has been changed

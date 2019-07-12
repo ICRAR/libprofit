@@ -342,4 +342,25 @@ public:
 		_check_convolver(create_convolver(ConvolverType::OPENCL, prefs));
 	}
 
+	void test_opencl_addition()
+	{
+		_check_opencl_support();
+		// Make sure a Model with two profiles displays both of them
+		// We position two profiles diametrically opposed at positions
+		// 29.5,29.5 (pixel 29,29) and 70.5,70.5 (pixel 70,70)
+		// so their centers should look fairly identical
+		Model m{100, 100};
+		m.set_opencl_env(openCLParameters->opencl_env);
+		for (auto pos: {29.5, 70.5}) {
+			auto sersic = m.add_profile("sersic");
+			sersic->parameter("xcen", pos);
+			sersic->parameter("ycen", pos);
+			sersic->parameter("mag", 13.);
+			sersic->parameter("re", 40.);
+		}
+		auto image = m.evaluate();
+		auto diff = relative_diff(image[Point{29, 29}], image[Point{70, 70}]);
+		TS_ASSERT_LESS_THAN(diff, 1e-9);
+	}
+
 };
