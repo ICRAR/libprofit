@@ -92,8 +92,13 @@ macro(find_gsl)
 
 	if( GSL_FOUND )
 		set(PROFIT_USES_GSL ON)
-		include_directories(${GSL_INCLUDE_DIRS})
-		set(profit_LIBS ${GSL_LIBRARIES})
+		if (NOT TARGET GSL::gsl)
+			add_library(_gsl INTERFACE)
+			target_include_directories(_gsl INTERFACE "${GSL_INCLUDE_DIRS}")
+			target_link_libraries(_gsl INTERFACE "${GSL_LIBRARIES}")
+			add_library(GSL::gsl ALIAS _gsl)
+		endif()
+		list(APPEND PROFIT_LIBS GSL::gsl)
 	endif()
 endmacro()
 
@@ -105,8 +110,9 @@ macro(find_r_and_rmath)
 		if( R_FOUND AND RMATH_FOUND )
 			set(PROFIT_USES_R ON)
 			add_definitions(-DMATHLIB_STANDALONE)
-			include_directories(${R_INCLUDE_DIRS} ${RMATH_INCLUDE_DIRS})
-			set(profit_LIBS ${R_LIBRARIES} ${RMATH_LIBRARIES})
+			list(APPEND PROFIT_INCLUDE_DIRS "${R_INCLUDE_DIRS}")
+			list(APPEND PROFIT_INCLUDE_DIRS "${RMATH_INCLUDE_DIRS}")
+			list(APPEND PROFIT_LIBS ${R_LIBRARIES} ${RMATH_LIBRARIES})
 			link_directories(${R_LIBRARY_DIRS} ${RMATH_LIBRARY_DIRS})
 		endif( R_FOUND AND RMATH_FOUND )
 	endif( PKG_CONFIG_FOUND )
@@ -118,7 +124,7 @@ macro(find_opencl)
 		if ("${OpenCL_VERSION_STRING}" STREQUAL "")
 			message("-- OpenCL found but no version reported. Compiling without OpenCL support")
 		else ()
-			include_directories(${OpenCL_INCLUDE_DIRS})
+			list(APPEND PROFIT_INCLUDE_DIRS "${OpenCL_INCLUDE_DIRS}")
 			set(PROFIT_OPENCL ON)
 			set(PROFIT_OPENCL_MAJOR ${OpenCL_VERSION_MAJOR})
 			set(PROFIT_OPENCL_MINOR ${OpenCL_VERSION_MINOR})
@@ -145,7 +151,7 @@ macro(find_opencl)
 			if (${PROFIT_OPENCL_MAJOR} EQUAL 2 AND NOT ${PROFIT_OPENCL_MINOR} EQUAL 0)
 				set(PROFIT_OPENCL_MINOR 0)
 			endif()
-			set(profit_LIBS ${profit_LIBS} ${OpenCL_LIBRARIES})
+			list(APPEND PROFIT_LIBS ${OpenCL_LIBRARIES})
 		endif()
 	endif()
 endmacro()
@@ -190,8 +196,8 @@ macro(find_fftw)
 		if( FFTW_OPENMP_FOUND )
 			set(PROFIT_FFTW_OPENMP ON)
 		endif()
-		include_directories(${FFTW_INCLUDE_DIR})
-		set(profit_LIBS ${profit_LIBS} ${FFTW_LIBRARIES})
+		list(APPEND PROFIT_INCLUDE_DIRS "${FFTW_INCLUDE_DIR}")
+		list(APPEND PROFIT_LIBS ${FFTW_LIBRARIES})
 	endif()
 endmacro(find_fftw)
 
@@ -284,15 +290,8 @@ if (NOT LIBPROFIT_NO_SIMD)
 endif()
 
 #
-# Create the final configuration file that records
-# the compile-time options used for this libprofit build
-#
-configure_file(include/profit/config.h.in profit/config.h @ONLY)
-
-#
 # Common definitions for the shared lib and the binary
 #
-include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 
 #
 # MSVC builds need the 3rdparty/getopt submodule to be checked out,
@@ -304,7 +303,6 @@ if (MSVC)
 		message(FATAL_ERROR
 		        "git submodule '3rdparty/getopt' is not checked out but is needed for Windows builds")
 	endif()
-	include_directories("${PROFIT_GETOPT_DIR}")
 endif()
 
 # Compiler-specific tweaks
@@ -313,96 +311,13 @@ if (MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
-#
-# Generate header files with the OpenCL kernel sources out of each individual
-# .cl file
-#
-if (PROFIT_OPENCL)
-set(OPENCL_KERNEL_HEADERS "")
-	foreach(_cl_kernel brokenexponential common convolve coresersic ferrer king moffat sersic)
-		foreach(_type float double)
-			set(KRN_NAME "${_cl_kernel}-${_type}")
-			set(KRN_VNAME "${_cl_kernel}_${_type}")
-			set(KRN_FNAME "src/cl/${KRN_NAME}.cl")
-			set(KRN_FULL_FNAME "${CMAKE_CURRENT_SOURCE_DIR}/src/cl/${KRN_NAME}.cl")
-			set(KRN_HEADER_FNAME "${CMAKE_CURRENT_BINARY_DIR}/profit/cl/${KRN_NAME}.h")
-			add_custom_command(OUTPUT ${KRN_HEADER_FNAME}
-				COMMAND ${CMAKE_COMMAND}
-				ARGS -DKRN_NAME=${KRN_NAME} -DKRN_VNAME=${KRN_VNAME} -DKRN_FNAME=${KRN_FNAME}
-			         -DKRN_FULL_FNAME=${KRN_FULL_FNAME} -DKRN_HEADER_FNAME=${KRN_HEADER_FNAME}
-			         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateOpenCLHeader.cmake
-			    DEPENDS ${KRN_FULL_FNAME}
-			)
-			list(APPEND OPENCL_KERNEL_HEADERS ${KRN_HEADER_FNAME})
-		endforeach()
-	endforeach()
-endif()
 
 #
-# The shared library sources
+# Unit test support through cxxtest
 #
-set(PROFIT_SRC
-   src/brokenexponential.cpp
-   src/convolve.cpp
-   src/coresersic.cpp
-   src/crc.cpp
-   src/exceptions.cpp
-   src/ferrer.cpp
-   src/fft.cpp
-   src/image.cpp
-   src/library.cpp
-   src/king.cpp
-   src/model.cpp
-   src/moffat.cpp
-   src/opencl.cpp
-   src/profile.cpp
-   src/psf.cpp
-   src/radial.cpp
-   src/sersic.cpp
-   src/sky.cpp
-   src/utils.cpp
-)
-set(LIB_TYPE SHARED)
-if (MSVC)
-	set(LIB_TYPE STATIC)
-endif()
-add_library(profit ${LIB_TYPE} ${PROFIT_SRC} ${OPENCL_KERNEL_HEADERS})
-target_link_libraries(profit ${profit_LIBS})
-set(PROFIT_TARGETS profit)
-
-#
-# The executable
-#
-add_executable(profit-cli src/fits_utils.cpp src/profit-cli.cpp)
-target_link_libraries(profit-cli profit)
-set(PROFIT_TARGETS ${PROFIT_TARGETS} profit-cli)
-
-#
-# Installing lib + binary + headers
-#
-install(TARGETS ${PROFIT_TARGETS}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-install(FILES
-       ${CMAKE_CURRENT_BINARY_DIR}/profit/config.h
-        include/profit/common.h
-        include/profit/convolve.h
-        include/profit/exceptions.h
-        include/profit/fft.h
-        include/profit/image.h
-        include/profit/library.h
-        include/profit/model.h
-        include/profit/opencl.h
-        include/profit/profile.h
-        include/profit/profit.h
-        include/profit/utils.h
-        DESTINATION include/profit)
-
-#
-# Unit tests
-#
-if( LIBPROFIT_TEST )
+if (LIBPROFIT_TEST)
+	include(CTest)
+	enable_testing()
 	find_package(CxxTest)
 
 	# In cmake < 3.7 the cxxtestgen executable is always executed through an
@@ -418,26 +333,8 @@ if( LIBPROFIT_TEST )
 			set(CXXTEST_TESTGEN_INTERPRETER "")
 		endif()
 	endif()
-
-
-	if( CXXTEST_FOUND )
-		include(CTest)
-		enable_testing()
-		add_subdirectory(tests)
-
-		add_test("cli-version" profit-cli -V)
-		add_test("cli-help" profit-cli -h)
-		add_test("cli-null-profile" profit-cli -p null)
-		add_test("cli-many-profiles" profit-cli -p 100,null -p 5,sky)
-		add_test("cli-unknown-parameter" profit-cli -p null:unknown=1)
-		add_test("cli-text-output" profit-cli -p null -t)
-		add_test("cli-fits-output" profit-cli -p null -f image)
-		add_test("cli-convolution-with-cmdline" profit-cli -p null:convolve=1 -P 2:2:1,1,2,2)
-		add_test("cli-complex-usage" profit-cli -p null -w 100 -H 50 -S 2 -F -m 1 -i 2 -u -T brute -e 1 -r)
-		# Needs 'cli-fits-output' to be run first
-		add_test("cli-convolution-with-file" profit-cli -p null:convolve=1 -P image.fits)
-		if (PROFIT_OPENCL)
-			add_test("cli-opencl-list" profit-cli -c)
-		endif()
-	endif()
 endif()
+
+# Go, go, go!
+add_subdirectory(src/profit)
+add_subdirectory(src/apps)

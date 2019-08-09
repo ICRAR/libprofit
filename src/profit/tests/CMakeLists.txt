@@ -36,3 +36,7 @@ foreach(test_name ${LIBPROFIT_TEST_NAMES})
 	CXXTEST_ADD_TEST(test_${test_name} test_${test_name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/test_${test_name}.h)
 	target_link_libraries(test_${test_name} profit)
 endforeach()
+
+if (PROFIT_USES_GSL)
+	target_link_libraries(test_utils GSL::gsl)
+endif()
