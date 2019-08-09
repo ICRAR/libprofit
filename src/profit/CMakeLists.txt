@@ -115,8 +115,11 @@ if (MSVC)
 endif()
 add_library(profit ${LIB_TYPE} ${SRC} ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 target_link_libraries(profit PRIVATE ${PROFIT_LIBS})
-target_include_directories(profit PUBLIC ${PROJECT_SOURCE_DIR}/src)
-target_include_directories(profit PUBLIC ${PROJECT_BINARY_DIR}/src)
+target_include_directories(profit PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
+    $<INSTALL_INTERFACE:include>
+)
 target_include_directories(profit PRIVATE ${PROFIT_INCLUDE_DIRS})
 
 

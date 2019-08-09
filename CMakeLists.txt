@@ -338,3 +338,28 @@ endif()
 # Go, go, go!
 add_subdirectory(src/profit)
 add_subdirectory(src/apps)
+
+
+# Install cmake config + version + target files
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    cmake/profit-config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config.cmake"
+    INSTALL_DESTINATION lib/cmake/profit
+)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config-version.cmake"
+    COMPATIBILITY AnyNewerVersion
+)
+install(FILES
+	 ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config-version.cmake
+    DESTINATION lib/cmake/profit
+    COMPONENT dev
+)
+install(EXPORT profit-targets
+    FILE profit-targets.cmake
+    DESTINATION lib/cmake/profit
+    COMPONENT dev
+    NAMESPACE profit::
+)
