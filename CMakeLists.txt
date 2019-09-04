@@ -26,7 +26,7 @@ cmake_minimum_required(VERSION 3.1)
 
 # Extract version information from VERSION file
 file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION PROFIT_VERSION)
-message("-- Building libproft version ${PROFIT_VERSION}")
+message(STATUS "Building libproft version ${PROFIT_VERSION}")
 string(REPLACE "." ";" VERSION_LIST ${PROFIT_VERSION})
 string(REPLACE "-" ";" VERSION_LIST "${VERSION_LIST}")
 
@@ -122,7 +122,7 @@ macro(find_opencl)
 	find_package(OpenCL)
 	if( OpenCL_FOUND )
 		if ("${OpenCL_VERSION_STRING}" STREQUAL "")
-			message("-- OpenCL found but no version reported. Compiling without OpenCL support")
+			message(STATUS "OpenCL found but no version reported. Compiling without OpenCL support")
 		else ()
 			list(APPEND PROFIT_INCLUDE_DIRS "${OpenCL_INCLUDE_DIRS}")
 			set(PROFIT_OPENCL ON)
@@ -180,7 +180,7 @@ int main(int argc, char *argv[]) {
 		if (COMPILE_RESULT)
 			set(PROFIT_OPENMP ON)
 		else()
-			message("-- OpenMP found, but is not >= 2.0. Compiling without OpenMP support")
+			message(STATUS "OpenMP found, but is not >= 2.0. Compiling without OpenMP support")
 		endif()
 	endif()
 
