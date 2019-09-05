@@ -353,7 +353,7 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 install(FILES
-	 ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config.cmake
     ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config-version.cmake
     DESTINATION ${PROFIT_CMAKEFILES_DESTINATION}
     COMPONENT dev
