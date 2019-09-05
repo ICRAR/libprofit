@@ -341,11 +341,12 @@ add_subdirectory(src/apps)
 
 
 # Install cmake config + version + target files
+set(PROFIT_CMAKEFILES_DESTINATION share/profit/cmake)
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
     cmake/profit-config.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config.cmake"
-    INSTALL_DESTINATION lib/cmake/profit
+    INSTALL_DESTINATION ${PROFIT_CMAKEFILES_DESTINATION}
 )
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config-version.cmake"
@@ -354,12 +355,12 @@ write_basic_package_version_file(
 install(FILES
 	 ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config.cmake
     ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/profit-config-version.cmake
-    DESTINATION lib/cmake/profit
+    DESTINATION ${PROFIT_CMAKEFILES_DESTINATION}
     COMPONENT dev
 )
 install(EXPORT profit-targets
     FILE profit-targets.cmake
-    DESTINATION lib/cmake/profit
+    DESTINATION ${PROFIT_CMAKEFILES_DESTINATION}
     COMPONENT dev
     NAMESPACE profit::
 )
