@@ -48,8 +48,7 @@ void RadialProfile::_image_to_profile_coordinates(double x, double y, double &x_
 	x -= this->_xcen;
 	y -= this->_ycen;
 	x_prof =  x * this->_cos_ang + y * this->_sin_ang;
-	y_prof = -x * this->_sin_ang + y * this->_cos_ang;
-	y_prof /= this->axrat;
+	y_prof = -x * this->_sin_ang_over_axrat + y * this->_cos_ang_over_axrat;
 }
 
 double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1,
@@ -93,7 +92,7 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 				this->_image_to_profile_coordinates(x, y, x_prof, y_prof);
 				double subval = this->evaluate_at(x_prof, y_prof);
 
-				double delta_y_prof = (-xbin*this->_sin_ang + ybin*this->_cos_ang)/this->axrat;
+				double delta_y_prof = -xbin * _sin_ang_over_axrat + ybin * _cos_ang_over_axrat;
 				double testval = this->evaluate_at(abs(x_prof), abs(y_prof) + abs(delta_y_prof));
 				if( abs(testval/subval - 1.0) > this->acc ) {
 					subsample_points.emplace_back(std::make_tuple(x, y));
@@ -195,7 +194,8 @@ void RadialProfile::initial_calculations() {
 	double angrad = std::fmod(this->ang + 90, 360.) * M_PI / 180.;
 	this->_cos_ang = std::cos(angrad);
 	this->_sin_ang = std::sin(angrad);
-
+	_cos_ang_over_axrat = _cos_ang / axrat;
+	_sin_ang_over_axrat = _sin_ang / axrat;
 }
 
 /**
@@ -732,7 +732,7 @@ RadialProfile::RadialProfile(const Model &model, const std::string &name) :
 	rscale_max(0),
 	force_cpu(false),
 	rscale(0), _ie(0),
-	_cos_ang(0), _sin_ang(0),
+	_cos_ang(0), _sin_ang(0), _cos_ang_over_axrat(0), _sin_ang_over_axrat(0),
 	magzero(0)
 {
 	register_parameter("rough", rough);
