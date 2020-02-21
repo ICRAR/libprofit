@@ -94,7 +94,7 @@ double RadialProfile::subsample_pixel(double x0, double x1, double y0, double y1
 
 				double delta_y_prof = -xbin * _sin_ang_over_axrat + ybin * _cos_ang_over_axrat;
 				double testval = this->evaluate_at(abs(x_prof), abs(y_prof) + abs(delta_y_prof));
-				if( abs(testval/subval - 1.0) > this->acc ) {
+				if (abs(testval - subval) > acc * subval) {
 					subsample_points.emplace_back(std::make_tuple(x, y));
 				}
 				else {
@@ -320,10 +320,10 @@ void RadialProfile::evaluate_cpu(Image &image, const Mask &mask, const PixelScal
 		 */
 		r_prof = std::sqrt(x_prof*x_prof + y_prof*y_prof);
 		double pixel_val;
-		if( this->rscale_max > 0 && r_prof/this->rscale > this->rscale_max ) {
+		if (rscale_max > 0 && r_prof > rscale_max * rscale) {
 			pixel_val = 0.;
 		}
-		else if( this->rough || r_prof/this->rscale > this->rscale_switch ) {
+		else if (rough || r_prof > rscale_switch * rscale) {
 			pixel_val = this->evaluate_at(x_prof, y_prof);
 		}
 		else {
