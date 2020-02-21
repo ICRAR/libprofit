@@ -63,7 +63,7 @@ Model::Model(unsigned int width, unsigned int height) :
 	dry_run(false),
 	return_finesampled(true),
 	opencl_env(),
-	omp_threads(0),
+	omp_threads(1),
 	profiles()
 {
 	// no-op
@@ -83,7 +83,7 @@ Model::Model(Dimensions dimensions) :
 	dry_run(false),
 	return_finesampled(true),
 	opencl_env(),
-	omp_threads(0),
+	omp_threads(1),
 	profiles()
 {
 }

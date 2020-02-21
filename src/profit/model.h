@@ -312,10 +312,11 @@ public:
 
 	/**
 	 * Sets the maximum number of OpenMP threads to use to evaluate the profiles
-	 * contained in this model. 0 threads means that no OpenMP support
-	 * has been requested.
+	 * contained in this model. Anything less of equals to 1 means that no
+	 * OpenMP support has been requested.
 	 *
-	 * @param omp_threads the number of OpenMP threads to use for profile evaluation
+	 * @param omp_threads the number of OpenMP threads to use for profile
+	 * evaluation. OpenMP is used only if two or more threads are requested.
 	 */
 	void set_omp_threads(unsigned int omp_threads) {
 		this->omp_threads = omp_threads;
