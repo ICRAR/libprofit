@@ -34,22 +34,9 @@ export CMAKE_PREFIX_PATH=$PWD/cxxtest
 # In MacOS we simply need to brew install some things
 if [ "${TRAVIS_OS_NAME}" = "osx" ]
 then
-
-	# The xcode7.3 osx image needs an update
-	if [ "${XCODE}" = "7.3" ]
-	then
-		brew update
-	fi
-
-	# Minimal dependencies for testing
-	brew install gsl
-
-	# 7.3 (El Capitan) mostly doesn't have associated bottles anymore,
-	# and fftw is pulling both gcc and open-mpi, which take way too long
-	# to compile; let's simply skip this one
-	if [ "${XCODE}" != "7.3" ]; then
-		brew install fftw
-	fi
+	export HOMEBREW_NO_AUTO_UPDATE=1
+	export HOMEBREW_NO_INSTALL_CLEANUP=1
+	brew install gsl fftw
 	return
 fi
 
