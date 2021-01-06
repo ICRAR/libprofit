@@ -230,7 +230,7 @@ public:
 private:
 	std::string get_entry_name_for(const cl::Device &device);
 	cl::Program build(const cl::Context &context, const cl::Device &device, const SourceInformation &source_info);
-	cl::Program from_cache(const cl::Context &context, const std::string &cache_entry_name, const SourceInformation &source_info);
+	cl::Program from_cache(const cl::Context &context, const std::string &cache_entry_name, const SourceInformation &source_info, const cl::Device &device);
 	void to_cache(const std::string &cache_entry_name, const SourceInformation &source_info, const cl::Program &program);
 
 	static void init_sources();
@@ -279,6 +279,19 @@ std::string KernelCache::get_entry_name_for(const cl::Device &device)
 	return the_dir + "/" + dev_part;
 }
 
+static void _build(cl::Program &program, const cl::Device &device)
+{
+	try {
+		program.build({device});
+	} catch (const cl::BuildError &e) {
+		std::ostringstream os;
+		os << "Error building program: OpenCL error=" << e.err()
+		   << ", what=" << e.what()
+		   << ", build_log=" << std::get<1>(e.getBuildLog()[0]);
+		throw opencl_error(os.str());
+	}
+}
+
 cl::Program KernelCache::build(const cl::Context &context, const cl::Device &device, const SourceInformation &source_info)
 {
 
@@ -289,16 +302,11 @@ cl::Program KernelCache::build(const cl::Context &context, const cl::Device &dev
 	// particular location on disk at runtime)
 
 	cl::Program program(context, {std::get<0>(source_info)});
-	try {
-		program.build({device});
-	} catch (const cl::Error &e) {
-		throw opencl_error("Error building program: " + program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device));
-	}
-
+	_build(program, device);
 	return program;
 }
 
-cl::Program KernelCache::from_cache(const cl::Context &context, const std::string &cache_entry_name, const SourceInformation &source_info)
+cl::Program KernelCache::from_cache(const cl::Context &context, const std::string &cache_entry_name, const SourceInformation &source_info, const cl::Device &device)
 {
 
 	if (!file_exists(cache_entry_name)) {
@@ -334,7 +342,7 @@ cl::Program KernelCache::from_cache(const cl::Context &context, const std::strin
 	}
 
 	std::vector<cl_int> binaries_status;
-	auto program = cl::Program(context, context.getInfo<CL_CONTEXT_DEVICES>(), binaries, &binaries_status, nullptr);
+	auto program = cl::Program(context, {device}, binaries, &binaries_status);
 	for(auto binary_status: binaries_status) {
 		if (binary_status != CL_SUCCESS) {
 			std::ostringstream os;
@@ -344,7 +352,7 @@ cl::Program KernelCache::from_cache(const cl::Context &context, const std::strin
 	}
 
 	// build it and good-bye
-	program.build();
+	_build(program, device);
 	return program;
 }
 
@@ -388,7 +396,7 @@ cl::Program KernelCache::get_program(const cl::Context &context, const cl::Devic
 	// otherwise build it from source
 	auto cache_entry = get_entry_name_for(device);
 	try {
-		return from_cache(context, cache_entry, sources_for_device);
+		return from_cache(context, cache_entry, sources_for_device, device);
 	} catch (const invalid_cache_entry &e) {
 		auto program = build(context, device, sources_for_device);
 		to_cache(cache_entry, sources_for_device, program);
