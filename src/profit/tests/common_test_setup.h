@@ -126,10 +126,12 @@ void assert_images_relative_delta(const Image &expected, const Image &obtained,
 	auto width = expected.getWidth();
 	for(unsigned int i=0; i!=expected.size(); i++) {
 		auto rel_diff = relative_diff(expected[i], obtained[i], zero_treatment);
-		std::ostringstream msg;
-		msg << "Pixel [" << i % width << "," << i / width << "] has values that are too different: ";
-		msg << expected[i] << " v/s " << obtained[i];
-		TSM_ASSERT_LESS_THAN_EQUALS(msg.str(), rel_diff, tolerance);
+		if (rel_diff > tolerance) {
+			std::ostringstream msg;
+			msg << "Pixel [" << i % width << "," << i / width << "] has values that are too different: ";
+			msg << expected[i] << " v/s " << obtained[i];
+			TS_FAIL(msg.str());
+		}
 	}
 }
 
