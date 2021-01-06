@@ -215,6 +215,7 @@ The following convolver types are supported:
  * brute-old: An older, slower brute-force convolver (used only for comparisons)
  * opencl: An OpenCL-based brute-force convolver
  * fft: An FFT-based convolver
+ * null: A no-op convolver, useful for testing
 
 Profiles should be specified as follows (parts between [] are optional):
 

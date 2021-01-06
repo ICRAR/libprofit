@@ -5,6 +5,13 @@ Changelog
 .. highlight:: cpp
 .. namespace:: profit
 
+.. rubric:: Development version
+
+* A new ``null`` convolver has been added
+  that does no convolution
+  and simply returns the source image unmodified.
+  This is only useful for testing.
+
 .. rubric:: 1.9.3
 
 * A bug in the OpenCL implementation of the radial profiles
