@@ -94,7 +94,7 @@ script:
  - cd ${TRAVIS_BUILD_DIR}/build
  - $MAKE_ALL
  - make install
- - PROFIT_HOME=testing-home make CTEST_OUTPUT_ON_FAILURE=1 test
+ - PROFIT_HOME=testing-home CL_LOG_ERRORS="stdout" make CTEST_OUTPUT_ON_FAILURE=1 test
 
 after_success:
  - cd ${TRAVIS_BUILD_DIR}
