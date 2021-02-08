@@ -380,10 +380,10 @@ public:
 	}
 
 	/**
-	 * Assigns zero to all elements of this Image.
+	 * Assigns zero to all elements of this surface.
 	 */
 	void zero() {
-		_data.assign(_data.size(), 0);
+		std::fill(_data.begin(), _data.end(), static_cast<T>(0));
 	}
 
 	/**
