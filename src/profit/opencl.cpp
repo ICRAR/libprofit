@@ -231,6 +231,7 @@ private:
 	std::string get_entry_name_for(const cl::Device &device);
 	cl::Program build(const cl::Context &context, const cl::Device &device, const SourceInformation &source_info);
 	cl::Program from_cache(const cl::Context &context, const std::string &cache_entry_name, const SourceInformation &source_info, const cl::Device &device);
+	cl::Program build_and_cache(const cl::Context &context, const cl::Device &device, const SourceInformation &source_info, const std::string &cache_entry);
 	void to_cache(const std::string &cache_entry_name, const SourceInformation &source_info, const cl::Program &program);
 
 	static void init_sources();
@@ -279,19 +280,6 @@ std::string KernelCache::get_entry_name_for(const cl::Device &device)
 	return the_dir + "/" + dev_part;
 }
 
-static void _build(cl::Program &program, const cl::Device &device)
-{
-	try {
-		program.build({device});
-	} catch (const cl::BuildError &e) {
-		std::ostringstream os;
-		os << "Error building program: OpenCL error=" << e.err()
-		   << ", what=" << e.what()
-		   << ", build_log=" << std::get<1>(e.getBuildLog()[0]);
-		throw opencl_error(os.str());
-	}
-}
-
 cl::Program KernelCache::build(const cl::Context &context, const cl::Device &device, const SourceInformation &source_info)
 {
 
@@ -302,7 +290,7 @@ cl::Program KernelCache::build(const cl::Context &context, const cl::Device &dev
 	// particular location on disk at runtime)
 
 	cl::Program program(context, {std::get<0>(source_info)});
-	_build(program, device);
+	program.build({device});
 	return program;
 }
 
@@ -352,7 +340,7 @@ cl::Program KernelCache::from_cache(const cl::Context &context, const std::strin
 	}
 
 	// build it and good-bye
-	_build(program, device);
+	program.build({device});
 	return program;
 }
 
@@ -379,6 +367,13 @@ void KernelCache::to_cache(const std::string &cache_entry_name, const SourceInfo
 	}
 }
 
+cl::Program KernelCache::build_and_cache(const cl::Context &context, const cl::Device &device,
+    const SourceInformation &source_info, const std::string &cache_entry)
+{
+	auto program = build(context, device, source_info);
+	to_cache(cache_entry, source_info, program);
+	return program;
+}
 
 cl::Program KernelCache::get_program(const cl::Context &context, const cl::Device &device)
 {
@@ -398,9 +393,11 @@ cl::Program KernelCache::get_program(const cl::Context &context, const cl::Devic
 	try {
 		return from_cache(context, cache_entry, sources_for_device, device);
 	} catch (const invalid_cache_entry &e) {
-		auto program = build(context, device, sources_for_device);
-		to_cache(cache_entry, sources_for_device, program);
-		return program;
+		return build_and_cache(context, device, sources_for_device, cache_entry);
+	} catch (const cl::BuildError &e) {
+		// Some OpenCL drivers (e.g., MacOS Mojave Intel) don't correctly build from binaries
+		// so we simply re-build from source
+		return build_and_cache(context, device, sources_for_device, cache_entry);
 	}
 
 }
