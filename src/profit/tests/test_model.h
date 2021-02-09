@@ -400,6 +400,23 @@ public:
 		_test_no_crop({20, 20}, 2, ConvolverType::FFT);
 	}
 
+	void test_reuse_image()
+	{
+		Model m{100, 100};
+		auto sky_profile = m.add_profile("sky");
+		sky_profile->parameter("bg", 1.);
+
+		// after evaluation the image should have a value
+		Image image{m.get_drawing_dimensions()};
+		TS_ASSERT_EQUALS(image[0], 0.);
+		m.evaluate(image);
+		TS_ASSERT_EQUALS(image[0], 1.);
+
+		// we can evaluate again, the result should be the same
+		m.evaluate(image);
+		TS_ASSERT_EQUALS(image[0], 1.);
+	}
+
 };
 
 class TestMaskAdjustments : public CxxTest::TestSuite {
