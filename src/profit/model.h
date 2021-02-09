@@ -112,6 +112,18 @@ public:
 	 */
 	Image evaluate(Point &offset_out = NO_OFFSET);
 
+	/**
+	 * Returns the dimensions that this model will need to use internally when
+	 * drawing profile images, considering any effects like PSF padding,
+	 * finesampling, etc.
+	 *
+	 * This function can be useful to pre-allocate an Image of this size and use
+	 * it with evaluate(Image &, Point &).
+	 * @return The dimensions of the Image this Model will internally draw
+	 * pixels on.
+	 */
+	Dimensions get_drawing_dimensions() const;
+
 #ifdef PROFIT_DEBUG
 	std::map<std::string, std::map<int, int>> get_profile_integrations() const;
 #endif

@@ -256,6 +256,11 @@ void Model::adjust(Mask &mask, const Dimensions &dims, const Image &psf,
 	}
 }
 
+Dimensions Model::get_drawing_dimensions() const
+{
+	return analyze_inputs().drawing_dims;
+}
+
 Image Model::evaluate(Point &offset_out)
 {
 	auto analysis = analyze_inputs();
