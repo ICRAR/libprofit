@@ -7,6 +7,8 @@ Changelog
 
 .. rubric:: Development version
 
+* A new ``get_drawing_dimensions`` method
+  has been added to the :class:`Model` class.
 * A new ``null`` convolver has been added
   that does no convolution
   and simply returns the source image unmodified.
