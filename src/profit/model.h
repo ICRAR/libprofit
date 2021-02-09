@@ -113,6 +113,11 @@ public:
 	Image evaluate(Point &offset_out = NO_OFFSET);
 
 	/**
+	 * Like evaluate(Point &), but the user provides an Image to write data on.
+	 */
+	void evaluate(Image &image, Point &offset_out = NO_OFFSET);
+
+	/**
 	 * Returns the dimensions that this model will need to use internally when
 	 * drawing profile images, considering any effects like PSF padding,
 	 * finesampling, etc.
@@ -395,7 +400,7 @@ private:
 	ProfilePtr make_profile(const std::string &name);
 
 	// Actually produce the image from the profiles and convolve it against the psf
-	Image produce_image(const Mask &mask, const input_analysis &analysis, Point &offset);
+	void produce_image(Image &model_image, const Mask &mask, const input_analysis &analysis, Point &offset);
 
 	// Analyze the model's inputs and produce information needed by other steps
 	input_analysis analyze_inputs() const;

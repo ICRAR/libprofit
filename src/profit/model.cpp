@@ -263,22 +263,35 @@ Dimensions Model::get_drawing_dimensions() const
 
 Image Model::evaluate(Point &offset_out)
 {
+	Image image;
+	evaluate(image, offset_out);
+	return image;
+}
+
+void Model::evaluate(Image &image, Point &offset_out)
+{
 	auto analysis = analyze_inputs();
+
+	if (image.getDimensions() == analysis.drawing_dims) {
+		image.zero();
+	}
+	else {
+		image = Image{analysis.drawing_dims};
+	}
 
 	/* so long folks! */
 	if (dry_run) {
 		inform_offset({0, 0}, offset_out);
-		return Image{analysis.drawing_dims};
+		return;
 	}
 
 	// Adjust mask before passing it down to profiles
 	Point offset;
-	Image image;
 	Mask adjusted_mask;
 	if (adjust_mask && analysis.mask_needs_adjustment) {
 		adjusted_mask = mask;
 		adjust(adjusted_mask, psf, finesampling, analysis);
-		image = produce_image(adjusted_mask, analysis, offset);
+		produce_image(image, adjusted_mask, analysis, offset);
 	}
 	else {
 		if (!adjust_mask && mask.getDimensions() != analysis.drawing_dims) {
@@ -287,7 +300,7 @@ Image Model::evaluate(Point &offset_out)
 			   << mask.getDimensions() << " != " << analysis.drawing_dims;
 			throw invalid_parameter(os.str());
 		}
-		image = produce_image(mask, analysis, offset);
+		produce_image(image, mask, analysis, offset);
 	}
 
 	// Remove PSF padding if one was added, and downsample if necessary
@@ -321,14 +334,15 @@ Image Model::evaluate(Point &offset_out)
 	}
 
 	inform_offset(offset, offset_out);
-	return image;
+	return;
 }
 
-Image Model::produce_image(const Mask &mask, const input_analysis &analysis,
+void Model::produce_image(Image &model_image, const Mask &mask, const input_analysis &analysis,
     Point &offset)
 {
+	assert(model_image.getDimensions() == analysis.drawing_dims);
+
 	// Avoiding memory allocation if no convolution is needed
-	Image model_image{analysis.drawing_dims};
 	Image to_convolve;
 	if (analysis.convolution_required) {
 		to_convolve = Image{analysis.drawing_dims};
@@ -361,7 +375,6 @@ Image Model::produce_image(const Mask &mask, const input_analysis &analysis,
 	}
 
 	/* Done! Good job :-) */
-	return model_image;
 }
 
 std::map<std::string, std::shared_ptr<ProfileStats>> Model::get_stats() const {

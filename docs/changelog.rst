@@ -7,6 +7,12 @@ Changelog
 
 .. rubric:: Development version
 
+* :class:`Model` offers a new flavour of the ``evaluate`` function
+  where users can give a pre-existing :class:`Image` object
+  on which the result will be written.
+  If this user-provided :class:`Image` object
+  is not of the size internally needed by :class:`Model`
+  then it will be internally resized automatically.
 * A new ``get_drawing_dimensions`` method
   has been added to the :class:`Model` class.
 * A new ``null`` convolver has been added
