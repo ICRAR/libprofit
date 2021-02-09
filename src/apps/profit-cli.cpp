@@ -393,13 +393,18 @@ Image run(std::ostream &os, unsigned int iterations, Model &m, Point &offset) {
 	using std::chrono::system_clock;
 
 	/* This means that we evaluated the model once, but who cares */
-	Image result;
 	auto start = system_clock::now();
-	for(unsigned i=0; i!=iterations; i++) {
-		result = m.evaluate(offset);
-	}
+	Image result {m.get_drawing_dimensions()};
 	auto end = system_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	os << "Allocated image in " << std::fixed << std::setprecision(3) << duration << " [ms]\n";
+
+	start = system_clock::now();
+	for(unsigned i=0; i!=iterations; i++) {
+		m.evaluate(result, offset);
+	}
+	end = system_clock::now();
+	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
 	double dur_secs = (double)duration/1000;
 	double dur_per_iter = (double)duration/iterations;
