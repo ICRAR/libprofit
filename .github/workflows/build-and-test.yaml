@@ -53,11 +53,13 @@ jobs:
       - name: Configure
         env:
           LIBPROFIT_NO_OPENMP: ${{ matrix.omp && 'OFF' || 'ON' }}
+          LIBPROFIT_NO_OPENCL: ${{ matrix.os == 'macos-latest' && 'ON' || 'OFF' }}
           LIBPROFIT_USE_R: ${{ matrix.use_r && 'ON' || 'OFF' }}
           CMAKE_EXTRA_FLAGS: ${{ matrix.poor_build && '-DLIBPROFIT_NO_OPENCL=ON -DLIBPROFIT_NO_OPENMP=ON -DLIBPROFIT_NO_FFTW=ON -DLIBPROFIT_NO_SIMD=ON' || '' }}
         run: |
           cmake -B ${CI_BUILD_DIR} -G Ninja \
             -DLIBPROFIT_NO_OPENMP=$LIBPROFIT_NO_OPENMP \
+            -DLIBPROFIT_NO_OPENCL=$LIBPROFIT_NO_OPENCL \
             -DLIBPROFIT_TEST=ON \
             -DLIBPROFIT_USE_R=$LIBPROFIT_USE_R \
             -DCMAKE_CXX_COMPILER=$CXX \
@@ -70,4 +72,4 @@ jobs:
       - name: Run unit tests
         run: |
           cd ${CI_BUILD_DIR}
-          ctest --output-on-failure || ${{ matrix.os == 'macos-latest' && 'true' || 'false' }}
+          ctest --output-on-failure
