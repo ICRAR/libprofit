@@ -1,3 +1,6 @@
 [submodule "3rdparty/getopt"]
 	path = 3rdparty/getopt
 	url = https://github.com/skandhurkat/Getopt-for-Visual-Studio
+[submodule "3rdparty/cxxtest"]
+	path = 3rdparty/cxxtest
+	url = https://github.com/CxxTest/cxxtest
