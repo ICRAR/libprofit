@@ -1,5 +1,10 @@
 name: Build and run tests
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+  # 00:00 UTC every Saturday, don't bother anyone
+  - cron: '0 0 * * 6'
 
 env:
   CI_BUILD_DIR: build
