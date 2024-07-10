@@ -127,7 +127,7 @@ Image from_fits(const std::string &filename, PixelScale &pixel_scale)
 static
 void write_header(std::ofstream &f, const char *header) {
 	char hdr[81];
-	std::sprintf(hdr, "%-80s", header);
+	std::snprintf(hdr, 81, "%-80s", header);
 	f.write(hdr, 80);
 };
 
@@ -135,7 +135,7 @@ template <typename ...Ts>
 static
 void write_header(std::ofstream &f, const char *fmt, Ts&&...values) {
 	char hdr[81];
-	std::sprintf(hdr, fmt, std::forward<Ts>(values)...);
+	std::snprintf(hdr, 81, fmt, std::forward<Ts>(values)...);
 	write_header(f, hdr);
 };
 

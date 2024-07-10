@@ -176,7 +176,7 @@ void show_version(std::ostream &os) {
 	os << endl;
 }
 
-static const char *help_msg = R"===(
+static const char *help_msg_fmt = R"===(
 %s: utility program to generate an image out of a model and a set of profiles
 
 This program is licensed under the GPLv3 license.
@@ -247,10 +247,10 @@ For more information visit https://libprofit.readthedocs.io.
 template <typename T>
 static
 void usage(std::basic_ostream<T> &os, char *prog_name) {
-	char *buff = new char[std::strlen(help_msg) - 4 + std::strlen(prog_name) * 2 + 1];
-	std::sprintf(buff, help_msg, prog_name, prog_name);
+	std::size_t bufsize = std::strlen(help_msg_fmt) - 4 + std::strlen(prog_name) * 2;
+	std::string buff(bufsize, 0);
+	std::snprintf(&buff[0], bufsize, help_msg_fmt, prog_name, prog_name);
 	os << buff;
-	delete []buff;
 }
 
 static
