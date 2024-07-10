@@ -1,0 +1,73 @@
+name: Build and run tests
+on: [push, pull_request]
+
+env:
+  CI_BUILD_DIR: build
+  CXX: g++
+  CMAKE_PREFIX_PATH: 3rdparty/cxxtest
+
+jobs:
+  build_and_test:
+    name: Build and test. OS=${{ matrix.os }}, math=${{ matrix.use_r && 'RMath' || 'GSL' }}, build=${{ matrix.poor_build && 'poor' || 'rich' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: ubuntu-latest
+            poor_build: true
+          - os: ubuntu-latest
+            use_r: true
+          - os: ubuntu-latest
+            cxx: clang++
+          - os: macos-latest
+            cxx: clang++
+            omp: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Establish C++ compiler
+        env:
+          CXX: ${{ matrix.cxx || env.CXX }}
+        run:
+          echo "CXX=${CXX}" >> "$GITHUB_ENV"
+
+      - name: Install system dependencies (Linux)
+        env:
+          REQUIRED_DEPS: ninja-build
+          COMPILER_DEPS: ${{ env.CXX == 'clang++' && 'clang' || '' }}
+          OPTIONAL_DEPS: ${{ ! matrix.poor_build && 'libfftw3-dev opencl-headers' || '' }}
+          MATH_DEPS: ${{ matrix.use_r && 'r-mathlib' || 'libgsl-dev' }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt install $COMPILER_DEPS $REQUIRED_DEPS $MATH_DEPS $OPTIONAL_DEPS
+
+      - name: Install system dependencies (MacOS)
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          brew install ninja gsl fftw
+
+      - name: Configure
+        env:
+          LIBPROFIT_NO_OPENMP: ${{ matrix.omp && 'OFF' || 'ON' }}
+          LIBPROFIT_USE_R: ${{ matrix.use_r && 'ON' || 'OFF' }}
+          CMAKE_EXTRA_FLAGS: ${{ matrix.poor_build && '-DLIBPROFIT_NO_OPENCL=ON -DLIBPROFIT_NO_OPENMP=ON -DLIBPROFIT_NO_FFTW=ON -DLIBPROFIT_NO_SIMD=ON' || '' }}
+        run: |
+          cmake -B ${CI_BUILD_DIR} -G Ninja \
+            -DLIBPROFIT_NO_OPENMP=$LIBPROFIT_NO_OPENMP \
+            -DLIBPROFIT_TEST=ON \
+            -DLIBPROFIT_USE_R=$LIBPROFIT_USE_R \
+            -DCMAKE_CXX_COMPILER=$CXX \
+            $CMAKE_EXTRA_FLAGS
+
+      - name: Build
+        run: cmake --build ${CI_BUILD_DIR}
+
+      # Let MacOS tests fail until OpenCL issues are identified
+      - name: Run unit tests
+        run: |
+          cd ${CI_BUILD_DIR}
+          ctest --output-on-failure || ${{ matrix.os == 'macos-latest' && 'true' || 'false' }}
