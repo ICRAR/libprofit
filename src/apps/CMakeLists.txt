@@ -22,7 +22,7 @@
 # along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
 
 add_executable(profit-cli fits_utils.cpp profit-cli.cpp)
-target_link_libraries(profit-cli profit GSL::gsl)
+target_link_libraries(profit-cli profit)
 if (MSVC)
 	target_include_directories(profit-cli PRIVATE ${PROFIT_GETOPT_DIR})
 endif()
