@@ -233,7 +233,8 @@ public:
 		if (has_fftw()) {
 			_test_psf_bigger_than_image(ConvolverType::FFT);
 		}
-		if (has_opencl() && !get_opencl_info().empty()) {
+		auto opencl_info = get_opencl_info();
+		if (!opencl_info.empty() && !opencl_info[0].dev_info.empty()) {
 			ConvolverCreationPreferences prefs;
 			prefs.opencl_env = get_opencl_environment(0, 0, false, false);
 			_test_psf_bigger_than_image(ConvolverType::OPENCL, prefs);

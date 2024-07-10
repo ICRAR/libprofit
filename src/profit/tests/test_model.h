@@ -513,7 +513,8 @@ private:
 		if (has_fftw()) {
 			convolvers.emplace_back(create_convolver(ConvolverType::FFT));
 		}
-		if (has_opencl() && !get_opencl_info().empty()) {
+		auto opencl_info = get_opencl_info();
+		if (!opencl_info.empty() && !opencl_info[0].dev_info.empty()) {
 			ConvolverCreationPreferences prefs;
 			prefs.opencl_env = get_opencl_environment(0, 0, false, false);
 			convolvers.emplace_back(create_convolver(ConvolverType::OPENCL, prefs));
