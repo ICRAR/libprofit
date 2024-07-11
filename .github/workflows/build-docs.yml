@@ -1,0 +1,20 @@
+name: Build documentation
+on: [push, pull_request]
+env:
+  SPHINXOPTS: -W --keep-going
+
+jobs:
+  build-docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install system dependencies
+      run: sudo apt install -y doxygen
+    - name: Install python dependencies
+      run: pip install -r docs/requirements.txt
+    - name: Build documentation
+      run: make html -C docs SPHINXOPTS="$SPHINXOPTS"
