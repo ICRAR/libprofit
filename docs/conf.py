@@ -19,7 +19,8 @@ import sys
 
 # Run doxygen if we're in RTD to generate the XML documentation from C++
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
-if read_the_docs_build:
+github_actions_build = os.environ.get('GITHUB_ACTIONS', None) == 'true'
+if read_the_docs_build or github_actions_build:
     subprocess.call('doxygen')
 
 # If extensions (or modules to document with autodoc) are in another directory,
