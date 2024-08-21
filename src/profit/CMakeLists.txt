@@ -128,8 +128,6 @@ target_include_directories(profit PRIVATE ${PROFIT_INCLUDE_DIRS})
 #
 install(TARGETS profit
     EXPORT profit-targets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
 )
 install(FILES
     ${PUBLIC_HEADERS}

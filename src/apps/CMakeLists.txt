@@ -29,7 +29,6 @@ endif()
 
 install(TARGETS profit-cli
         EXPORT profit-targets
-        RUNTIME DESTINATION bin
 )
 
 if (LIBPROFIT_TEST)
